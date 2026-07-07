@@ -1,0 +1,143 @@
+using ChaosCoordinator.Api.Auth;
+using ChaosCoordinator.Api.Dtos;
+using ChaosCoordinator.Api.Realtime;
+using ChaosCoordinator.Data;
+using ChaosCoordinator.Domain;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace ChaosCoordinator.Api.Controllers;
+
+[ApiController]
+[Route("api/chores")]
+public class ChoresController(
+    AppDbContext db,
+    ICurrentUserAccessor currentUser,
+    HouseholdContext household,
+    IPinElevationStore pinElevation,
+    IHouseholdNotifier notifier
+) : ControllerBase
+{
+    [HttpPost]
+    [RequirePinElevation]
+    public async Task<IActionResult> Create(CreateChoreRequest request)
+    {
+        var group = await db.ChoreGroups.FirstOrDefaultAsync(g => g.Id == request.GroupId && g.HouseholdId == household.HouseholdId);
+        if (group is null) return NotFound(new { error = "group_not_found" });
+
+        var chore = new Chore
+        {
+            Id = Guid.NewGuid(),
+            GroupId = request.GroupId,
+            Title = request.Title,
+            Instructions = request.Instructions,
+            RecurrenceType = request.RecurrenceType,
+            RecurrenceDays = request.RecurrenceDays,
+            PhotoRequired = request.PhotoRequired,
+            Assignments = request.AssigneeUserIds.Select(uid => new ChoreAssignment { UserId = uid }).ToList(),
+        };
+        db.Chores.Add(chore);
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+        return Ok(chore.ToDto(DateOnly.FromDateTime(DateTime.Today)));
+    }
+
+    [HttpPatch("{id:guid}")]
+    [RequirePinElevation]
+    public async Task<IActionResult> Update(Guid id, UpdateChoreRequest request)
+    {
+        var chore = await db.Chores.Include(c => c.Assignments).Include(c => c.Group)
+            .FirstOrDefaultAsync(c => c.Id == id && c.Group!.HouseholdId == household.HouseholdId);
+        if (chore is null) return NotFound();
+
+        chore.Title = request.Title;
+        chore.Instructions = request.Instructions;
+        chore.RecurrenceType = request.RecurrenceType;
+        chore.RecurrenceDays = request.RecurrenceDays;
+        chore.PhotoRequired = request.PhotoRequired;
+
+        db.ChoreAssignments.RemoveRange(chore.Assignments);
+        chore.Assignments = request.AssigneeUserIds.Select(uid => new ChoreAssignment { ChoreId = chore.Id, UserId = uid }).ToList();
+
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    [RequirePinElevation]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var chore = await db.Chores.Include(c => c.Group).FirstOrDefaultAsync(c => c.Id == id && c.Group!.HouseholdId == household.HouseholdId);
+        if (chore is null) return NotFound();
+
+        db.Chores.Remove(chore);
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+        return NoContent();
+    }
+
+    /// <summary>Assignees can check off their own chore; anyone else needs a verified parent PIN
+    /// (e.g. a parent marking it complete on a kid's behalf).</summary>
+    [HttpPost("{id:guid}/complete")]
+    public async Task<IActionResult> Complete(Guid id, CompleteChoreRequest request)
+    {
+        var chore = await db.Chores.Include(c => c.Assignments).Include(c => c.Group)
+            .FirstOrDefaultAsync(c => c.Id == id && c.Group!.HouseholdId == household.HouseholdId);
+        if (chore is null) return NotFound();
+
+        var isAssignee = currentUser.UserId is { } uid && chore.Assignments.Any(a => a.UserId == uid);
+        if (!isAssignee && !pinElevation.IsElevated(HttpContext.Session.Id))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "pin_required" });
+        }
+
+        if (chore.PhotoRequired && string.IsNullOrEmpty(request.PhotoUrl))
+        {
+            return BadRequest(new { error = "photo_required" });
+        }
+
+        var completedById = currentUser.UserId ?? chore.Assignments.First().UserId;
+        var existing = await db.ChoreCompletions.FirstOrDefaultAsync(x => x.ChoreId == id && x.Date == request.Date);
+        if (existing is null)
+        {
+            db.ChoreCompletions.Add(new ChoreCompletion
+            {
+                Id = Guid.NewGuid(),
+                ChoreId = id,
+                Date = request.Date,
+                CompletedById = completedById,
+                CompletedAt = DateTime.UtcNow,
+                PhotoUrl = request.PhotoUrl,
+            });
+        }
+
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/complete/{date}")]
+    public async Task<IActionResult> Uncomplete(Guid id, DateOnly date)
+    {
+        var chore = await db.Chores.Include(c => c.Assignments).Include(c => c.Group)
+            .FirstOrDefaultAsync(c => c.Id == id && c.Group!.HouseholdId == household.HouseholdId);
+        if (chore is null) return NotFound();
+
+        var isAssignee = currentUser.UserId is { } uid && chore.Assignments.Any(a => a.UserId == uid);
+        if (!isAssignee && !pinElevation.IsElevated(HttpContext.Session.Id))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { error = "pin_required" });
+        }
+
+        var completion = await db.ChoreCompletions.FirstOrDefaultAsync(x => x.ChoreId == id && x.Date == date);
+        if (completion is not null)
+        {
+            db.ChoreCompletions.Remove(completion);
+            await db.SaveChangesAsync();
+            await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+        }
+
+        return NoContent();
+    }
+}

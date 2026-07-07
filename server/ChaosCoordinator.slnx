@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj" />
+    <Project Path="src/ChaosCoordinator.Data/ChaosCoordinator.Data.csproj" />
+    <Project Path="src/ChaosCoordinator.Domain/ChaosCoordinator.Domain.csproj" />
+  </Folder>
+</Solution>

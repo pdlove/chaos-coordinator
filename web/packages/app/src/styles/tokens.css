@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: theme("colors.app");
+    font-family: theme("fontFamily.sans");
+    color: theme("colors.ink");
+  }
+
+  a {
+    color: #4c8bf5;
+  }
+  a:hover {
+    color: #3a72d1;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}

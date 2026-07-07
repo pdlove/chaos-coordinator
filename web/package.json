@@ -1,0 +1,13 @@
+{
+  "name": "chaos-coordinator-web",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@chaos-coordinator/app",
+    "build": "npm run build --workspaces --if-present",
+    "codegen": "npm run codegen --workspace=@chaos-coordinator/shared",
+    "lint": "npm run lint --workspaces --if-present"
+  }
+}
