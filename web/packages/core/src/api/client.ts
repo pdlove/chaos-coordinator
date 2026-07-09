@@ -2,6 +2,7 @@ import type {
   BillsMonthDto,
   BillTemplateDto,
   CalendarEventDto,
+  CancelEventOccurrenceRequest,
   ChoreDto,
   CreateBillTemplateRequest,
   UpdateBillTemplateRequest,
@@ -11,6 +12,7 @@ import type {
   CreateChoreRequest,
   CreateEventRequest,
   CreateHouseholdTaskRequest,
+  LoginRequest,
   CreateDietaryTagRequest,
   CreateItemRequest,
   CreateProjectRequest,
@@ -98,6 +100,9 @@ export const api = {
     apiFetch<string[]>("/api/household/bottom-bar-tabs", { method: "PATCH", body: JSON.stringify(req) }),
 
   getSession: () => apiFetch<SessionDto>("/api/auth/session"),
+  login: (req: LoginRequest) =>
+    apiFetch<SessionDto>("/api/auth/login", { method: "POST", body: JSON.stringify(req) }),
+  logout: () => apiFetch<SessionDto>("/api/auth/logout", { method: "POST" }),
   selectProfile: (req: SelectProfileRequest) =>
     apiFetch<SessionDto>("/api/auth/select-profile", { method: "POST", body: JSON.stringify(req) }),
   verifyPin: (req: VerifyPinRequest) =>
@@ -114,6 +119,8 @@ export const api = {
   updateEvent: (id: string, req: UpdateEventRequest) =>
     apiFetch<CalendarEventDto>(`/api/events/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   deleteEvent: (id: string) => apiFetch<void>(`/api/events/${id}`, { method: "DELETE" }),
+  cancelEventOccurrence: (id: string, req: CancelEventOccurrenceRequest) =>
+    apiFetch<void>(`/api/events/${id}/exceptions`, { method: "POST", body: JSON.stringify(req) }),
 
   getChoreGroups: (date: string) => apiFetch<ChoreGroupDto[]>(`/api/chore-groups?date=${date}`),
   createChoreGroup: (req: CreateChoreGroupRequest) =>

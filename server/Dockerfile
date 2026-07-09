@@ -9,7 +9,7 @@ COPY src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj src/ChaosCoordinator.A
 RUN dotnet restore src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj
 
 COPY src/ ./src/
-RUN dotnet publish src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj -c Release -o /app --no-restore
+RUN dotnet publish src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

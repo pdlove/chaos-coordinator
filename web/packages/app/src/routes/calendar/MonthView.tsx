@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   addDays,
   isSameDay,
@@ -10,20 +10,24 @@ import {
 import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+const DOUBLE_TAP_MS = 300;
 
 interface MonthViewProps {
   date: Date;
-  onSelectEvent: (event: CalendarEventDto) => void;
+  onViewEvent: (event: CalendarEventDto) => void;
+  onAddForDay: (day: Date) => void;
 }
 
-export function MonthView({ date, onSelectEvent }: MonthViewProps) {
+export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
   const [selectedDay, setSelectedDay] = useState(date);
   const gridStart = startOfMonthGrid(date);
   const gridDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
   const rangeEnd = addDays(gridStart, 42);
   const { data: events } = useEvents(gridStart, rangeEnd);
   const today = new Date();
-  const month = date.getMonth();
+  const month = startOfMonth(date).getMonth();
+
+  const lastTapRef = useRef<{ key: string; time: number } | null>(null);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalendarEventDto[]>();
@@ -37,6 +41,18 @@ export function MonthView({ date, onSelectEvent }: MonthViewProps) {
   const selectedEvents = (eventsByDay.get(selectedDay.toDateString()) ?? []).sort((a, b) =>
     a.start.localeCompare(b.start)
   );
+
+  function handleDayTap(day: Date) {
+    const key = day.toDateString();
+    const now = Date.now();
+    if (lastTapRef.current?.key === key && now - lastTapRef.current.time < DOUBLE_TAP_MS) {
+      lastTapRef.current = null;
+      onAddForDay(day);
+    } else {
+      lastTapRef.current = { key, time: now };
+      setSelectedDay(day);
+    }
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -58,7 +74,7 @@ export function MonthView({ date, onSelectEvent }: MonthViewProps) {
           return (
             <button
               key={day.toISOString()}
-              onClick={() => setSelectedDay(day)}
+              onClick={() => handleDayTap(day)}
               className="flex flex-col items-center gap-1 py-1"
             >
               <span
@@ -89,7 +105,7 @@ export function MonthView({ date, onSelectEvent }: MonthViewProps) {
             {selectedEvents.map((e) => (
               <button
                 key={e.id}
-                onClick={() => onSelectEvent(e)}
+                onClick={() => onViewEvent(e)}
                 className="rounded-xl bg-card px-3 py-2.5 text-left text-xs font-semibold text-ink shadow-sm"
                 style={{ borderLeft: `3px solid ${CATEGORY_ACCENT[e.category]}` }}
               >

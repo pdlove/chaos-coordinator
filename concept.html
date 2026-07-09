@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#F1EDE4;font-family:'Plus Jakarta Sans',sans-serif;}
+  a{color:#4C8BF5;} a:hover{color:#3a72d1;}
+  ::-webkit-scrollbar{width:0;height:0;}
+</style>
+</helmet>
+
+<div style="padding:56px 64px 120px;max-width:1400px;">
+
+  <!-- ============ INTRO / SYSTEM ============ -->
+  <div style="max-width:760px;margin-bottom:56px;">
+    <div style="font:800 34px/1.15 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:14px;">Chaos Coordinator</div>
+    <div style="font:500 16px/1.6 'Plus Jakarta Sans',sans-serif;color:#6B6459;margin-bottom:22px;">A family command center: phone app for calendar, chores, shopping, bills and food &mdash; plus an always-on wall display for the kitchen. Bright, minimal, built so a 10-year-old and a parent can both use it without a manual.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:28px;padding:20px 24px;background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(33,29,24,0.06);">
+      <div>
+        <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Household</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:26px;height:26px;border-radius:50%;background:#FF6B57;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">CL</div><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Carmen &middot; Parent</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:26px;height:26px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">PL</div><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Paul &middot; Parent</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:26px;height:26px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">BL</div><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Ben &middot; Child</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:26px;height:26px;border-radius:50%;background:#F2A93B;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">EL</div><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Emma &middot; Child</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:26px;height:26px;border-radius:50%;background:#9B6BD9;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">TM</div><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tina &middot; Adult</span></div>
+        </div>
+      </div>
+      <div style="width:1px;background:#ECE7DE;"></div>
+      <div>
+        <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Tag colors</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:340px;">
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#EAF1FE;color:#4C8BF5;">Work</span>
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#F2ECFB;color:#9B6BD9;">School</span>
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#FDEBEF;color:#E8607A;">Doctor</span>
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#E7F8F6;color:#1B9A8C;">Home</span>
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#FEF3E2;color:#C97F16;">Personal</span>
+          <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#FFEDE9;color:#E1543C;">Activities</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: CALENDAR ============ -->
+  <div data-screen-label="Calendar" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; CALENDAR</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+
+    <!-- Calendar - Parent view -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Day view &middot; Parent (Carmen)</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">
+            <span>9:41</span>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <svg width="16" height="11" viewBox="0 0 16 11"><path d="M1 8h2v2H1zM5 5h2v5H5zM9 3h2v7H9zM13 0h2v10h-2z" fill="#211D18"/></svg>
+              <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="#211D18" fill="none"/><rect x="2" y="2" width="14" height="7" rx="1" fill="#211D18"/><rect x="20" y="3.5" width="1.5" height="4" fill="#211D18"/></svg>
+            </div>
+          </div>
+          <div style="flex:none;padding:6px 20px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tuesday, Jul 7</div>
+            <div style="display:flex;gap:6px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#211D18;color:#fff;">Day</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Week</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Month</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 20px 14px;display:flex;gap:8px;overflow-x:auto;">
+            <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:6px 13px;border-radius:100px;background:#211D18;color:#fff;white-space:nowrap;">All</span>
+            <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:6px 13px;border-radius:100px;background:#EAF1FE;color:#4C8BF5;white-space:nowrap;">Work</span>
+            <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:6px 13px;border-radius:100px;background:#F2ECFB;color:#9B6BD9;white-space:nowrap;">School</span>
+            <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:6px 13px;border-radius:100px;background:#FDEBEF;color:#E8607A;white-space:nowrap;">Doctor</span>
+            <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:6px 13px;border-radius:100px;background:#E7F8F6;color:#1B9A8C;white-space:nowrap;">Home</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">9:00<br>AM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #4C8BF5;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Team standup</div>
+                  <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:100px;background:#EAF1FE;color:#4C8BF5;">Work</span>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">9:00 &ndash; 9:30 AM</div>
+                <div style="display:flex;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">11:00<br>AM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #1FB6A6;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Grocery run</div>
+                  <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:100px;background:#E7F8F6;color:#1B9A8C;">Home</span>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">11:00 AM &ndash; 12:00 PM</div>
+                <div style="display:flex;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#FF6B57;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">2:00<br>PM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #E8607A;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Dentist &mdash; Emma</div>
+                  <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:100px;background:#FDEBEF;color:#E8607A;">Doctor</span>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">2:00 &ndash; 2:45 PM</div>
+                <div style="display:flex;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#F2A93B;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">EL</div>
+                  <div style="width:22px;height:22px;border-radius:50%;background:#FF6B57;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-8px;">CL</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">4:00<br>PM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #FF6B57;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Soccer practice</div>
+                  <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:100px;background:#FFEDE9;color:#E1543C;">Activities</span>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">4:00 &ndash; 5:30 PM</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                  <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">created by Paul</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div style="position:absolute;right:18px;bottom:96px;width:52px;height:52px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(33,29,24,0.3);">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </div>
+          <div style="flex:none;height:78px;background:#fff;border-top:1px solid #ECE7DE;display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="3.5" width="15" height="14" rx="2.5" stroke="#211D18" stroke-width="1.7"/><path d="M2.5 7.5h15M6.5 2v3M13.5 2v3" stroke="#211D18" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Calendar</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l3.5 3.5L16 5" stroke="#211D18" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tasks</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 7h12l-1 9.5a1.5 1.5 0 0 1-1.5 1.3h-7a1.5 1.5 0 0 1-1.5-1.3L4 7z" stroke="#211D18" stroke-width="1.7"/><path d="M7 7V5.5a3 3 0 0 1 6 0V7" stroke="#211D18" stroke-width="1.7"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Shopping</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.3" stroke="#211D18" stroke-width="1.7"/><path d="M10 6.3v4l2.6 1.6" stroke="#211D18" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Bills</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="4.5" cy="10" r="1.6" fill="#211D18"/><circle cx="10" cy="10" r="1.6" fill="#211D18"/><circle cx="15.5" cy="10" r="1.6" fill="#211D18"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">More</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar - Child view + permission callout -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Day view &middot; Child (Ben) &mdash; entries he didn't create are locked</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">
+            <span>9:41</span>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <svg width="16" height="11" viewBox="0 0 16 11"><path d="M1 8h2v2H1zM5 5h2v5H5zM9 3h2v7H9zM13 0h2v10h-2z" fill="#211D18"/></svg>
+              <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="#211D18" fill="none"/><rect x="2" y="2" width="14" height="7" rx="1" fill="#211D18"/><rect x="20" y="3.5" width="1.5" height="4" fill="#211D18"/></svg>
+            </div>
+          </div>
+          <div style="flex:none;padding:6px 20px 16px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tuesday, Jul 7</div>
+            <div style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Hi Ben &mdash; here's your day</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">2:00<br>PM</div>
+              <div style="flex:1;background:#F2F0EA;border-radius:16px;padding:12px 14px;border-left:4px solid #D8D2C4;position:relative;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Dentist &mdash; Emma</div>
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="4.5" y="9" width="11" height="8" rx="2" stroke="#8B8478" stroke-width="1.6"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="#8B8478" stroke-width="1.6"/></svg>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin:2px 0 8px;">2:00 &ndash; 2:45 PM &middot; set by Mom</div>
+                <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Read-only &mdash; you're not the owner</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">4:00<br>PM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #FF6B57;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Soccer practice</div>
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><rect x="4.5" y="9" width="11" height="8" rx="2" stroke="#B6AFA2" stroke-width="1.6"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="#B6AFA2" stroke-width="1.6"/></svg>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">4:00 &ndash; 5:30 PM &middot; set by Dad</div>
+                <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">You're going, but Dad owns this entry</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="width:52px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">6:30<br>PM</div>
+              <div style="flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #1FB6A6;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Game night w/ Marcus</div>
+                  <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#1B9A8C;">Yours</span>
+                </div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">6:30 &ndash; 8:00 PM &middot; you created this</div>
+                <div style="display:flex;gap:6px;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                  <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#1B9A8C;align-self:center;">Edit &middot; Delete available</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div style="flex:none;height:78px;background:#fff;border-top:1px solid #ECE7DE;display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="3.5" width="15" height="14" rx="2.5" stroke="#211D18" stroke-width="1.7"/><path d="M2.5 7.5h15M6.5 2v3M13.5 2v3" stroke="#211D18" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Calendar</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l3.5 3.5L16 5" stroke="#211D18" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tasks</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 7h12l-1 9.5a1.5 1.5 0 0 1-1.5 1.3h-7a1.5 1.5 0 0 1-1.5-1.3L4 7z" stroke="#211D18" stroke-width="1.7"/><path d="M7 7V5.5a3 3 0 0 1 6 0V7" stroke="#211D18" stroke-width="1.7"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Shopping</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.3" stroke="#211D18" stroke-width="1.7"/><path d="M10 6.3v4l2.6 1.6" stroke="#211D18" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Bills</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.42;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="4.5" cy="10" r="1.6" fill="#211D18"/><circle cx="10" cy="10" r="1.6" fill="#211D18"/><circle cx="15.5" cy="10" r="1.6" fill="#211D18"/></svg>
+              <span style="font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;">More</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar - Week view -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Week view</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font:800 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Jul 6 &ndash; 12</div>
+            <div style="display:flex;gap:6px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Day</span>
+              <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#211D18;color:#fff;">Week</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Month</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:14px;">
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Mon</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">Jul 6</span></div>
+              <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #9B6BD9;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">3:30 PM &middot; Piano lesson &mdash; Emma</div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:800 13px 'Plus Jakarta Sans',sans-serif;color:#fff;background:#211D18;padding:2px 8px;border-radius:100px;">Tue</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Jul 7 &middot; Today</span></div>
+              <div style="display:flex;flex-direction:column;gap:5px;">
+                <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #4C8BF5;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">9:00 AM &middot; Team standup</div>
+                <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #E8607A;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2:00 PM &middot; Dentist &mdash; Emma</div>
+                <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #FF6B57;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">4:00 PM &middot; Soccer practice</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Wed</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">Jul 8</span></div>
+              <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">No events</div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Thu</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">Jul 9</span></div>
+              <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #1B9A8C;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">6:00 PM &middot; Take out trash &mdash; Ben</div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Fri</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">Jul 10</span></div>
+              <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #F2A93B;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">7:00 PM &middot; Family movie night</div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;"><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Sat</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">Jul 11</span></div>
+              <div style="background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #1FB6A6;font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">10:00 AM &middot; Vacuum living room &mdash; Emma</div>
+            </div>
+
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar - Month view -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Month view</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font:800 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">July 2026</div>
+            <div style="display:flex;gap:6px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Day</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;color:#8B8478;">Week</span>
+              <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;background:#211D18;color:#fff;">Month</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 20px;display:grid;grid-template-columns:repeat(7,1fr);text-align:center;">
+            <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">S</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">M</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">T</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">W</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">T</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">F</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">S</span>
+          </div>
+          <div style="flex:none;padding:0 20px;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:50px;">
+            <div></div><div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1</span><span style="width:4px;height:4px;border-radius:50%;background:#4C8BF5;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">3</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">4</span><span style="width:4px;height:4px;border-radius:50%;background:#FF6B57;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">5</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">6</span><span style="width:4px;height:4px;border-radius:50%;background:#9B6BD9;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:2px;"><span style="width:24px;height:24px;border-radius:50%;background:#211D18;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">7</span><div style="display:flex;gap:2px;"><span style="width:4px;height:4px;border-radius:50%;background:#4C8BF5;"></span><span style="width:4px;height:4px;border-radius:50%;background:#E8607A;"></span><span style="width:4px;height:4px;border-radius:50%;background:#FF6B57;"></span></div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">8</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">9</span><span style="width:4px;height:4px;border-radius:50%;background:#1B9A8C;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">10</span><span style="width:4px;height:4px;border-radius:50%;background:#F2A93B;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">11</span><span style="width:4px;height:4px;border-radius:50%;background:#1FB6A6;"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">12</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:4px;"><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">13</span></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:10px 20px 20px;border-top:1px solid #ECE7DE;margin-top:8px;">
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin:8px 0;">Tuesday, Jul 7</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#fff;border-radius:12px;padding:9px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #4C8BF5;font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">9:00 AM &middot; Team standup</div>
+              <div style="background:#fff;border-radius:12px;padding:9px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #E8607A;font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2:00 PM &middot; Dentist &mdash; Emma</div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: CHORES & TASKS ============ -->
+  <div data-screen-label="Chores &amp; Tasks" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; CHORES &amp; TASKS</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Chores tab &mdash; kid-friendly checklist</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Chores &amp; Tasks</div>
+            <div style="display:flex;gap:4px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="flex:1;text-align:center;font:700 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;background:#211D18;color:#fff;">Chores</span>
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Household</span>
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Projects</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:18px;">
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">Morning</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#E1543C;">Overdue &middot; done by 8:00 AM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border:1.5px solid #F6C9C0;">
+                  <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Make bed</div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                      <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M4 7a6 6 0 0 1 10.5-4M16 3v4h-4M16 13a6 6 0 0 1-10.5 4M4 17v-4h4" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Daily</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;">
+                    <div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                    <div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">EL</div>
+                  </div>
+                </div>
+
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border:1.5px solid #F6C9C0;">
+                  <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;min-width:0;"><div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">Feed the dog</div>
+                      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="flex:none;"><rect x="3" y="5" width="14" height="11" rx="2" stroke="#B6AFA2" stroke-width="1.6"/><circle cx="10" cy="10.5" r="2.6" stroke="#B6AFA2" stroke-width="1.6"/><rect x="7" y="3" width="6" height="2.4" rx="1" fill="#B6AFA2"/></svg>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                      <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M4 7a6 6 0 0 1 10.5-4M16 3v4h-4M16 13a6 6 0 0 1-10.5 4M4 17v-4h4" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Daily &middot; photo required</span>
+                    </div>
+                  </div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">After Lunch</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 4:00 PM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);opacity:.55;">
+                  <div style="width:22px;height:22px;border-radius:7px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+                  <div style="flex:1;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-decoration:line-through;">Unload dishwasher</div>
+                    <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:3px;">Daily &middot; done 12:15 PM</div>
+                  </div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">EL</div>
+                </div>
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Take out trash</div>
+                    <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:3px;">Mon &amp; Thu</div>
+                  </div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">Before Bed</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 8:30 PM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;min-width:0;"><div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">Vacuum living room</div>
+                    <svg width="13" height="12" viewBox="0 0 20 20" fill="none" style="flex:none;"><path d="M4 5h9M4 9h12M4 13h7" stroke="#B6AFA2" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+                    <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:3px;">Weekly &middot; has instructions</div>
+                  </div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">EL</div>
+                </div>
+                <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Pack backpack for school</div>
+                    <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:3px;">Daily</div>
+                  </div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div>
+                </div>
+              </div>
+            </div>
+            <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;text-align:center;">Empty groups are hidden automatically &middot; up to 4 groups, renamed in Chore Group Settings</div>
+          </div>
+          <div style="flex:none;height:78px;background:#fff;border-top:1px solid #ECE7DE;display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;">
+            <div style="opacity:.42;font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-align:center;">&#128197;<br>Calendar</div>
+            <div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-align:center;">&#10003;<br>Tasks</div>
+            <div style="opacity:.42;font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-align:center;">&#128722;<br>Shopping</div>
+            <div style="opacity:.42;font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-align:center;">&#128176;<br>Bills</div>
+            <div style="opacity:.42;font:600 10px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-align:center;">&bull;&bull;&bull;<br>More</div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chore detail: notes + photo evidence -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Chore detail &mdash; instructions + photo evidence</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:10px 20px;display:flex;align-items:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="#211D18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Vacuum living room</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:6px 20px 20px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;gap:16px;">
+              <div>
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Assigned</div>
+                <div style="display:flex;"><div style="width:26px;height:26px;border-radius:50%;background:#F2A93B;color:#fff;font:700 10px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">EL</div></div>
+              </div>
+              <div>
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Recurrence</div>
+                <div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Weekly &middot; Saturdays</div>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">How to do it</div>
+              <div style="font:500 13px/1.6 'Plus Jakarta Sans',sans-serif;color:#3D3830;">1. Clear floor of toys/shoes first&NewLine;2. Vacuum under the couch cushions too&NewLine;3. Empty canister when done, don't leave it full</div>
+            </div>
+            <div style="background:#FEF3E2;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="flex:none;margin-top:1px;"><rect x="3" y="6" width="14" height="10.5" rx="2.2" stroke="#C97F16" stroke-width="1.6"/><circle cx="10" cy="11" r="3" stroke="#C97F16" stroke-width="1.6"/><rect x="7" y="3.5" width="6" height="2.6" rx="1" fill="#C97F16"/></svg>
+              <div>
+                <div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Photo evidence required</div>
+                <div style="font:500 12px/1.5 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Take a photo of the finished room to mark this complete.</div>
+              </div>
+            </div>
+            <div style="width:100%;height:150px;border-radius:16px;border:2px dashed #D8D2C4;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">
+              <svg width="30" height="30" viewBox="0 0 20 20" fill="none"><rect x="3" y="6" width="14" height="10.5" rx="2.2" stroke="#B6AFA2" stroke-width="1.5"/><circle cx="10" cy="11" r="3" stroke="#B6AFA2" stroke-width="1.5"/><rect x="7" y="3.5" width="6" height="2.6" rx="1" fill="#B6AFA2"/></svg>
+              <span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Tap to take photo</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:16px 20px 28px;">
+            <div style="height:52px;border-radius:16px;background:#211D18;display:flex;align-items:center;justify-content:center;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#fff;">Mark Complete</div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Household Tasks tab -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Household tab &mdash; single pool, up for grabs by anyone</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Chores &amp; Tasks</div>
+            <div style="display:flex;gap:4px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Chores</span>
+              <span style="flex:1;text-align:center;font:700 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;background:#211D18;color:#fff;">Household</span>
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Projects</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 20px 12px;font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Anyone can claim &mdash; parents, kids or Tina.</div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:9px;">
+
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:11px;">
+              <div style="flex:1;">
+                <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Fix leaky faucet</div>
+                <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:2px;">Kitchen sink &middot; unclaimed</div>
+              </div>
+              <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:7px 13px;border-radius:100px;border:1.5px solid #211D18;color:#211D18;">Claim</span>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:11px;">
+              <div style="flex:1;">
+                <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Change AC filter</div>
+                <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:2px;">Due this week &middot; unclaimed</div>
+              </div>
+              <span style="font:700 11.5px 'Plus Jakarta Sans',sans-serif;padding:7px 13px;border-radius:100px;border:1.5px solid #211D18;color:#211D18;">Claim</span>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:11px;">
+              <div style="flex:1;">
+                <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Organize pantry</div>
+                <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:2px;">In progress</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#FF6B57;color:#fff;font:700 9.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:11px;">
+              <div style="flex:1;">
+                <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Clean out garage</div>
+                <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:2px;">Claimed together</div>
+              </div>
+              <div style="display:flex;"><div style="width:24px;height:24px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 9.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div><div style="width:24px;height:24px;border-radius:50%;background:#9B6BD9;color:#fff;font:700 9.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-8px;">TM</div></div>
+            </div>
+
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects tab: list -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Projects tab &mdash; multiple named task lists</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Chores &amp; Tasks</div>
+            <div style="display:flex;gap:4px;background:#ECE7DE;padding:3px;border-radius:100px;">
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Chores</span>
+              <span style="flex:1;text-align:center;font:600 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Household</span>
+              <span style="flex:1;text-align:center;font:700 11px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;background:#211D18;color:#fff;">Projects</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+
+            <div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">House Repairs</div>
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">2 / 5</span>
+              </div>
+              <div style="height:6px;border-radius:3px;background:#ECE7DE;margin:10px 0 8px;overflow:hidden;"><div style="width:40%;height:100%;background:#4C8BF5;"></div></div>
+              <div style="display:flex;"><div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div><div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">CL</div></div>
+            </div>
+
+            <div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Weekend Cleanup</div>
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">0 / 4</span>
+              </div>
+              <div style="height:6px;border-radius:3px;background:#ECE7DE;margin:10px 0 8px;overflow:hidden;"><div style="width:0%;height:100%;background:#1FB6A6;"></div></div>
+              <div style="display:flex;"><div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">BL</div><div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">EL</div><div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">CL</div></div>
+            </div>
+
+            <div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Holiday Prep</div>
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">5 / 5</span>
+              </div>
+              <div style="height:6px;border-radius:3px;background:#ECE7DE;margin:10px 0 8px;overflow:hidden;"><div style="width:100%;height:100%;background:#1B9A8C;"></div></div>
+              <div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#1B9A8C;">Complete</div>
+            </div>
+
+          </div>
+          <div style="flex:none;padding:0 20px 26px;">
+            <div style="height:48px;border-radius:14px;background:#fff;border:1.5px dashed #D8D2C4;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#8B8478" stroke-width="2" stroke-linecap="round"/></svg>
+              <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">New project list</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project detail -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Project detail &mdash; House Repairs</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:10px 20px 14px;display:flex;align-items:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="#211D18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span style="font:800 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">House Repairs</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;">
+
+            <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);opacity:.55;">
+              <div style="width:22px;height:22px;border-radius:7px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+              <div style="flex:1;font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-decoration:line-through;">Patch drywall in hallway</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);opacity:.55;">
+              <div style="width:22px;height:22px;border-radius:7px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+              <div style="flex:1;font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-decoration:line-through;">Re-caulk bathroom tub</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+              <div style="flex:1;font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Fix squeaky door hinges</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+              <div style="flex:1;font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Replace porch light</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;"></div>
+              <div style="flex:1;font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Reseal driveway</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 20px 26px;">
+            <div style="height:48px;border-radius:14px;background:#fff;border:1.5px dashed #D8D2C4;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">+ Add task to this list</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chore group settings -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Parent setting &mdash; rename groups, set done-by times (up to 4)</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:10px 20px 4px;display:flex;align-items:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="#211D18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span style="font:800 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Chore Groups</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:10px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font:500 12px/1.5 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:4px;">Group daily &amp; weekly chores into up to 4 named blocks with a done-by time.</div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <div style="flex:1;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Morning</div>
+              <div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:6px 12px;border-radius:10px;">8:00 AM</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <div style="flex:1;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">After Lunch</div>
+              <div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:6px 12px;border-radius:10px;">4:00 PM</div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <div style="flex:1;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Before Bed</div>
+              <div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:6px 12px;border-radius:10px;">8:30 PM</div>
+            </div>
+            <div style="border-radius:14px;padding:13px 15px;border:1.5px dashed #D8D2C4;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <svg width="15" height="15" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#8B8478" stroke-width="2" stroke-linecap="round"/></svg>
+              <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Add group (3 of 4 used)</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: SHOPPING ============ -->
+  <div data-screen-label="Shopping" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; SHOPPING LISTS</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Grouped by store &amp; department</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 12px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Shopping</div>
+            <div style="display:flex;gap:8px;overflow-x:auto;">
+              <span style="font:700 12px 'Plus Jakarta Sans',sans-serif;padding:7px 14px;border-radius:100px;background:#211D18;color:#fff;white-space:nowrap;">Trader Joe's</span>
+              <span style="font:600 12px 'Plus Jakarta Sans',sans-serif;padding:7px 14px;border-radius:100px;background:#ECE7DE;color:#8B8478;white-space:nowrap;">Costco</span>
+              <span style="font:600 12px 'Plus Jakarta Sans',sans-serif;padding:7px 14px;border-radius:100px;background:#ECE7DE;color:#8B8478;white-space:nowrap;">Target</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Produce</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:11px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #F2EFE8;">
+                  <div style="width:20px;height:20px;border-radius:6px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Bananas</div>
+                    <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">last paid $2.50</div>
+                  </div>
+                  <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:4px 9px;border-radius:100px;flex:none;">&times;2</span>
+                  <svg width="9" height="14" viewBox="0 0 9 14" fill="none" style="flex:none;"><path d="M1.5 1l6 6-6 6" stroke="#D8D2C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div style="padding:11px 13px;display:flex;align-items:center;gap:10px;">
+                  <div style="width:20px;height:20px;border-radius:6px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Avocados</div>
+                    <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">for Tuesday tacos &middot; no price yet</div>
+                  </div>
+                  <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:4px 9px;border-radius:100px;flex:none;">&times;4</span>
+                  <svg width="9" height="14" viewBox="0 0 9 14" fill="none" style="flex:none;"><path d="M1.5 1l6 6-6 6" stroke="#D8D2C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Dairy &amp; eggs</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:11px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #F2EFE8;">
+                  <div style="width:20px;height:20px;border-radius:6px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;"><div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Oat milk</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">last paid $4.29 &middot; 2 wks ago</div></div>
+                  <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:4px 9px;border-radius:100px;flex:none;">&times;1</span>
+                  <svg width="9" height="14" viewBox="0 0 9 14" fill="none" style="flex:none;"><path d="M1.5 1l6 6-6 6" stroke="#D8D2C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div style="padding:11px 13px;display:flex;align-items:center;gap:10px;">
+                  <div style="width:20px;height:20px;border-radius:6px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="11" height="9" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+                  <div style="flex:1;min-width:0;"><div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-decoration:line-through;opacity:.5;">Eggs, dozen</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">paid $5.49</div></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Household</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:11px 13px;display:flex;align-items:center;gap:10px;">
+                  <div style="width:20px;height:20px;border-radius:6px;border:2px solid #D8D2C4;flex:none;"></div>
+                  <div style="flex:1;min-width:0;"><div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Paper towels</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">last paid $12.99</div></div>
+                  <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:4px 9px;border-radius:100px;flex:none;">&times;2</span>
+                  <div style="width:30px;height:30px;border-radius:8px;background:#ECE7DE;flex:none;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;padding:12px 20px 26px;">
+            <div style="height:48px;border-radius:14px;background:#fff;border:1.5px dashed #D8D2C4;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#8B8478" stroke-width="2" stroke-linecap="round"/></svg>
+              <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Add item</span>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add item: autocomplete from history -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Add item &mdash; autocompletes from purchase history</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:10px 20px 12px;display:flex;align-items:center;gap:12px;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="#211D18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div style="flex:1;height:44px;border-radius:12px;background:#fff;border:1.5px solid #211D18;display:flex;align-items:center;padding:0 14px;font:600 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Oa<span style="opacity:.3;">|</span></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin:6px 0;">From your history</div>
+
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="flex:none;"><path d="M4 11l4 4 8-9" stroke="#B6AFA2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="flex:1;"><div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><b style="color:#211D18;">Oa</b>t milk</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">bought 6&times; &middot; last $4.29 &middot; Dairy &amp; eggs</div></div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="flex:none;"><path d="M4 11l4 4 8-9" stroke="#B6AFA2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="flex:1;"><div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><b style="color:#211D18;">Oa</b>tmeal</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">bought 2&times; &middot; last $3.79 &middot; Pantry</div></div>
+            </div>
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;gap:12px;">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="flex:none;"><path d="M4 11l4 4 8-9" stroke="#B6AFA2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="flex:1;"><div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><b style="color:#211D18;">Oa</b>t crackers</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">bought 1&times; &middot; last $5.19 &middot; Pantry</div></div>
+            </div>
+
+            <div style="height:1px;background:#ECE7DE;margin:6px 0;"></div>
+            <div style="background:#fff;border-radius:14px;padding:12px 14px;border:1.5px dashed #D8D2C4;display:flex;align-items:center;gap:12px;">
+              <svg width="16" height="16" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#8B8478" stroke-width="2" stroke-linecap="round"/></svg>
+              <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Add "Oa" as a new item</div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item edit dialog: qty, price, history -->
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Tap an item &mdash; qty, price entry, remembered price history</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:rgba(33,29,24,0.55);border-radius:36px;overflow:hidden;position:relative;display:flex;align-items:flex-end;">
+          <div style="width:100%;background:#FBF9F5;border-radius:24px 24px 0 0;padding:22px 22px 32px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div style="font:800 21px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Oat milk</div>
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Dairy &amp; eggs &middot; Trader Joe's</div>
+              </div>
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <div style="flex:1;">
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Quantity</div>
+                <div style="height:48px;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;align-items:center;justify-content:space-between;padding:0 14px;">
+                  <span style="font:800 18px 'Plus Jakarta Sans',sans-serif;color:#211D18;">&minus;</span>
+                  <span style="font:800 16px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1</span>
+                  <span style="font:800 18px 'Plus Jakarta Sans',sans-serif;color:#211D18;">+</span>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Price paid</div>
+                <div style="height:48px;border-radius:12px;background:#fff;border:1.5px solid #211D18;display:flex;align-items:center;padding:0 14px;font:800 16px 'Plus Jakarta Sans',sans-serif;color:#211D18;">$4.29</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Price history &middot; remembered automatically</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #F2EFE8;"><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Jun 24</span><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">$4.29</span></div>
+                <div style="padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #F2EFE8;"><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Jun 10</span><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">$4.15</span></div>
+                <div style="padding:10px 14px;display:flex;justify-content:space-between;"><span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">May 27</span><span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">$4.30</span></div>
+              </div>
+            </div>
+
+            <div style="height:52px;border-radius:16px;background:#211D18;display:flex;align-items:center;justify-content:center;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#fff;">Save</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: BILLS ============ -->
+  <div data-screen-label="Bills" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; BILLS</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">This month &mdash; who / what / when / paid</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Bills &middot; July</div>
+            <div style="background:#211D18;border-radius:16px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#C9C3B6;">Due in July</div>
+                <div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#fff;">$2,340</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#C9C3B6;">Paid so far</div>
+                <div style="font:800 16px 'Plus Jakarta Sans',sans-serif;color:#7FE3D2;">$1,610</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#F6C9C0;">Overdue</div>
+                <div style="font:800 16px 'Plus Jakarta Sans',sans-serif;color:#FF9A85;">$212</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:9px;">
+
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#E1543C;letter-spacing:.05em;text-transform:uppercase;">Carried over &middot; unpaid from June</div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border:1.5px solid #F6C9C0;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Car insurance</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Paul &middot; was due Jun 28</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#FDEBEF;color:#E1543C;white-space:nowrap;">Overdue</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">$212</div>
+            </div>
+
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;margin-top:6px;">July</div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Mortgage</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Paul &middot; due Jul 1</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#E7F8F6;color:#1B9A8C;white-space:nowrap;">Paid Jun 29</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">$1,840</div>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Electric &mdash; PG&amp;E</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Carmen &middot; due Jul 12</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#FEF3E2;color:#C97F16;white-space:nowrap;">Due soon</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px;">
+                <span style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;">$188</span>
+                <span style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">expected $165&ndash;190</span>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Car insurance</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Paul &middot; due Jul 28</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#ECE7DE;color:#8B8478;white-space:nowrap;">Upcoming</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">$212</div>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Internet</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Carmen &middot; due Jul 18</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#ECE7DE;color:#8B8478;white-space:nowrap;">Upcoming</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">$80</div>
+            </div>
+
+            <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Streaming bundle</div>
+                  <div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">Managed by Carmen &middot; due Jul 22</div>
+                </div>
+                <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:#ECE7DE;color:#8B8478;white-space:nowrap;">Upcoming</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">$34</div>
+            </div>
+
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: FOOD ============ -->
+  <div data-screen-label="Food" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; FOOD (MENU &amp; RECIPES)</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Menu &mdash; per-person meals, dietary swaps</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 12px;">
+            <div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:10px;">Food</div>
+            <div style="display:flex;gap:6px;background:#ECE7DE;padding:3px;border-radius:100px;margin-bottom:12px;">
+              <span style="flex:1;text-align:center;font:700 12px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;background:#211D18;color:#fff;">Menu</span>
+              <span style="flex:1;text-align:center;font:600 12px 'Plus Jakarta Sans',sans-serif;padding:7px 0;border-radius:100px;color:#8B8478;">Recipes</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">S</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">M</span>
+              <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#fff;background:#211D18;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">T</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">W</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">T</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">F</span>
+              <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;width:13%;text-align:center;">S</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:8px 20px 20px;display:flex;flex-direction:column;gap:12px;">
+
+            <div style="background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Breakfast</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Yogurt &amp; granola</span>
+                <div style="display:flex;"><div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div><div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">PL</div><div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">BL</div><div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">EL</div></div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Lunch</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Turkey sandwiches</span>
+                <div style="display:flex;"><div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">PL</div><div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">BL</div><div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">EL</div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid #F2EFE8;">
+                <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">GF wrap <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#C97F16;background:#FEF3E2;padding:2px 7px;border-radius:100px;margin-left:4px;">gluten-free</span></span>
+                <div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:16px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Dinner</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Sheet-pan fajitas</span>
+                <div style="display:flex;"><div style="width:20px;height:20px;border-radius:50%;background:#FF6B57;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">CL</div><div style="width:20px;height:20px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">PL</div><div style="width:20px;height:20px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">BL</div><div style="width:20px;height:20px;border-radius:50%;background:#F2A93B;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">EL</div><div style="width:20px;height:20px;border-radius:50%;background:#9B6BD9;color:#fff;font:700 8px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-7px;">TM</div></div>
+              </div>
+              <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;margin-top:4px;">recipe: 15 min prep &middot; 20 min cook</div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: MORE ============ -->
+  <div data-screen-label="More" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">PHONE &middot; MORE</div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;margin-bottom:64px;">
+    <div style="width:390px;">
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Overflow tab &mdash; reorder bottom bar, household settings</div>
+      <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);position:relative;">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+          <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"><span>9:41</span><span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span></div>
+          <div style="flex:none;padding:6px 20px 14px;"><div style="font:800 24px 'Plus Jakarta Sans',sans-serif;color:#211D18;">More</div></div>
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:18px;">
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Customize bottom bar</div>
+              <div style="font:500 12px/1.5 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Drag to reorder or swap which 5 tabs show up front.</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:12px 13px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #F2EFE8;"><svg width="14" height="14" viewBox="0 0 20 20"><circle cx="4" cy="4" r="1.6" fill="#D8D2C4"/><circle cx="4" cy="10" r="1.6" fill="#D8D2C4"/><circle cx="4" cy="16" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="4" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="10" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="16" r="1.6" fill="#D8D2C4"/></svg><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">Food</span><div style="width:36px;height:20px;border-radius:10px;background:#211D18;position:relative;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;right:2px;top:2px;"></div></div></div>
+                <div style="padding:12px 13px;display:flex;align-items:center;gap:11px;"><svg width="14" height="14" viewBox="0 0 20 20"><circle cx="4" cy="4" r="1.6" fill="#D8D2C4"/><circle cx="4" cy="10" r="1.6" fill="#D8D2C4"/><circle cx="4" cy="16" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="4" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="10" r="1.6" fill="#D8D2C4"/><circle cx="10" cy="16" r="1.6" fill="#D8D2C4"/></svg><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">Household members</span><div style="width:36px;height:20px;border-radius:10px;background:#211D18;position:relative;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;right:2px;top:2px;"></div></div></div>
+              </div>
+            </div>
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Household</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <div style="padding:13px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #F2EFE8;"><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">People &amp; roles</span><svg width="14" height="14" viewBox="0 0 20 20"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+                <div style="padding:13px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #F2EFE8;"><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">Wall display pairing</span><svg width="14" height="14" viewBox="0 0 20 20"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+                <div style="padding:13px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #F2EFE8;"><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">Notifications</span><svg width="14" height="14" viewBox="0 0 20 20"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+                <div style="padding:13px;display:flex;align-items:center;gap:11px;"><span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;flex:1;">Settings</span><svg width="14" height="14" viewBox="0 0 20 20"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECTION: WALL DISPLAY ============ -->
+  <div data-screen-label="Wall Display" style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;letter-spacing:.02em;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #E4DFD3;">TABLET &middot; WALL DISPLAY (KITCHEN)</div>
+  <div style="display:flex;flex-direction:column;gap:40px;">
+
+    <!-- Main dashboard -->
+    <div>
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Always-on view &mdash; -1h to +23h agenda, chores, menu</div>
+      <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="flex:none;padding:24px 36px 18px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font:800 30px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tuesday, July 7</div>
+              <div style="font:600 14px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">9:41 AM</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;background:#fff;padding:9px 16px;border-radius:100px;box-shadow:0 1px 2px rgba(33,29,24,0.06);">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="4" y="8" width="12" height="9" rx="2" stroke="#8B8478" stroke-width="1.6"/><path d="M7 8V6a3 3 0 0 1 6 0v2" stroke="#8B8478" stroke-width="1.6"/></svg>
+              <span style="font:700 12.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Edit (PIN)</span>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;padding:0 36px 30px;gap:26px;overflow:hidden;">
+
+            <!-- Timeline -->
+            <div style="flex:1.5;display:flex;flex-direction:column;min-width:0;">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Today &middot; 8:41 AM &ndash; 8:41 AM tomorrow</div>
+              <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+
+                <div style="display:flex;gap:14px;opacity:.55;">
+                  <div style="width:58px;flex:none;font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:12px;">8:41 AM</div>
+                  <div style="flex:1;background:#F2F0EA;border-radius:14px;padding:10px 14px;">
+                    <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Breakfast &amp; drop-off</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:14px;">
+                  <div style="width:58px;flex:none;font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">9:00 AM</div>
+                  <div style="flex:1;background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #4C8BF5;display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Team standup</div><div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">9:00 &ndash; 9:30 AM</div></div>
+                    <div style="width:30px;height:30px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">PL</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:14px;position:relative;">
+                  <div style="width:58px;flex:none;font:800 12px 'Plus Jakarta Sans',sans-serif;color:#FF6B57;padding-top:14px;">NOW</div>
+                  <div style="flex:1;background:#FFEDE9;border-radius:14px;padding:12px 15px;border-left:4px solid #FF6B57;display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Free time</div><div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Nothing scheduled right now</div></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:14px;">
+                  <div style="width:58px;flex:none;font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">11:00 AM</div>
+                  <div style="flex:1;background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #1FB6A6;display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Grocery run</div><div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">11:00 AM &ndash; 12:00 PM</div></div>
+                    <div style="width:30px;height:30px;border-radius:50%;background:#FF6B57;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">CL</div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:14px;">
+                  <div style="width:58px;flex:none;font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">2:00 PM</div>
+                  <div style="flex:1;background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #E8607A;display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Dentist</div><div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">2:00 &ndash; 2:45 PM</div></div>
+                    <div style="display:flex;"><div style="width:30px;height:30px;border-radius:50%;background:#F2A93B;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">EL</div><div style="width:30px;height:30px;border-radius:50%;background:#FF6B57;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 0 0 1px #ECE7DE;margin-left:-10px;">CL</div></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:14px;">
+                  <div style="width:58px;flex:none;font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">4:00 PM</div>
+                  <div style="flex:1;background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid #FF6B57;display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font:700 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Soccer practice</div><div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">4:00 &ndash; 5:30 PM</div></div>
+                    <div style="width:30px;height:30px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">BL</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Chores subset: per-person default view -->
+            <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Chores &middot; tap a person for their full list</div>
+              <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">BL</div>
+                    <div style="flex:1;font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Ben</div>
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                  </div>
+                  <div style="display:flex;gap:8px;">
+                    <div style="flex:1;background:#FDEBEF;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#E1543C;">Morning &#9888;</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1 left</div></div>
+                    <div style="flex:1;background:#F2F0EA;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Aft. Lunch</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2 left</div></div>
+                    <div style="flex:1;background:#F2F0EA;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Bef. Bed</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1 left</div></div>
+                  </div>
+                </div>
+
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#F2A93B;color:#fff;font:700 10.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">EL</div>
+                    <div style="flex:1;font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Emma</div>
+                    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="#D8D2C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                  </div>
+                  <div style="display:flex;gap:8px;">
+                    <div style="flex:1;background:#E7F8F6;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#1B9A8C;">Morning</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">0 left</div></div>
+                    <div style="flex:1;background:#F2F0EA;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Aft. Lunch</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1 left</div></div>
+                    <div style="flex:1;background:#F2F0EA;border-radius:10px;padding:7px 8px;text-align:center;"><div style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Bef. Bed</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2 left</div></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Menu -->
+            <div style="flex:1;display:flex;flex-direction:column;min-width:0;">
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Today's menu</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+                <div style="background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;">Breakfast</div>
+                  <div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:2px;">Yogurt &amp; granola</div>
+                </div>
+                <div style="background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;">Lunch</div>
+                  <div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:2px;">Turkey sandwiches</div>
+                  <div style="font:600 11.5px 'Plus Jakarta Sans',sans-serif;color:#C97F16;margin-top:3px;">Carmen: GF wrap</div>
+                </div>
+                <div style="background:#fff;border-radius:14px;padding:12px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                  <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;">Dinner</div>
+                  <div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:2px;">Sheet-pan fajitas</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:40px;flex-wrap:wrap;">
+      <!-- PIN unlock -->
+      <div>
+        <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Edit unlock &mdash; per-parent PIN</div>
+        <div style="width:520px;height:640px;background:#1C1A17;border-radius:30px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);">
+          <div style="width:100%;height:100%;background:#FBF9F5;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:36px 30px;">
+            <div style="font:800 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:6px;">Who's editing?</div>
+            <div style="font:500 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:22px;">Choose a parent, then enter their PIN</div>
+            <div style="display:flex;gap:16px;margin-bottom:26px;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:#FF6B57;color:#fff;font:700 18px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:3px solid #211D18;">CL</div>
+                <span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Carmen</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:#4C8BF5;color:#fff;font:700 18px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;">PL</div>
+                <span style="font:600 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Paul</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-bottom:26px;">
+              <div style="width:16px;height:16px;border-radius:50%;background:#211D18;"></div>
+              <div style="width:16px;height:16px;border-radius:50%;background:#211D18;"></div>
+              <div style="width:16px;height:16px;border-radius:50%;border:2px solid #D8D2C4;"></div>
+              <div style="width:16px;height:16px;border-radius:50%;border:2px solid #D8D2C4;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,64px);gap:14px;">
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">3</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">4</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">5</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">6</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">7</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">8</div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">9</div>
+              <div></div>
+              <div style="width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(33,29,24,0.08);display:flex;align-items:center;justify-content:center;font:700 20px 'Plus Jakarta Sans',sans-serif;color:#211D18;">0</div>
+              <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><path d="M8 1L1 8l7 7M1 8h20" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chore checkoff w/ photo -->
+      <div>
+        <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Checking off a chore &mdash; takes a photo of whoever taps it</div>
+        <div style="width:520px;height:640px;background:#1C1A17;border-radius:30px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.22);">
+          <div style="width:100%;height:100%;background:#0F0E0C;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;position:relative;">
+            <div style="position:absolute;top:22px;left:26px;font:700 13px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,0.7);">Marking "Feed the dog" complete</div>
+            <div style="width:340px;height:340px;border-radius:24px;border:3px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%, #2b2924, #0F0E0C);">
+              <svg width="70" height="70" viewBox="0 0 20 20" fill="none"><rect x="2" y="5.5" width="16" height="11" rx="2.5" stroke="rgba(255,255,255,0.4)" stroke-width="1.3"/><circle cx="10" cy="11" r="3.4" stroke="rgba(255,255,255,0.4)" stroke-width="1.3"/><rect x="7" y="3" width="6" height="2.6" rx="1" fill="rgba(255,255,255,0.4)"/></svg>
+              <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,0.55);">Say cheese in 3&hellip;2&hellip;1</div>
+            </div>
+            <div style="margin-top:22px;font:600 13px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,0.7);text-align:center;max-width:340px;">This photo attaches to Ben's completed chore so parents can see it was done.</div>
+            <div style="width:64px;height:64px;border-radius:50%;background:#fff;margin-top:22px;display:flex;align-items:center;justify-content:center;">
+              <div style="width:52px;height:52px;border-radius:50%;border:2.5px solid #211D18;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chores: dedicated screen, default per-person + tap-through -->
+    <div style="display:flex;gap:40px;flex-wrap:wrap;">
+      <div>
+        <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Chores screen &mdash; default: per person, per grouping</div>
+        <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+          <div style="width:100%;height:100%;background:#FBF9F5;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="flex:none;padding:24px 36px 20px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font:800 28px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Chores</div>
+              <span style="font:700 12.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#fff;padding:9px 16px;border-radius:100px;box-shadow:0 1px 2px rgba(33,29,24,0.06);">Tuesday, July 7</span>
+            </div>
+            <div style="flex:1;display:flex;gap:24px;padding:0 36px 32px;">
+
+              <div style="flex:1;background:#fff;border-radius:20px;padding:22px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;flex-direction:column;gap:16px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                  <div style="width:52px;height:52px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 17px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">BL</div>
+                  <div style="flex:1;font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Ben</div>
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                </div>
+                <div style="display:flex;gap:12px;">
+                  <div style="flex:1;background:#FDEBEF;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#E1543C;">Morning &#9888;</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">1 left</div></div>
+                  <div style="flex:1;background:#F2F0EA;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">After Lunch</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">2 left</div></div>
+                  <div style="flex:1;background:#F2F0EA;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Before Bed</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">1 left</div></div>
+                </div>
+              </div>
+
+              <div style="flex:1;background:#fff;border-radius:20px;padding:22px;box-shadow:0 1px 2px rgba(33,29,24,0.05);display:flex;flex-direction:column;gap:16px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                  <div style="width:52px;height:52px;border-radius:50%;background:#F2A93B;color:#fff;font:700 17px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">EL</div>
+                  <div style="flex:1;font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Emma</div>
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M7 4l6 6-6 6" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                </div>
+                <div style="display:flex;gap:12px;">
+                  <div style="flex:1;background:#E7F8F6;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#1B9A8C;">Morning</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">0 left</div></div>
+                  <div style="flex:1;background:#F2F0EA;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">After Lunch</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">1 left</div></div>
+                  <div style="flex:1;background:#F2F0EA;border-radius:14px;padding:14px;text-align:center;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Before Bed</div><div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:4px;">2 left</div></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Tap Ben &mdash; full list incl. completed</div>
+        <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+          <div style="width:100%;height:100%;background:#FBF9F5;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;">
+            <div style="flex:none;padding:24px 36px 20px;display:flex;align-items:center;gap:14px;">
+              <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="#211D18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div style="width:44px;height:44px;border-radius:50%;background:#1FB6A6;color:#fff;font:700 15px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 0 0 1px #ECE7DE;">BL</div>
+              <div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Ben's chores</div>
+            </div>
+            <div style="flex:1;display:flex;gap:22px;padding:0 36px 32px;overflow:hidden;">
+              <div style="flex:1;display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#E1543C;text-transform:uppercase;letter-spacing:.05em;">Morning</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 8:00 AM</span></div>
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);margin-bottom:8px;opacity:.55;"><div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;text-decoration:line-through;">Make bed</div><div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done 7:40 AM</div></div>
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border:1.5px solid #F6C9C0;"><div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Feed the dog</div><div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#E1543C;">Overdue &middot; needs a photo</div></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;">After Lunch</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 4:00 PM</span></div>
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);margin-bottom:8px;"><div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Take out trash</div><div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Mon &amp; Thu</div></div>
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);"><div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Wipe kitchen counters</div><div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Daily</div></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;">Before Bed</span><span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 8:30 PM</span></div>
+                <div style="background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);"><div style="font:700 14.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Pack backpack for school</div><div style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Daily</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar: full-screen week / month -->
+    <div>
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Calendar &mdash; Week, full screen (no chores/menu panels)</div>
+      <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="flex:none;padding:22px 36px 16px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;">July 6 &ndash; 12</div>
+            <div style="display:flex;gap:8px;background:#ECE7DE;padding:4px;border-radius:100px;">
+              <span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;color:#8B8478;">Day</span>
+              <span style="font:700 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;background:#211D18;color:#fff;">Week</span>
+              <span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;color:#8B8478;">Month</span>
+            </div>
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:12px;padding:0 36px 30px;overflow:hidden;">
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Mon 6</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #9B6BD9;font:600 11px 'Plus Jakarta Sans',sans-serif;">3:30p Piano</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;background:#F2F0EA;border-radius:14px;padding:8px;margin:-8px;"><div style="font:800 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Tue 7 &middot; Today</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #4C8BF5;font:600 11px 'Plus Jakarta Sans',sans-serif;">9a Standup</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #E8607A;font:600 11px 'Plus Jakarta Sans',sans-serif;">2p Dentist</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #FF6B57;font:600 11px 'Plus Jakarta Sans',sans-serif;">4p Soccer</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Wed 8</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">No events</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Thu 9</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #1B9A8C;font:600 11px 'Plus Jakarta Sans',sans-serif;">6p Trash &mdash; Ben</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Fri 10</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #F2A93B;font:600 11px 'Plus Jakarta Sans',sans-serif;">7p Movie night</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Sat 11</div><div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid #1FB6A6;font:600 11px 'Plus Jakarta Sans',sans-serif;">10a Vacuum</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><div style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Sun 12</div><div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">No events</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Calendar &mdash; Month, full screen</div>
+      <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+        <div style="width:100%;height:100%;background:#FBF9F5;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="flex:none;padding:22px 36px 16px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font:800 26px 'Plus Jakarta Sans',sans-serif;color:#211D18;">July 2026</div>
+            <div style="display:flex;gap:8px;background:#ECE7DE;padding:4px;border-radius:100px;">
+              <span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;color:#8B8478;">Day</span>
+              <span style="font:600 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;color:#8B8478;">Week</span>
+              <span style="font:700 12.5px 'Plus Jakarta Sans',sans-serif;padding:8px 16px;border-radius:100px;background:#211D18;color:#fff;">Month</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 36px;display:grid;grid-template-columns:repeat(7,1fr);text-align:center;">
+            <span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Sun</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Mon</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Tue</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Wed</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Thu</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Fri</span><span style="font:700 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:8px 0;">Sat</span>
+          </div>
+          <div style="flex:1;padding:0 36px 26px;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:6px;">
+            <div></div><div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">1</div><div style="width:6px;height:6px;border-radius:50%;background:#4C8BF5;margin-top:4px;"></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">2</div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">3</div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">4</div><div style="width:6px;height:6px;border-radius:50%;background:#FF6B57;margin-top:4px;"></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">5</div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">6</div><div style="width:6px;height:6px;border-radius:50%;background:#9B6BD9;margin-top:4px;"></div></div>
+            <div style="background:#211D18;border-radius:10px;padding:8px;"><div style="font:800 13px 'Plus Jakarta Sans',sans-serif;color:#fff;">7</div><div style="display:flex;gap:4px;margin-top:4px;"><div style="width:6px;height:6px;border-radius:50%;background:#4C8BF5;"></div><div style="width:6px;height:6px;border-radius:50%;background:#E8607A;"></div><div style="width:6px;height:6px;border-radius:50%;background:#FF6B57;"></div></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">8</div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">9</div><div style="width:6px;height:6px;border-radius:50%;background:#1B9A8C;margin-top:4px;"></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">10</div><div style="width:6px;height:6px;border-radius:50%;background:#F2A93B;margin-top:4px;"></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">11</div><div style="width:6px;height:6px;border-radius:50%;background:#1FB6A6;margin-top:4px;"></div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;">12</div></div>
+            <div style="background:#fff;border-radius:10px;padding:8px;box-shadow:0 1px 2px rgba(33,29,24,0.04);"><div style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">13</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Idle / ambient state -->
+    <div>
+      <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-bottom:10px;">Idle screen &mdash; auto-returns here after no one's nearby for a bit</div>
+      <div style="width:1180px;height:820px;background:#1C1A17;border-radius:36px;padding:16px;box-shadow:0 30px 70px rgba(33,29,24,0.25);">
+        <div style="width:100%;height:100%;background:#100F0D;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+          <div style="font:800 96px 'Plus Jakarta Sans',sans-serif;color:#fff;letter-spacing:-.02em;">9:41</div>
+          <div style="font:600 20px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,0.6);">Tuesday, July 7</div>
+          <div style="display:flex;gap:8px;margin-top:18px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#fff;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);"></div>
+          </div>
+          <div style="font:600 13px 'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,0.35);margin-top:26px;">Tap anywhere to wake</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+</body>
+</html>

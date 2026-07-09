@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { useSessionStore } from "../store/session";
-import type { SessionDto } from "@chaos-coordinator/shared";
+import type { LoginRequest, SessionDto } from "@chaos-coordinator/shared";
 
 export function useSession() {
   const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
@@ -13,6 +13,35 @@ export function useSession() {
       const session = await api.getSession();
       applySession(session, setCurrentUserId, setPinElevated);
       return session;
+    },
+  });
+}
+
+export function useLogin() {
+  const queryClient = useQueryClient();
+  const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
+  const setPinElevated = useSessionStore((s) => s.setPinElevated);
+
+  return useMutation({
+    mutationFn: (req: LoginRequest) => api.login(req),
+    onSuccess: (session) => {
+      applySession(session, setCurrentUserId, setPinElevated);
+      queryClient.setQueryData(["session"], session);
+    },
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
+  const setPinElevated = useSessionStore((s) => s.setPinElevated);
+
+  return useMutation({
+    mutationFn: () => api.logout(),
+    onSuccess: (session) => {
+      applySession(session, setCurrentUserId, setPinElevated);
+      queryClient.setQueryData(["session"], session);
+      queryClient.removeQueries(); // clear all cached data on logout
     },
   });
 }

@@ -10,11 +10,11 @@ interface DayViewProps {
   date: Date;
   currentUserId: string | undefined;
   currentUserRole: Role | undefined;
-  onEdit: (event: CalendarEventDto) => void;
+  onView: (event: CalendarEventDto) => void;
   onAdd: () => void;
 }
 
-export function DayView({ date, currentUserId, currentUserRole, onEdit, onAdd }: DayViewProps) {
+export function DayView({ date, currentUserId, currentUserRole, onView, onAdd }: DayViewProps) {
   const [filter, setFilter] = useState<EventCategory | "All">("All");
   const from = startOfDay(date);
   const to = addDays(from, 1);
@@ -49,7 +49,7 @@ export function DayView({ date, currentUserId, currentUserRole, onEdit, onAdd }:
           <div className="mt-8 text-center text-sm font-medium text-ink-fainter">No events</div>
         )}
         {filtered.map((event) => (
-          <EventCard key={event.id} event={event} currentUserId={currentUserId} currentUserRole={currentUserRole} onEdit={onEdit} />
+          <EventCard key={event.id} event={event} currentUserId={currentUserId} currentUserRole={currentUserRole} onView={onView} />
         ))}
       </div>
 

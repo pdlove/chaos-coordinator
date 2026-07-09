@@ -17,9 +17,9 @@ public static class DbSeeder
 
         var carmen = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Carmen", Initials = "CL", Color = "#FF6B57", Role = Role.Parent, Order = 0, PinHash = BCrypt.Net.BCrypt.HashPassword("1234") };
         var paul = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Paul", Initials = "PL", Color = "#4C8BF5", Role = Role.Parent, Order = 1, PinHash = BCrypt.Net.BCrypt.HashPassword("5678") };
-        var ben = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Ben", Initials = "BL", Color = "#1FB6A6", Role = Role.Child, Order = 2 };
-        var emma = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Emma", Initials = "EL", Color = "#F2A93B", Role = Role.Child, Order = 3 };
-        var tina = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Tina", Initials = "TM", Color = "#9B6BD9", Role = Role.Adult, Order = 4 };
+        var ben = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Ben", Initials = "BL", Color = "#1FB6A6", Role = Role.Child, Order = 2, PinHash = BCrypt.Net.BCrypt.HashPassword("1111") };
+        var emma = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Emma", Initials = "EL", Color = "#F2A93B", Role = Role.Child, Order = 3, PinHash = BCrypt.Net.BCrypt.HashPassword("2222") };
+        var tina = new User { Id = Guid.NewGuid(), HouseholdId = household.Id, Name = "Tina", Initials = "TM", Color = "#9B6BD9", Role = Role.Adult, Order = 4, PinHash = BCrypt.Net.BCrypt.HashPassword("3333") };
         db.Users.AddRange(carmen, paul, ben, emma, tina);
 
         db.DietaryTags.Add(new DietaryTag { Id = Guid.NewGuid(), UserId = carmen.Id, Tag = "gluten-free" });

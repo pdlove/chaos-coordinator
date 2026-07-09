@@ -41,18 +41,31 @@ export interface VerifyPinRequest {
   pin: string;
 }
 
+export interface LoginRequest {
+  userId: string;
+  pin: string;
+  remember: boolean;
+}
+
 export interface CalendarEventDto {
   id: string;
   title: string;
   start: string;
   end: string | null;
   category: EventCategory;
+  location: string | null;
   notes: string | null;
   ownerId: string;
   ownerName: string;
   attendees: UserDto[];
   createdAt: string;
   isOwnedByCurrentUser: boolean;
+  /** Comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3". Null = non-recurring. */
+  recurrenceDays: string | null;
+  /** ISO datetime of the series end date. Null = open-ended. */
+  recurrenceEnd: string | null;
+  /** Set for recurring instances; pass as `date` to POST /api/events/{id}/exceptions to cancel this occurrence only. */
+  instanceDate: string | null;
 }
 
 export interface CreateEventRequest {
@@ -60,8 +73,11 @@ export interface CreateEventRequest {
   start: string;
   end: string | null;
   category: EventCategory;
+  location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
+  recurrenceDays: string | null;
+  recurrenceEnd: string | null;
 }
 
 export interface UpdateEventRequest {
@@ -69,8 +85,16 @@ export interface UpdateEventRequest {
   start: string;
   end: string | null;
   category: EventCategory;
+  location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
+  recurrenceDays: string | null;
+  recurrenceEnd: string | null;
+}
+
+export interface CancelEventOccurrenceRequest {
+  /** ISO datetime of the occurrence to cancel. */
+  date: string;
 }
 
 // ---- Chores ----

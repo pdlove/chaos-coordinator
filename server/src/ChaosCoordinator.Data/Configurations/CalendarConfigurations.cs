@@ -11,6 +11,8 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
         b.HasKey(x => x.Id);
         b.Property(x => x.Title).IsRequired().HasMaxLength(200);
         b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Location).HasMaxLength(500);
+        b.Property(x => x.RecurrenceDays).HasMaxLength(20);
         b.HasIndex(x => new { x.HouseholdId, x.Start });
 
         b.HasOne(x => x.Owner)
@@ -35,5 +37,18 @@ public class EventAttendeeConfiguration : IEntityTypeConfiguration<EventAttendee
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class EventExceptionConfiguration : IEntityTypeConfiguration<EventException>
+{
+    public void Configure(EntityTypeBuilder<EventException> b)
+    {
+        b.HasKey(x => new { x.EventId, x.Date });
+
+        b.HasOne(x => x.Event)
+            .WithMany(e => e.Exceptions)
+            .HasForeignKey(x => x.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -51,7 +51,6 @@ public class UsersController(AppDbContext db, HouseholdContext household, IHouse
         user.Color = request.Color;
         user.Role = request.Role;
         user.Order = request.Order;
-        if (user.Role != Role.Parent) user.PinHash = null;
 
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.HouseholdChanged);
@@ -71,14 +70,14 @@ public class UsersController(AppDbContext db, HouseholdContext household, IHouse
         return NoContent();
     }
 
-    /// <summary>Sets/resets a parent's PIN. PIN-gated itself — you need an already-verified
-    /// parent PIN to set anyone's PIN, including your own (avoids a bootstrapping hole where
-    /// changing your PIN would need... your PIN. First-ever PIN is set via the seed data).</summary>
+    /// <summary>Sets/resets any user's login PIN. PIN-gated — requires an already-verified parent
+    /// PIN. Any role (Parent, Child, Adult) can have a login PIN; only Parents also get edit
+    /// elevation via VerifyPin. First-ever PINs are set via the seed data.</summary>
     [HttpPost("{id:guid}/pin")]
     [RequirePinElevation]
     public async Task<IActionResult> SetPin(Guid id, SetPinRequest request)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id && u.HouseholdId == household.HouseholdId && u.Role == Role.Parent);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id && u.HouseholdId == household.HouseholdId);
         if (user is null) return NotFound();
 
         user.PinHash = BCrypt.Net.BCrypt.HashPassword(request.Pin);

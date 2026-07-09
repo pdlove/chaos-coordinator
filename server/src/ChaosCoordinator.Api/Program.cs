@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ChaosCoordinator.Api.Auth;
 using ChaosCoordinator.Api.Hubs;
 using ChaosCoordinator.Api.Realtime;
@@ -7,7 +8,9 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // ---- Services ----
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

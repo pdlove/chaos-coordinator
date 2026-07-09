@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { CreateEventRequest, EventCategory, UpdateEventRequest } from "@chaos-coordinator/shared";
+import type { CancelEventOccurrenceRequest, CreateEventRequest, EventCategory, UpdateEventRequest } from "@chaos-coordinator/shared";
 
 export function useEvents(from: Date, to: Date, category?: EventCategory) {
   return useQuery({
@@ -29,6 +29,15 @@ export function useDeleteEvent() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.deleteEvent(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+  });
+}
+
+export function useCancelEventOccurrence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: CancelEventOccurrenceRequest }) =>
+      api.cancelEventOccurrence(id, req),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
   });
 }

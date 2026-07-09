@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#EDE9DF;font-family:'Plus Jakarta Sans',sans-serif;}
+  a{color:#4C8BF5;} a:hover{color:#3a72d1;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  input{font-family:'Plus Jakarta Sans',sans-serif;}
+</style>
+</helmet>
+
+<div style="width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;box-sizing:border-box;">
+  <div style="width:390px;height:844px;background:#1C1A17;border-radius:48px;padding:14px;box-shadow:0 24px 60px rgba(33,29,24,0.3);position:relative;flex:none;">
+    <div style="width:100%;height:100%;background:#FBF9F5;border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+
+      <!-- status bar -->
+      <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">
+        <span>9:41</span>
+        <span style="font:600 12px 'Plus Jakarta Sans',sans-serif;">&#9679;&#9679;&#9679;</span>
+      </div>
+
+      <!-- role switcher -->
+      <div style="flex:none;padding:6px 20px 10px;display:flex;align-items:center;gap:8px;">
+        <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Viewing as</span>
+        <sc-for list="{{ people }}" as="person" hint-placeholder-count="2">
+          <div onClick="{{ person.select }}" style="{{ person.pillStyle }}">
+            <div style="{{ person.dotStyle }}">{{ person.initials }}</div>
+            <span style="{{ person.labelStyle }}">{{ person.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- ===== CALENDAR TAB ===== -->
+      <sc-if value="{{ isCalendarTab }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:none;padding:2px 20px 12px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;">{{ todayLabel }}</div>
+          <div style="display:flex;gap:6px;background:#ECE7DE;padding:3px;border-radius:100px;">
+            <span onClick="{{ setDayView }}" style="{{ dayPillStyle }}">Day</span>
+            <span onClick="{{ setWeekView }}" style="{{ weekPillStyle }}">Week</span>
+            <span onClick="{{ setMonthView }}" style="{{ monthPillStyle }}">Month</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ isDayView }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ dayEvents }}" as="ev" hint-placeholder-count="4">
+              <div style="display:flex;gap:12px;">
+                <div style="width:56px;flex:none;font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;padding-top:14px;">{{ ev.timeLabel }}</div>
+                <div onClick="{{ ev.openEdit }}" style="{{ ev.cardStyle }}">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">{{ ev.title }}</div>
+                    <span style="{{ ev.tagStyle }}">{{ ev.tagLabel }}</span>
+                  </div>
+                  <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin:2px 0 8px;">{{ ev.subLabel }}</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;">
+                      <sc-for list="{{ ev.assignees }}" as="a" hint-placeholder-count="1">
+                        <div style="{{ a.style }}">{{ a.initials }}</div>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ ev.locked }}" hint-placeholder-val="{{ false }}">
+                      <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">&#128274; not yours to edit</span>
+                    </sc-if>
+                    <sc-if value="{{ ev.editable }}" hint-placeholder-val="{{ true }}">
+                      <svg width="8" height="13" viewBox="0 0 9 14" fill="none"><path d="M1.5 1l6 6-6 6" stroke="#D8D2C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isWeekView }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:14px;">
+            <sc-for list="{{ weekDays }}" as="wd" hint-placeholder-count="7">
+              <div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+                  <span style="{{ wd.labelStyle }}">{{ wd.label }}</span>
+                  <span style="font:600 11px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">{{ wd.dateLabel }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <sc-for list="{{ wd.events }}" as="ev" hint-placeholder-count="1">
+                    <div style="{{ ev.miniStyle }}">{{ ev.miniLabel }}</div>
+                  </sc-for>
+                  <sc-if value="{{ wd.empty }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">No events</div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isMonthView }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:none;padding:0 20px;display:grid;grid-template-columns:repeat(7,1fr);text-align:center;">
+            <span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">S</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">M</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">T</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">W</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">T</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">F</span><span style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;padding:6px 0;">S</span>
+          </div>
+          <div style="flex:none;padding:0 20px;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:44px;">
+            <sc-for list="{{ monthCells }}" as="cell" hint-placeholder-count="35">
+              <div onClick="{{ cell.select }}" style="{{ cell.style }}">
+                <sc-if value="{{ cell.hasDay }}" hint-placeholder-val="{{ false }}">
+                  <span style="{{ cell.numStyle }}">{{ cell.day }}</span>
+                  <sc-if value="{{ cell.hasEvent }}" hint-placeholder-val="{{ false }}">
+                    <span style="{{ cell.dotStyle }}"></span>
+                  </sc-if>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:10px 20px 20px;border-top:1px solid #ECE7DE;margin-top:8px;">
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin:8px 0;">{{ selectedDayLabel }}</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <sc-for list="{{ selectedDayEvents }}" as="ev" hint-placeholder-count="1">
+                <div style="{{ ev.miniStyle }}">{{ ev.miniLabel }}</div>
+              </sc-for>
+              <sc-if value="{{ selectedDayEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#D8D2C4;">No events this day</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- ===== CHORES TAB ===== -->
+      <sc-if value="{{ isChoresTab }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;padding:2px 20px 12px;">
+          <div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:4px;">Chores</div>
+          <div style="font:500 12px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">{{ choresSubtitle }}</div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:16px;">
+
+          <sc-if value="{{ hasMorning }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">Morning</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 8:00 AM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ morningChores }}" as="c" hint-placeholder-count="2">
+                  <div style="{{ c.rowStyle }}">
+                    <div onClick="{{ c.toggle }}" style="{{ c.checkboxStyle }}">
+                      <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}">
+                        <svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+                      </sc-if>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="{{ c.titleStyle }}">{{ c.title }}</div>
+                      <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:{{ c.metaColor }};margin-top:3px;">{{ c.metaText }}</div>
+                    </div>
+                    <div style="{{ c.avatarStyle }}">{{ c.initials }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasAfterLunch }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">After Lunch</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 4:00 PM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ afterLunchChores }}" as="c" hint-placeholder-count="2">
+                  <div style="{{ c.rowStyle }}">
+                    <div onClick="{{ c.toggle }}" style="{{ c.checkboxStyle }}">
+                      <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}">
+                        <svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+                      </sc-if>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="{{ c.titleStyle }}">{{ c.title }}</div>
+                      <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:{{ c.metaColor }};margin-top:3px;">{{ c.metaText }}</div>
+                    </div>
+                    <div style="{{ c.avatarStyle }}">{{ c.initials }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasBeforeBed }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;">Before Bed</span>
+                <span style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">Done by 8:30 PM</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ beforeBedChores }}" as="c" hint-placeholder-count="2">
+                  <div style="{{ c.rowStyle }}">
+                    <div onClick="{{ c.toggle }}" style="{{ c.checkboxStyle }}">
+                      <sc-if value="{{ c.isDone }}" hint-placeholder-val="{{ false }}">
+                        <svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+                      </sc-if>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="{{ c.titleStyle }}">{{ c.title }}</div>
+                      <div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:{{ c.metaColor }};margin-top:3px;">{{ c.metaText }}</div>
+                    </div>
+                    <div style="{{ c.avatarStyle }}">{{ c.initials }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== SHOPPING TAB ===== -->
+      <sc-if value="{{ isShoppingTab }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;padding:2px 20px 10px;">
+          <div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Shopping</div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:4px 20px 12px;display:flex;flex-direction:column;gap:14px;">
+          <sc-for list="{{ shoppingGroups }}" as="grp" hint-placeholder-count="1">
+            <div>
+              <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">{{ grp.store }}</div>
+              <div style="display:flex;flex-direction:column;gap:1px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(33,29,24,0.05);">
+                <sc-for list="{{ grp.items }}" as="it" hint-placeholder-count="2">
+                  <div style="{{ it.rowStyle }}">
+                    <div onClick="{{ it.toggle }}" style="{{ it.checkboxStyle }}">
+                      <sc-if value="{{ it.isDone }}" hint-placeholder-val="{{ false }}">
+                        <svg width="11" height="9" viewBox="0 0 13 10"><path d="M1 5l3.5 3.5L12 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+                      </sc-if>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="{{ it.titleStyle }}">{{ it.title }}</div>
+                      <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">{{ it.subLabel }}</div>
+                    </div>
+                    <span style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#8B8478;background:#ECE7DE;padding:4px 9px;border-radius:100px;flex:none;">{{ it.qtyLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:none;padding:0 20px 14px;position:relative;">
+          <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:20px;right:20px;bottom:62px;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(33,29,24,0.15);overflow:hidden;">
+              <sc-for list="{{ suggestions }}" as="sug" hint-placeholder-count="2">
+                <div onClick="{{ sug.add }}" style="padding:11px 14px;border-bottom:1px solid #F2EFE8;cursor:pointer;">
+                  <div style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;">{{ sug.name }}</div>
+                  <div style="font:500 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;">{{ sug.meta }}</div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ canAddFreeText }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ addFreeText }}" style="padding:11px 14px;cursor:pointer;">
+                  <span style="font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Add "{{ newItemText }}" as new item</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div style="height:48px;border-radius:14px;background:#fff;border:1.5px solid #211D18;display:flex;align-items:center;padding:0 14px;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="#8B8478" stroke-width="2" stroke-linecap="round"></path></svg>
+            <input value="{{ newItemText }}" onChange="{{ onNewItemChange }}" onKeyDown="{{ onNewItemKeyDown }}" placeholder="Add an item…" style="flex:1;border:none;outline:none;background:transparent;font:600 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;"/>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== BILLS TAB ===== -->
+      <sc-if value="{{ isBillsTab }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;padding:2px 20px 12px;">
+          <div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:12px;">Bills &middot; July</div>
+          <div style="background:#211D18;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#C9C3B6;">Due in July</div><div style="font:800 19px 'Plus Jakarta Sans',sans-serif;color:#fff;">{{ billsSummary.dueLabel }}</div></div>
+            <div style="text-align:right;"><div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#C9C3B6;">Paid</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#7FE3D2;">{{ billsSummary.paidLabel }}</div></div>
+            <div style="text-align:right;"><div style="font:600 10.5px 'Plus Jakarta Sans',sans-serif;color:#F6C9C0;">Overdue</div><div style="font:800 15px 'Plus Jakarta Sans',sans-serif;color:#FF9A85;">{{ billsSummary.overdueLabel }}</div></div>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:9px;">
+          <sc-if value="{{ hasCarriedOver }}" hint-placeholder-val="{{ false }}">
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#E1543C;letter-spacing:.05em;text-transform:uppercase;">Carried over</div>
+            <sc-for list="{{ carriedOverBills }}" as="b" hint-placeholder-count="1">
+              <div style="{{ b.cardStyle }}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div><div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">{{ b.title }}</div><div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">{{ b.subLabel }}</div></div>
+                  <span style="{{ b.statusStyle }}">{{ b.statusLabel }}</span>
+                </div>
+                <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">{{ b.costLabel }}</div>
+              </div>
+            </sc-for>
+            <div style="font:700 11px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;letter-spacing:.05em;text-transform:uppercase;margin-top:4px;">July</div>
+          </sc-if>
+          <sc-for list="{{ currentMonthBills }}" as="b" hint-placeholder-count="4">
+            <div style="{{ b.cardStyle }}">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div><div style="font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;">{{ b.title }}</div><div style="font:500 11.5px 'Plus Jakarta Sans',sans-serif;color:#8B8478;margin-top:2px;">{{ b.subLabel }}</div></div>
+                <span style="{{ b.statusStyle }}">{{ b.statusLabel }}</span>
+              </div>
+              <div style="font:800 17px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-top:8px;">{{ b.costLabel }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===== MORE TAB ===== -->
+      <sc-if value="{{ isMoreTab }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;padding:2px 20px 14px;"><div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#211D18;">More</div></div>
+        <div style="flex:1;overflow-y:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:16px;">
+          <div style="background:#FEF3E2;border-radius:14px;padding:14px 16px;">
+            <div style="font:700 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;margin-bottom:4px;">This is a working demo</div>
+            <div style="font:500 11.5px/1.5 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Data lives in your browser's local storage, shaped like Foreman task records (assignedTo, categoryIds, dueDate, percentComplete, cost, completedOn) — ready to swap for real API calls later.</div>
+          </div>
+          <div onClick="{{ resetDemoData }}" style="height:48px;border-radius:14px;background:#fff;border:1.5px solid #D8D2C4;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <span style="font:700 13px 'Plus Jakarta Sans',sans-serif;color:#8B8478;">Reset demo data</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Edit event dialog -->
+      <sc-if value="{{ isEditingEvent }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:rgba(33,29,24,0.55);display:flex;align-items:flex-end;z-index:20;">
+          <div style="width:100%;background:#FBF9F5;border-radius:24px 24px 0 0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:14px;max-height:88%;overflow-y:auto;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font:800 18px 'Plus Jakarta Sans',sans-serif;color:#211D18;">Edit event</span>
+              <svg onClick="{{ closeEditDialog }}" width="18" height="18" viewBox="0 0 20 20" fill="none" style="cursor:pointer;"><path d="M5 5l10 10M15 5L5 15" stroke="#B6AFA2" stroke-width="2" stroke-linecap="round"></path></svg>
+            </div>
+
+            <div>
+              <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Title</div>
+              <input value="{{ editTitle }}" onChange="{{ onEditTitleChange }}" style="width:100%;box-sizing:border-box;height:46px;border-radius:12px;border:1.5px solid #D8D2C4;padding:0 14px;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#211D18;background:#fff;"/>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;">
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Time</div>
+                <input value="{{ editTimeLabel }}" onChange="{{ onEditTimeChange }}" style="width:100%;box-sizing:border-box;height:46px;border-radius:12px;border:1.5px solid #D8D2C4;padding:0 14px;font:600 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;background:#fff;"/>
+              </div>
+              <div style="flex:1;">
+                <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Details</div>
+                <input value="{{ editSubLabel }}" onChange="{{ onEditSubChange }}" style="width:100%;box-sizing:border-box;height:46px;border-radius:12px;border:1.5px solid #D8D2C4;padding:0 14px;font:600 13px 'Plus Jakarta Sans',sans-serif;color:#211D18;background:#fff;"/>
+              </div>
+            </div>
+
+            <div>
+              <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Tag</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <sc-for list="{{ editCategoryOptions }}" as="opt" hint-placeholder-count="6">
+                  <span onClick="{{ opt.select }}" style="{{ opt.style }}">{{ opt.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div>
+              <div style="font:700 10.5px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Who's involved</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <sc-for list="{{ editAssigneeOptions }}" as="opt" hint-placeholder-count="5">
+                  <div onClick="{{ opt.toggle }}" style="{{ opt.pillStyle }}">
+                    <div style="{{ opt.dotStyle }}">{{ opt.initials }}</div>
+                    <span style="{{ opt.labelStyle }}">{{ opt.name }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div onClick="{{ saveEditDialog }}" style="height:50px;border-radius:16px;background:#211D18;display:flex;align-items:center;justify-content:center;font:700 14px 'Plus Jakarta Sans',sans-serif;color:#fff;cursor:pointer;margin-top:4px;">Save changes</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- bottom nav -->
+      <div style="flex:none;height:78px;background:#fff;border-top:1px solid #ECE7DE;display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;">
+        <div onClick="{{ setCalendarTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="3.5" width="15" height="14" rx="2.5" stroke="{{ navColorCalendar }}" stroke-width="1.7"></rect><path d="M2.5 7.5h15M6.5 2v3M13.5 2v3" stroke="{{ navColorCalendar }}" stroke-width="1.7" stroke-linecap="round"></path></svg>
+          <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:{{ navColorCalendar }};">Calendar</span>
+        </div>
+        <div onClick="{{ setChoresTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l3.5 3.5L16 5" stroke="{{ navColorChores }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:{{ navColorChores }};">Tasks</span>
+        </div>
+        <div onClick="{{ setShoppingTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 7h12l-1 9.5a1.5 1.5 0 0 1-1.5 1.3h-7a1.5 1.5 0 0 1-1.5-1.3L4 7z" stroke="{{ navColorShopping }}" stroke-width="1.7"></path><path d="M7 7V5.5a3 3 0 0 1 6 0V7" stroke="{{ navColorShopping }}" stroke-width="1.7"></path></svg>
+          <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:{{ navColorShopping }};">Shopping</span>
+        </div>
+        <sc-if value="{{ canSeeBills }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ setBillsTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.3" stroke="{{ navColorBills }}" stroke-width="1.7"></circle><path d="M10 6.3v4l2.6 1.6" stroke="{{ navColorBills }}" stroke-width="1.7" stroke-linecap="round"></path></svg>
+            <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:{{ navColorBills }};">Bills</span>
+          </div>
+        </sc-if>
+        <div onClick="{{ setMoreTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="4.5" cy="10" r="1.6" fill="{{ navColorMore }}"></circle><circle cx="10" cy="10" r="1.6" fill="{{ navColorMore }}"></circle><circle cx="15.5" cy="10" r="1.6" fill="{{ navColorMore }}"></circle></svg>
+          <span style="font:700 10px 'Plus Jakarta Sans',sans-serif;color:{{ navColorMore }};">More</span>
+        </div>
+      </div>
+
+      <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#211D18;opacity:.22;"></div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STORAGE_KEY = 'chaosCoordinatorData_v1';
+
+const CATEGORY_META = {
+  work: { label: 'Work', color: '#4C8BF5', tint: '#EAF1FE' },
+  school: { label: 'School', color: '#9B6BD9', tint: '#F2ECFB' },
+  doctor: { label: 'Doctor', color: '#E8607A', tint: '#FDEBEF' },
+  home: { label: 'Home', color: '#1FB6A6', tint: '#E7F8F6' },
+  personal: { label: 'Personal', color: '#F2A93B', tint: '#FEF3E2' },
+  activities: { label: 'Activities', color: '#FF6B57', tint: '#FFEDE9' },
+};
+
+const PEOPLE_META = {
+  carmen: { name: 'Carmen', initials: 'CL', role: 'parent', color: '#FF6B57' },
+  paul:   { name: 'Paul',   initials: 'PL', role: 'parent', color: '#4C8BF5' },
+  ben:    { name: 'Ben',    initials: 'BL', role: 'child',  color: '#1FB6A6' },
+  emma:   { name: 'Emma',   initials: 'EL', role: 'child',  color: '#F2A93B' },
+  tina:   { name: 'Tina',   initials: 'TM', role: 'adult',  color: '#9B6BD9' },
+};
+
+function money(n) {
+  if (n === null || n === undefined) return '—';
+  return '$' + Number(n).toFixed(2);
+}
+
+class Component extends DCLogic {
+  state = {
+    data: null,
+    currentUserId: 'carmen',
+    activeTab: 'calendar',
+    calendarView: 'day',
+    selectedMonthDay: 7,
+    newItemText: '',
+  };
+
+  componentDidMount() {
+    this.load();
+  }
+
+  seed() {
+    return {
+      events: [
+        { id: 'e1', title: 'Team standup', day: 'Tue', monthDay: 7, timeLabel: '9:00 AM', sortMin: 540, subLabel: '9:00 – 9:30 AM', categoryId: 'work', assignedTo: ['paul'], createdById: 'paul' },
+        { id: 'e2', title: 'Grocery run', day: 'Tue', monthDay: 7, timeLabel: '11:00 AM', sortMin: 660, subLabel: '11:00 AM – 12:00 PM', categoryId: 'home', assignedTo: ['carmen'], createdById: 'carmen' },
+        { id: 'e3', title: 'Dentist', day: 'Tue', monthDay: 7, timeLabel: '2:00 PM', sortMin: 840, subLabel: '2:00 – 2:45 PM', categoryId: 'doctor', assignedTo: ['emma', 'carmen'], createdById: 'carmen' },
+        { id: 'e4', title: 'Soccer practice', day: 'Tue', monthDay: 7, timeLabel: '4:00 PM', sortMin: 960, subLabel: '4:00 – 5:30 PM', categoryId: 'activities', assignedTo: ['ben'], createdById: 'paul' },
+        { id: 'e5', title: 'Game night w/ Marcus', day: 'Tue', monthDay: 7, timeLabel: '6:30 PM', sortMin: 1110, subLabel: '6:30 – 8:00 PM', categoryId: 'personal', assignedTo: ['ben'], createdById: 'ben' },
+        { id: 'e6', title: 'Piano lesson — Emma', day: 'Mon', monthDay: 6, timeLabel: '3:30 PM', sortMin: 930, subLabel: '3:30 PM', categoryId: 'school', assignedTo: ['emma'], createdById: 'carmen' },
+        { id: 'e7', title: 'Take out trash — Ben', day: 'Thu', monthDay: 9, timeLabel: '6:00 PM', sortMin: 1080, subLabel: '6:00 PM', categoryId: 'home', assignedTo: ['ben'], createdById: 'carmen' },
+        { id: 'e8', title: 'Family movie night', day: 'Fri', monthDay: 10, timeLabel: '7:00 PM', sortMin: 1140, subLabel: '7:00 PM', categoryId: 'personal', assignedTo: ['carmen', 'paul', 'ben', 'emma'], createdById: 'carmen' },
+        { id: 'e9', title: 'Vacuum living room — Emma', day: 'Sat', monthDay: 11, timeLabel: '10:00 AM', sortMin: 600, subLabel: '10:00 AM', categoryId: 'home', assignedTo: ['emma'], createdById: 'carmen' },
+      ],
+      chores: [
+        { id: 'c1', title: 'Make bed', assignedTo: ['ben'], group: 'morning', recur: 'Daily', percentComplete: 0, requiresPhoto: false },
+        { id: 'c2', title: 'Feed the dog', assignedTo: ['ben'], group: 'morning', recur: 'Daily', percentComplete: 0, requiresPhoto: true },
+        { id: 'c3', title: 'Make bed', assignedTo: ['emma'], group: 'morning', recur: 'Daily', percentComplete: 100, requiresPhoto: false },
+        { id: 'c4', title: 'Take out trash', assignedTo: ['ben'], group: 'afterlunch', recur: 'Mon & Thu', percentComplete: 0, requiresPhoto: false },
+        { id: 'c5', title: 'Unload dishwasher', assignedTo: ['emma'], group: 'afterlunch', recur: 'Daily', percentComplete: 100, requiresPhoto: false },
+        { id: 'c6', title: 'Pack backpack for school', assignedTo: ['ben'], group: 'beforebed', recur: 'Daily', percentComplete: 0, requiresPhoto: false },
+        { id: 'c7', title: 'Vacuum living room', assignedTo: ['emma'], group: 'beforebed', recur: 'Weekly · Sat', percentComplete: 0, requiresPhoto: false },
+      ],
+      shopping: [
+        { id: 's1', title: 'Bananas', tags: ["Trader Joe's"], categoryIds: ['Produce'], quantity: 2, cost: 2.5, percentComplete: 0 },
+        { id: 's2', title: 'Avocados', tags: ["Trader Joe's"], categoryIds: ['Produce'], quantity: 4, cost: null, percentComplete: 0 },
+        { id: 's3', title: 'Oat milk', tags: ["Trader Joe's"], categoryIds: ['Dairy & eggs'], quantity: 1, cost: 4.29, percentComplete: 0 },
+        { id: 's4', title: 'Eggs, dozen', tags: ["Trader Joe's"], categoryIds: ['Dairy & eggs'], quantity: 1, cost: 5.49, percentComplete: 100 },
+        { id: 's5', title: 'Paper towels', tags: ["Trader Joe's"], categoryIds: ['Household'], quantity: 2, cost: 12.99, percentComplete: 0 },
+      ],
+      catalog: [
+        { name: 'Bananas', categoryIds: ['Produce'], lastCost: 2.5 },
+        { name: 'Avocados', categoryIds: ['Produce'], lastCost: null },
+        { name: 'Oat milk', categoryIds: ['Dairy & eggs'], lastCost: 4.29 },
+        { name: 'Oatmeal', categoryIds: ['Pantry'], lastCost: 3.79 },
+        { name: 'Oat crackers', categoryIds: ['Pantry'], lastCost: 5.19 },
+        { name: 'Eggs, dozen', categoryIds: ['Dairy & eggs'], lastCost: 5.49 },
+        { name: 'Paper towels', categoryIds: ['Household'], lastCost: 12.99 },
+      ],
+      bills: [
+        { id: 'b1', title: 'Mortgage', assignedTo: ['paul'], dueLabel: 'due Jul 1', cost: 1840, statusId: 'paid', statusLabel: 'Paid Jun 29', carried: false },
+        { id: 'b2', title: 'Electric — PG&E', assignedTo: ['carmen'], dueLabel: 'due Jul 12', cost: 188, statusId: 'due_soon', statusLabel: 'Due soon', carried: false },
+        { id: 'b3', title: 'Car insurance', assignedTo: ['paul'], dueLabel: 'was due Jun 28', cost: 212, statusId: 'overdue', statusLabel: 'Overdue', carried: true },
+        { id: 'b4', title: 'Car insurance', assignedTo: ['paul'], dueLabel: 'due Jul 28', cost: 212, statusId: 'upcoming', statusLabel: 'Upcoming', carried: false },
+        { id: 'b5', title: 'Internet', assignedTo: ['carmen'], dueLabel: 'due Jul 18', cost: 80, statusId: 'upcoming', statusLabel: 'Upcoming', carried: false },
+        { id: 'b6', title: 'Streaming bundle', assignedTo: ['carmen'], dueLabel: 'due Jul 22', cost: 34, statusId: 'upcoming', statusLabel: 'Upcoming', carried: false },
+      ],
+    };
+  }
+
+  load() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { data = null; }
+    if (!data) {
+      data = this.seed();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    this.setState({ data });
+  }
+
+  save(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    this.setState({ data });
+  }
+
+  resetDemoData = () => {
+    const data = this.seed();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    this.setState({ data, activeTab: 'calendar', calendarView: 'day', selectedMonthDay: 7, newItemText: '' });
+  };
+
+  setTab(tab) { this.setState({ activeTab: tab }); }
+  setCalendarView(v) { this.setState({ calendarView: v }); }
+
+  switchUser(id) {
+    const isChild = PEOPLE_META[id].role === 'child';
+    this.setState({
+      currentUserId: id,
+      activeTab: isChild && this.state.activeTab === 'bills' ? 'calendar' : this.state.activeTab,
+    });
+  }
+
+  toggleChore(id) {
+    const data = { ...this.state.data };
+    data.chores = data.chores.map((c) =>
+      c.id === id ? { ...c, percentComplete: c.percentComplete === 100 ? 0 : 100 } : c
+    );
+    this.save(data);
+  }
+
+  toggleShopping(id) {
+    const data = { ...this.state.data };
+    data.shopping = data.shopping.map((s) =>
+      s.id === id ? { ...s, percentComplete: s.percentComplete === 100 ? 0 : 100 } : s
+    );
+    this.save(data);
+  }
+
+  addShoppingItem(title, categoryIds, cost) {
+    if (!title || !title.trim()) return;
+    const data = { ...this.state.data };
+    data.shopping = [
+      ...data.shopping,
+      { id: 's' + Date.now(), title: title.trim(), tags: ["Trader Joe's"], categoryIds: categoryIds || ['Household'], quantity: 1, cost: cost ?? null, percentComplete: 0 },
+    ];
+    this.save(data);
+    this.setState({ newItemText: '' });
+  }
+
+  onNewItemChange = (e) => this.setState({ newItemText: e.target.value });
+  onNewItemKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      const text = this.state.newItemText.trim();
+      if (!text) return;
+      const catalog = this.state.data.catalog || [];
+      const match = catalog.find((c) => c.name.toLowerCase() === text.toLowerCase());
+      this.addShoppingItem(text, match ? match.categoryIds : null, match ? match.lastCost : null);
+    }
+  };
+
+  renderVals() {
+    const data = this.state.data;
+    if (!data) return {};
+
+    const currentUserId = this.state.currentUserId;
+    const currentUser = PEOPLE_META[currentUserId];
+    const isChildUser = currentUser.role === 'child';
+    const canSeeBills = !isChildUser;
+    const activeTab = this.state.activeTab === 'bills' && !canSeeBills ? 'calendar' : this.state.activeTab;
+
+    const people = Object.keys(PEOPLE_META)
+      .filter((id) => id === 'carmen' || id === 'ben')
+      .map((id) => {
+        const p = PEOPLE_META[id];
+        const active = id === currentUserId;
+        return {
+          id,
+          name: p.name,
+          initials: p.initials,
+          select: () => this.switchUser(id),
+          pillStyle: `display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:100px;cursor:pointer;background:${active ? '#211D18' : '#ECE7DE'};`,
+          dotStyle: `width:20px;height:20px;border-radius:50%;background:${p.color};color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;`,
+          labelStyle: `font:700 11px 'Plus Jakarta Sans',sans-serif;color:${active ? '#fff' : '#8B8478'};`,
+        };
+      });
+
+    const navColor = (tab) => (activeTab === tab ? '#211D18' : 'rgba(33,29,24,0.42)');
+
+    // ---- Calendar ----
+    const cat = (id) => CATEGORY_META[id] || { label: id, color: '#8B8478', tint: '#ECE7DE' };
+    const buildEventVM = (ev) => {
+      const c = cat(ev.categoryId);
+      const locked = isChildUser && ev.createdById !== currentUserId;
+      return {
+        ...ev,
+        cardStyle: `flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:4px solid ${c.color};${locked ? 'opacity:.7;' : ''}`,
+        tagStyle: `font:700 10px 'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:100px;background:${c.tint};color:${c.color};`,
+        tagLabel: c.label,
+        locked,
+        assignees: ev.assignedTo.map((pid) => {
+          const p = PEOPLE_META[pid];
+          return { initials: p.initials, style: `width:22px;height:22px;border-radius:50%;background:${p.color};color:#fff;font:700 9px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-6px;` };
+        }),
+      };
+    };
+
+    const dayEvents = data.events.filter((e) => e.day === 'Tue').sort((a, b) => a.sortMin - b.sortMin).map(buildEventVM);
+
+    const weekOrder = [
+      { label: 'Mon', key: 'Mon', dateLabel: 'Jul 6' },
+      { label: 'Tue', key: 'Tue', dateLabel: 'Jul 7 · Today' },
+      { label: 'Wed', key: 'Wed', dateLabel: 'Jul 8' },
+      { label: 'Thu', key: 'Thu', dateLabel: 'Jul 9' },
+      { label: 'Fri', key: 'Fri', dateLabel: 'Jul 10' },
+      { label: 'Sat', key: 'Sat', dateLabel: 'Jul 11' },
+      { label: 'Sun', key: 'Sun', dateLabel: 'Jul 12' },
+    ];
+    const weekDays = weekOrder.map((wd) => {
+      const evs = data.events.filter((e) => e.day === wd.key).sort((a, b) => a.sortMin - b.sortMin);
+      const isToday = wd.key === 'Tue';
+      return {
+        label: wd.label,
+        dateLabel: wd.dateLabel,
+        labelStyle: isToday
+          ? `font:800 13px 'Plus Jakarta Sans',sans-serif;color:#fff;background:#211D18;padding:2px 8px;border-radius:100px;`
+          : `font:700 13px 'Plus Jakarta Sans',sans-serif;color:#B6AFA2;`,
+        empty: evs.length === 0,
+        events: evs.map((ev) => {
+          const c = cat(ev.categoryId);
+          return { miniStyle: `background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid ${c.color};font:600 12px 'Plus Jakarta Sans',sans-serif;color:#211D18;`, miniLabel: `${ev.timeLabel} · ${ev.title}` };
+        }),
+      };
+    });
+
+    // Month grid for July 2026 (accurate weekday offsets)
+    const firstWeekday = new Date(2026, 6, 1).getDay();
+    const daysInMonth = 31;
+    const selectedMonthDay = this.state.selectedMonthDay;
+    const monthCells = [];
+    for (let i = 0; i < firstWeekday; i++) monthCells.push({ hasDay: false, style: '' });
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayEvs = data.events.filter((e) => e.monthDay === d);
+      const isSelected = d === selectedMonthDay;
+      const firstCat = dayEvs.length ? cat(dayEvs[0].categoryId) : null;
+      monthCells.push({
+        hasDay: true,
+        day: d,
+        hasEvent: dayEvs.length > 0,
+        select: () => this.setState({ selectedMonthDay: d }),
+        style: `display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:12px;${isSelected ? 'background:#211D18;' : ''}`,
+        numStyle: `font:${isSelected ? 800 : 600} 12.5px 'Plus Jakarta Sans',sans-serif;color:${isSelected ? '#fff' : '#211D18'};`,
+        dotStyle: `width:5px;height:5px;border-radius:50%;display:block;background:${firstCat ? firstCat.color : '#B6AFA2'};`,
+      });
+    }
+
+    const selectedDayEvents = data.events.filter((e) => e.monthDay === selectedMonthDay).sort((a, b) => a.sortMin - b.sortMin).map((ev) => {
+      const c = cat(ev.categoryId);
+      return { miniStyle: `background:#fff;border-radius:12px;padding:9px 12px;box-shadow:0 1px 2px rgba(33,29,24,0.05);border-left:3px solid ${c.color};font:600 12.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;`, miniLabel: `${ev.timeLabel} · ${ev.title}` };
+    });
+    const monthDayLabels = { 6: 'Monday, Jul 6', 7: 'Tuesday, Jul 7', 8: 'Wednesday, Jul 8', 9: 'Thursday, Jul 9', 10: 'Friday, Jul 10', 11: 'Saturday, Jul 11' };
+
+    // ---- Chores ----
+    const visibleChores = isChildUser ? data.chores.filter((c) => c.assignedTo.includes(currentUserId)) : data.chores;
+    const buildChoreVM = (c) => {
+      const isDone = c.percentComplete === 100;
+      const assignee = PEOPLE_META[c.assignedTo[0]];
+      return {
+        ...c,
+        isDone,
+        toggle: () => this.toggleChore(c.id),
+        rowStyle: `background:#fff;border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(33,29,24,0.05);${isDone ? 'opacity:.55;' : ''}`,
+        checkboxStyle: isDone
+          ? 'width:22px;height:22px;border-radius:7px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;'
+          : 'width:22px;height:22px;border-radius:7px;border:2px solid #D8D2C4;flex:none;cursor:pointer;',
+        titleStyle: `font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;${isDone ? 'text-decoration:line-through;' : ''}`,
+        metaColor: '#B6AFA2',
+        metaText: c.recur + (c.requiresPhoto ? ' · photo required' : ''),
+        avatarStyle: `width:20px;height:20px;border-radius:50%;background:${assignee.color};color:#fff;font:700 8.5px 'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;flex:none;`,
+        initials: assignee.initials,
+      };
+    };
+    const morningChores = visibleChores.filter((c) => c.group === 'morning').map(buildChoreVM);
+    const afterLunchChores = visibleChores.filter((c) => c.group === 'afterlunch').map(buildChoreVM);
+    const beforeBedChores = visibleChores.filter((c) => c.group === 'beforebed').map(buildChoreVM);
+
+    // ---- Shopping ----
+    const storeGroups = {};
+    data.shopping.forEach((it) => {
+      const store = it.tags[0] || 'Other';
+      if (!storeGroups[store]) storeGroups[store] = [];
+      storeGroups[store].push(it);
+    });
+    const shoppingGroups = Object.keys(storeGroups).map((store) => ({
+      store,
+      items: storeGroups[store].map((it) => {
+        const isDone = it.percentComplete === 100;
+        return {
+          ...it,
+          isDone,
+          toggle: () => this.toggleShopping(it.id),
+          rowStyle: 'padding:11px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #F2EFE8;',
+          checkboxStyle: isDone
+            ? 'width:20px;height:20px;border-radius:6px;background:#1FB6A6;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;'
+            : 'width:20px;height:20px;border-radius:6px;border:2px solid #D8D2C4;flex:none;cursor:pointer;',
+          titleStyle: `font:700 13.5px 'Plus Jakarta Sans',sans-serif;color:#211D18;${isDone ? 'text-decoration:line-through;opacity:.5;' : ''}`,
+          subLabel: it.cost != null ? `last paid ${money(it.cost)}` : 'no price yet',
+          qtyLabel: '×' + it.quantity,
+        };
+      }),
+    }));
+
+    const newItemText = this.state.newItemText;
+    const catalog = data.catalog || [];
+    const suggestions = newItemText.trim()
+      ? catalog.filter((c) => c.name.toLowerCase().includes(newItemText.trim().toLowerCase())).slice(0, 3).map((c) => ({
+          name: c.name,
+          meta: c.lastCost != null ? `last ${money(c.lastCost)} · ${c.categoryIds[0]}` : c.categoryIds[0],
+          add: () => this.addShoppingItem(c.name, c.categoryIds, c.lastCost),
+        }))
+      : [];
+    const exactMatch = catalog.some((c) => c.name.toLowerCase() === newItemText.trim().toLowerCase());
+
+    // ---- Bills ----
+    const dueThisMonth = data.bills.filter((b) => !b.carried).reduce((s, b) => s + b.cost, 0);
+    const paidSoFar = data.bills.filter((b) => b.statusId === 'paid').reduce((s, b) => s + b.cost, 0);
+    const overdue = data.bills.filter((b) => b.statusId === 'overdue').reduce((s, b) => s + b.cost, 0);
+    const buildBillVM = (b) => {
+      const p = PEOPLE_META[b.assignedTo[0]];
+      const statusColors = {
+        paid: { bg: '#E7F8F6', fg: '#1B9A8C' },
+        due_soon: { bg: '#FEF3E2', fg: '#C97F16' },
+        overdue: { bg: '#FDEBEF', fg: '#E1543C' },
+        upcoming: { bg: '#ECE7DE', fg: '#8B8478' },
+      };
+      const sc = statusColors[b.statusId] || statusColors.upcoming;
+      return {
+        ...b,
+        cardStyle: `background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 1px 2px rgba(33,29,24,0.05);${b.statusId === 'overdue' ? 'border:1.5px solid #F6C9C0;' : ''}`,
+        subLabel: `Managed by ${p.name} · ${b.dueLabel}`,
+        statusStyle: `font:700 10.5px 'Plus Jakarta Sans',sans-serif;padding:4px 9px;border-radius:100px;background:${sc.bg};color:${sc.fg};white-space:nowrap;`,
+        costLabel: money(b.cost),
+      };
+    };
+    const carriedOverBills = data.bills.filter((b) => b.carried).map(buildBillVM);
+    const currentMonthBills = data.bills.filter((b) => !b.carried).map(buildBillVM);
+
+    return {
+      people,
+      isCalendarTab: activeTab === 'calendar',
+      isChoresTab: activeTab === 'chores',
+      isShoppingTab: activeTab === 'shopping',
+      isBillsTab: activeTab === 'bills',
+      isMoreTab: activeTab === 'more',
+      canSeeBills,
+      setCalendarTab: () => this.setTab('calendar'),
+      setChoresTab: () => this.setTab('chores'),
+      setShoppingTab: () => this.setTab('shopping'),
+      setBillsTab: () => this.setTab('bills'),
+      setMoreTab: () => this.setTab('more'),
+      navColorCalendar: navColor('calendar'),
+      navColorChores: navColor('chores'),
+      navColorShopping: navColor('shopping'),
+      navColorBills: navColor('bills'),
+      navColorMore: navColor('more'),
+
+      todayLabel: 'Tuesday, Jul 7',
+      isDayView: this.state.calendarView === 'day',
+      isWeekView: this.state.calendarView === 'week',
+      isMonthView: this.state.calendarView === 'month',
+      setDayView: () => this.setCalendarView('day'),
+      setWeekView: () => this.setCalendarView('week'),
+      setMonthView: () => this.setCalendarView('month'),
+      dayPillStyle: `font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;cursor:pointer;background:${this.state.calendarView === 'day' ? '#211D18' : 'transparent'};color:${this.state.calendarView === 'day' ? '#fff' : '#8B8478'};`,
+      weekPillStyle: `font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;cursor:pointer;background:${this.state.calendarView === 'week' ? '#211D18' : 'transparent'};color:${this.state.calendarView === 'week' ? '#fff' : '#8B8478'};`,
+      monthPillStyle: `font:700 11px 'Plus Jakarta Sans',sans-serif;padding:5px 10px;border-radius:100px;cursor:pointer;background:${this.state.calendarView === 'month' ? '#211D18' : 'transparent'};color:${this.state.calendarView === 'month' ? '#fff' : '#8B8478'};`,
+      dayEvents,
+      weekDays,
+      monthCells,
+      selectedDayLabel: monthDayLabels[selectedMonthDay] || 'Selected day',
+      selectedDayEvents,
+      selectedDayEmpty: selectedDayEvents.length === 0,
+
+      choresSubtitle: isChildUser ? "Your chores for today" : 'Everyone\u2019s chores, grouped by time of day',
+      hasMorning: morningChores.length > 0,
+      hasAfterLunch: afterLunchChores.length > 0,
+      hasBeforeBed: beforeBedChores.length > 0,
+      morningChores,
+      afterLunchChores,
+      beforeBedChores,
+
+      shoppingGroups,
+      newItemText,
+      onNewItemChange: this.onNewItemChange,
+      onNewItemKeyDown: this.onNewItemKeyDown,
+      hasSuggestions: suggestions.length > 0 || (newItemText.trim().length > 0 && !exactMatch),
+      suggestions,
+      canAddFreeText: newItemText.trim().length > 0 && !exactMatch,
+      addFreeText: () => this.addShoppingItem(newItemText, null, null),
+
+      billsSummary: { dueLabel: money(dueThisMonth), paidLabel: money(paidSoFar), overdueLabel: money(overdue) },
+      hasCarriedOver: carriedOverBills.length > 0,
+      carriedOverBills,
+      currentMonthBills,
+
+      resetDemoData: this.resetDemoData,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

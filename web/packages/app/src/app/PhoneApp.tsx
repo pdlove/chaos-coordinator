@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useHousehold, useRealtimeInvalidation, useSession } from "@chaos-coordinator/core";
-import { ProfileSwitcher } from "../components/ProfileSwitcher";
+import { LoginScreen } from "../routes/auth/LoginScreen";
 import { BottomNav } from "../components/BottomNav";
 import { CalendarPage } from "../routes/calendar/CalendarPage";
 import { ChoresLayout } from "../routes/chores/ChoresLayout";
@@ -28,7 +28,7 @@ export function PhoneApp() {
   if (sessionLoading) return null;
 
   if (!session?.currentUserId) {
-    return <ProfileSwitcher />;
+    return <LoginScreen />;
   }
 
   return (
