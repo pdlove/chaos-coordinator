@@ -5,24 +5,21 @@ import {
   startOfDay,
   useEvents,
   type CalendarEventDto,
-  type Role,
 } from "@chaos-coordinator/core";
 import { CategoryFilterPills } from "../../components/CategoryFilterPills";
-import { EventCard } from "./EventCard";
+import { TimeGridView } from "./TimeGridView";
 
 interface DayViewProps {
   date: Date;
-  currentUserId: string | undefined;
-  currentUserRole: Role | undefined;
   onView: (event: CalendarEventDto) => void;
   onAdd: () => void;
 }
 
-export function DayView({ date, currentUserId, currentUserRole, onView, onAdd }: DayViewProps) {
+export function DayView({ date, onView, onAdd }: DayViewProps) {
   const [filter, setFilter] = useState<Set<string>>(new Set());
   const from = startOfDay(date);
   const to = addDays(from, 1);
-  const { data: events, isLoading } = useEvents(from, to);
+  const { data: events } = useEvents(from, to);
 
   const filtered = useMemo(
     () => (events ?? []).filter((e) => eventMatchesCategoryFilter(e, filter)),
@@ -33,15 +30,7 @@ export function DayView({ date, currentUserId, currentUserRole, onView, onAdd }:
     <div className="relative flex flex-1 flex-col overflow-hidden">
       <CategoryFilterPills selected={filter} onChange={setFilter} />
 
-      <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-5 pb-5">
-        {isLoading && <div className="text-sm font-medium text-ink-muted">Loading…</div>}
-        {!isLoading && filtered.length === 0 && (
-          <div className="mt-8 text-center text-sm font-medium text-ink-fainter">No events</div>
-        )}
-        {filtered.map((event) => (
-          <EventCard key={event.id} event={event} currentUserId={currentUserId} currentUserRole={currentUserRole} onView={onView} />
-        ))}
-      </div>
+      <TimeGridView days={[date]} events={filtered} onView={onView} onAddForDay={onAdd} />
 
       <button
         onClick={onAdd}

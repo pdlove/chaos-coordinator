@@ -48,3 +48,63 @@ export function getEventDaySegment(event: CalendarEventDto, day: Date): EventDay
   if (isSameDay(day, endDay)) return "end";
   return "middle";
 }
+
+export interface TimedBlockLayout {
+  event: CalendarEventDto;
+  startMin: number;
+  endMin: number;
+  col: number;
+  totalCols: number;
+}
+
+/** Point-in-time events (no explicit end) are given this long a visual block in the schedule grid. */
+const DEFAULT_BLOCK_DURATION_MIN = 60;
+
+/** Lays out same-day timed events (already filtered to `getEventDaySegment === "single"`) into
+ * side-by-side columns for a traditional block-style schedule grid, so overlapping events don't
+ * cover each other. Events are grouped into collision clusters (transitively overlapping runs),
+ * then greedily assigned within each cluster to the first column whose prior occupant has ended. */
+export function layoutTimedEventBlocks(events: CalendarEventDto[]): TimedBlockLayout[] {
+  const items = events
+    .map((event) => {
+      const start = new Date(event.start);
+      const startMin = start.getHours() * 60 + start.getMinutes();
+      const end = event.end ? new Date(event.end) : null;
+      const rawEndMin = end ? end.getHours() * 60 + end.getMinutes() : startMin + DEFAULT_BLOCK_DURATION_MIN;
+      const endMin = Math.min(24 * 60, Math.max(startMin + 15, rawEndMin));
+      return { event, startMin, endMin };
+    })
+    .sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+
+  const results: TimedBlockLayout[] = [];
+  let cluster: typeof items = [];
+  let clusterEnd = -1;
+
+  function flushCluster() {
+    if (cluster.length === 0) return;
+    const columnEnds: number[] = [];
+    for (const item of cluster) {
+      let col = columnEnds.findIndex((end) => end <= item.startMin);
+      if (col === -1) {
+        col = columnEnds.length;
+        columnEnds.push(item.endMin);
+      } else {
+        columnEnds[col] = item.endMin;
+      }
+      results.push({ event: item.event, startMin: item.startMin, endMin: item.endMin, col, totalCols: -1 });
+    }
+    const totalCols = columnEnds.length;
+    for (let i = results.length - cluster.length; i < results.length; i++) results[i].totalCols = totalCols;
+    cluster = [];
+    clusterEnd = -1;
+  }
+
+  for (const item of items) {
+    if (cluster.length > 0 && item.startMin >= clusterEnd) flushCluster();
+    cluster.push(item);
+    clusterEnd = Math.max(clusterEnd, item.endMin);
+  }
+  flushCluster();
+
+  return results;
+}

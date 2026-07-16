@@ -2,12 +2,13 @@ import { useState } from "react";
 import { addDays, addMonths, useHousehold, useSessionStore, type CalendarEventDto } from "@chaos-coordinator/core";
 import { SegmentedToggle } from "../../components/SegmentedToggle";
 import { DayView } from "./DayView";
-import { WeekView } from "./WeekView";
+import { WeekView, WEEK_VIEW_DAYS } from "./WeekView";
+import { AgendaView, AGENDA_VIEW_DAYS } from "./AgendaView";
 import { MonthView } from "./MonthView";
 import { EventFormScreen, type EditScope } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
 
-type ViewMode = "Day" | "Week" | "Month";
+type ViewMode = "Day" | "Week" | "Agenda" | "Month";
 
 export function CalendarPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("Day");
@@ -20,22 +21,28 @@ export function CalendarPage() {
   const currentUserId = useSessionStore((s) => s.currentUserId) ?? undefined;
   const currentUser = household?.users.find((u) => u.id === currentUserId);
 
+  const fmtShort = (d: Date) => d.toLocaleDateString([], { month: "short", day: "numeric" });
+
   const headerLabel =
     viewMode === "Day"
       ? date.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })
       : viewMode === "Month"
         ? date.toLocaleDateString([], { month: "long", year: "numeric" })
-        : `Week of ${date.toLocaleDateString([], { month: "short", day: "numeric" })}`;
+        : viewMode === "Week"
+          ? `${fmtShort(date)} – ${fmtShort(addDays(date, WEEK_VIEW_DAYS - 1))}`
+          : `${fmtShort(date)} – ${fmtShort(addDays(date, AGENDA_VIEW_DAYS - 1))}`;
 
   function handlePrev() {
     if (viewMode === "Day") setDate((d) => addDays(d, -1));
-    else if (viewMode === "Week") setDate((d) => addDays(d, -7));
+    else if (viewMode === "Week") setDate((d) => addDays(d, -WEEK_VIEW_DAYS));
+    else if (viewMode === "Agenda") setDate((d) => addDays(d, -AGENDA_VIEW_DAYS));
     else setDate((d) => addMonths(d, -1));
   }
 
   function handleNext() {
     if (viewMode === "Day") setDate((d) => addDays(d, 1));
-    else if (viewMode === "Week") setDate((d) => addDays(d, 7));
+    else if (viewMode === "Week") setDate((d) => addDays(d, WEEK_VIEW_DAYS));
+    else if (viewMode === "Agenda") setDate((d) => addDays(d, AGENDA_VIEW_DAYS));
     else setDate((d) => addMonths(d, 1));
   }
 
@@ -53,7 +60,7 @@ export function CalendarPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex flex-none items-center justify-between px-5 pb-3.5 pt-1.5">
+      <div className="flex flex-none flex-col gap-2 px-5 pb-3.5 pt-1.5">
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
@@ -71,22 +78,23 @@ export function CalendarPage() {
             ›
           </button>
         </div>
-        <SegmentedToggle
-          value={viewMode}
-          onChange={setViewMode}
-          options={[
-            { value: "Day", label: "Day" },
-            { value: "Week", label: "Week" },
-            { value: "Month", label: "Month" },
-          ]}
-        />
+        <div className="self-start">
+          <SegmentedToggle
+            value={viewMode}
+            onChange={setViewMode}
+            options={[
+              { value: "Day", label: "Day" },
+              { value: "Week", label: "Week" },
+              { value: "Agenda", label: "Agenda" },
+              { value: "Month", label: "Month" },
+            ]}
+          />
+        </div>
       </div>
 
       {viewMode === "Day" && (
         <DayView
           date={date}
-          currentUserId={currentUserId}
-          currentUserRole={currentUser?.role}
           onView={setViewingEvent}
           onAdd={() => {
             setEditScope("all");
@@ -96,6 +104,13 @@ export function CalendarPage() {
       )}
       {viewMode === "Week" && (
         <WeekView
+          date={date}
+          onViewEvent={setViewingEvent}
+          onAddForDay={handleAddForDay}
+        />
+      )}
+      {viewMode === "Agenda" && (
+        <AgendaView
           date={date}
           onViewEvent={setViewingEvent}
           onAddForDay={handleAddForDay}
