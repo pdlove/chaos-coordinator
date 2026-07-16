@@ -12,7 +12,11 @@ public class CloudflareTurnstileVerifier(HttpClient http, IOptions<TurnstileOpti
 
     public async Task<bool> VerifyAsync(string? token)
     {
-        if (string.IsNullOrWhiteSpace(token)) return false;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            logger.LogWarning("Turnstile verification skipped: no token was submitted (widget likely never completed client-side)");
+            return false;
+        }
 
         try
         {
@@ -22,14 +26,27 @@ public class CloudflareTurnstileVerifier(HttpClient http, IOptions<TurnstileOpti
                 ["response"] = token,
             }));
             var result = await response.Content.ReadFromJsonAsync<SiteverifyResponse>();
+
+            if (result?.Success is not true)
+            {
+                // Cloudflare returns HTTP 200 with success=false for e.g. a bad secret key, a
+                // site/secret key pair mismatch, or an expired/already-used token — none of which
+                // throw, so this is the only place that ever surfaces the real reason.
+                var codes = result?.ErrorCodes is { Length: > 0 } ec ? string.Join(", ", ec) : "(none returned)";
+                logger.LogWarning("Turnstile verification failed: {ErrorCodes}", codes);
+            }
+
             return result?.Success ?? false;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Turnstile siteverify request failed");
+            logger.LogError(ex, "Turnstile siteverify request threw (network/DNS issue reaching Cloudflare?)");
             return false;
         }
     }
 
-    private record SiteverifyResponse([property: JsonPropertyName("success")] bool Success);
+    private record SiteverifyResponse(
+        [property: JsonPropertyName("success")] bool Success,
+        [property: JsonPropertyName("error-codes")] string[]? ErrorCodes
+    );
 }
