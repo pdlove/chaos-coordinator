@@ -17,7 +17,8 @@ export function LoginScreen() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-7 bg-app px-6">
-      <div className="text-center">
+      <div className="flex flex-col items-center text-center">
+        <img src="/branding/logo.png" alt="Chaos Coordinator" className="mb-2 h-20 w-20" />
         <div className="text-2xl font-extrabold text-ink">Chaos Coordinator</div>
         <div className="mt-1 text-sm font-medium text-ink-muted">Sign in to your family account</div>
       </div>

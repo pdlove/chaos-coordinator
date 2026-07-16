@@ -91,6 +91,7 @@ export function RegisterScreen() {
   if (done) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-app px-6 text-center">
+        <img src="/branding/logo.png" alt="Chaos Coordinator" className="h-20 w-20" />
         <div className="text-2xl font-extrabold text-ink">Welcome to Chaos Coordinator!</div>
         <div className="max-w-[320px] text-sm font-medium text-ink-muted">
           We sent a verification link to {firstAdultEmail}. Anyone else you added with an email will get their own
