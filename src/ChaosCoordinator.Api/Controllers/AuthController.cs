@@ -15,6 +15,12 @@ namespace ChaosCoordinator.Api.Controllers;
 public class AuthController(AppDbContext db, HouseholdContext household, IPinElevationStore pinElevation, IEmailSender emailSender) : ControllerBase
 {
     private static readonly TimeSpan ElevationDuration = TimeSpan.FromMinutes(10);
+    /// <summary>Password login already proves identity as strongly as a PIN — an Adult signed
+    /// into their own account for the phone/web app shouldn't hit a redundant PIN prompt for
+    /// their own session. Matches the session's own IdleTimeout (Program.cs) and the "remember
+    /// me" cookie's MaxAge, so it effectively lasts the whole login. The short ElevationDuration
+    /// above stays the PIN-prompt duration for the shared wall-display path only.</summary>
+    private static readonly TimeSpan PasswordAuthElevationDuration = TimeSpan.FromDays(30);
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromDays(7);
     private const string RememberCookieName = "cc_remember";
     private const int MaxAdditionalMembers = 6;
@@ -37,6 +43,11 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
                 if (user is not null)
                 {
                     HttpContext.Session.SetString(SessionKeys.CurrentUserId, user.Id.ToString());
+                    // "Remember me" is only ever set by a password-based login (LoginWithPassword,
+                    // AcceptInvite) — see EstablishSession — so restoring from it re-grants the
+                    // same auto-elevation an Adult got at login, rather than making them hit a PIN
+                    // prompt again just because the session cookie expired.
+                    if (user.Role == Role.Adult) pinElevation.Elevate(HttpContext.Session.Id, PasswordAuthElevationDuration);
                     return Ok(new SessionDto(user.Id, pinElevation.IsElevated(HttpContext.Session.Id)));
                 }
             }
@@ -73,7 +84,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
         if (user?.PasswordHash is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Unauthorized(new { error = "invalid_credentials" });
 
-        return EstablishSession(user.Id, request.Remember);
+        return EstablishSession(user.Id, request.Remember, elevateIfAdultRole: user.Role);
     }
 
     [HttpPost("logout")]
@@ -85,8 +96,9 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
         return Ok(new SessionDto(null, false));
     }
 
-    /// <summary>Sets "who is using this browser" — kept for internal/wall-display use.
-    /// The phone app login flow now uses POST /api/auth/login instead.</summary>
+    /// <summary>Sets "who is using this browser" without proving identity — the wall display's
+    /// avatar-tap step. The phone/web app login flow uses POST /api/auth/login-password instead,
+    /// which (unlike this) also grants an Adult session-long PIN elevation.</summary>
     [HttpPost("select-profile")]
     public async Task<IActionResult> SelectProfile(SelectProfileRequest request)
     {
@@ -276,12 +288,22 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
         await db.SaveChangesAsync();
 
         await emailSender.SendWelcomeAsync(token.User.Email!, token.User.Name, token.User.Household!.Name);
-        return EstablishSession(token.User.Id, remember: false);
+        return EstablishSession(token.User.Id, remember: false, elevateIfAdultRole: token.User.Role);
     }
 
-    private IActionResult EstablishSession(Guid userId, bool remember)
+    /// <summary>elevateIfAdultRole: pass the user's Role only for password-proven logins
+    /// (LoginWithPassword, AcceptInvite) — an Adult gets this session auto-elevated so they never
+    /// hit a PIN prompt for their own account. Leave null for the PIN-based wall-display path
+    /// (Login), which must keep requiring a separate VerifyPin per sensitive action since that
+    /// session isn't tied to one specific person.</summary>
+    private IActionResult EstablishSession(Guid userId, bool remember, Role? elevateIfAdultRole = null)
     {
         HttpContext.Session.SetString(SessionKeys.CurrentUserId, userId.ToString());
+
+        if (elevateIfAdultRole == Role.Adult)
+        {
+            pinElevation.Elevate(HttpContext.Session.Id, PasswordAuthElevationDuration);
+        }
 
         if (remember)
         {
