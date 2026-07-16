@@ -1,5 +1,8 @@
+import type { ReactNode } from "react";
+
 interface SegmentedToggleProps<T extends string> {
-  options: { value: T; label: string }[];
+  /** `icon`, when given, renders instead of the text label (which becomes the aria-label). */
+  options: { value: T; label: string; icon?: ReactNode }[];
   value: T;
   onChange: (value: T) => void;
 }
@@ -12,11 +15,12 @@ export function SegmentedToggle<T extends string>({ options, value, onChange }: 
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`rounded-full px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+          aria-label={opt.icon ? opt.label : undefined}
+          className={`rounded-full transition-colors ${opt.icon ? "flex h-7 w-7 items-center justify-center" : "px-2.5 py-1.5 text-[11px] font-bold"} ${
             value === opt.value ? "bg-ink text-white" : "text-ink-muted"
           }`}
         >
-          {opt.label}
+          {opt.icon ?? opt.label}
         </button>
       ))}
     </div>

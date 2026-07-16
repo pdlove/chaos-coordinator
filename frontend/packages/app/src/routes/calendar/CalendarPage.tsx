@@ -8,6 +8,7 @@ import { MonthView } from "./MonthView";
 import { EventFormScreen, type EditScope } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
 import { useIsLandscape } from "./useIsLandscape";
+import { AgendaIcon, DayIcon, WeekIcon, MonthIcon } from "./CalendarViewIcons";
 
 type ViewMode = "Day" | "Week" | "Agenda" | "Month";
 
@@ -69,7 +70,7 @@ export function CalendarPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex flex-none flex-col gap-2 px-5 pb-3.5 pt-1.5">
+      <div className="flex flex-none items-center justify-between px-5 pb-3.5 pt-1.5">
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
@@ -87,18 +88,16 @@ export function CalendarPage() {
             ›
           </button>
         </div>
-        <div className="self-start">
-          <SegmentedToggle
-            value={viewMode}
-            onChange={setViewMode}
-            options={[
-              { value: "Day", label: "Day" },
-              { value: "Week", label: "Week" },
-              { value: "Agenda", label: "Agenda" },
-              { value: "Month", label: "Month" },
-            ]}
-          />
-        </div>
+        <SegmentedToggle
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { value: "Agenda", label: "Agenda", icon: <AgendaIcon /> },
+            { value: "Day", label: "Day", icon: <DayIcon /> },
+            { value: "Week", label: "Week", icon: <WeekIcon /> },
+            { value: "Month", label: "Month", icon: <MonthIcon /> },
+          ]}
+        />
       </div>
 
       {viewMode === "Day" && (
