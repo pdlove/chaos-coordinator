@@ -2,13 +2,19 @@ import { useState } from "react";
 import { addDays, addMonths, useHousehold, useSessionStore, type CalendarEventDto } from "@chaos-coordinator/core";
 import { SegmentedToggle } from "../../components/SegmentedToggle";
 import { DayView } from "./DayView";
-import { WeekView, WEEK_VIEW_DAYS } from "./WeekView";
+import { WeekView } from "./WeekView";
 import { AgendaView, AGENDA_VIEW_DAYS } from "./AgendaView";
 import { MonthView } from "./MonthView";
 import { EventFormScreen, type EditScope } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
+import { useIsLandscape } from "./useIsLandscape";
 
 type ViewMode = "Day" | "Week" | "Agenda" | "Month";
+
+// The Week schedule grid shows more days at once on a rotated (landscape) phone/tablet, since
+// there's the horizontal room for it.
+const WEEK_VIEW_DAYS_PORTRAIT = 3;
+const WEEK_VIEW_DAYS_LANDSCAPE = 5;
 
 export function CalendarPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("Day");
@@ -21,6 +27,9 @@ export function CalendarPage() {
   const currentUserId = useSessionStore((s) => s.currentUserId) ?? undefined;
   const currentUser = household?.users.find((u) => u.id === currentUserId);
 
+  const isLandscape = useIsLandscape();
+  const weekViewDays = isLandscape ? WEEK_VIEW_DAYS_LANDSCAPE : WEEK_VIEW_DAYS_PORTRAIT;
+
   const fmtShort = (d: Date) => d.toLocaleDateString([], { month: "short", day: "numeric" });
 
   const headerLabel =
@@ -29,19 +38,19 @@ export function CalendarPage() {
       : viewMode === "Month"
         ? date.toLocaleDateString([], { month: "long", year: "numeric" })
         : viewMode === "Week"
-          ? `${fmtShort(date)} – ${fmtShort(addDays(date, WEEK_VIEW_DAYS - 1))}`
+          ? `${fmtShort(date)} – ${fmtShort(addDays(date, weekViewDays - 1))}`
           : `${fmtShort(date)} – ${fmtShort(addDays(date, AGENDA_VIEW_DAYS - 1))}`;
 
   function handlePrev() {
     if (viewMode === "Day") setDate((d) => addDays(d, -1));
-    else if (viewMode === "Week") setDate((d) => addDays(d, -WEEK_VIEW_DAYS));
+    else if (viewMode === "Week") setDate((d) => addDays(d, -weekViewDays));
     else if (viewMode === "Agenda") setDate((d) => addDays(d, -AGENDA_VIEW_DAYS));
     else setDate((d) => addMonths(d, -1));
   }
 
   function handleNext() {
     if (viewMode === "Day") setDate((d) => addDays(d, 1));
-    else if (viewMode === "Week") setDate((d) => addDays(d, WEEK_VIEW_DAYS));
+    else if (viewMode === "Week") setDate((d) => addDays(d, weekViewDays));
     else if (viewMode === "Agenda") setDate((d) => addDays(d, AGENDA_VIEW_DAYS));
     else setDate((d) => addMonths(d, 1));
   }
@@ -100,13 +109,18 @@ export function CalendarPage() {
             setEditScope("all");
             setEditingEvent(null);
           }}
+          onPrevDay={handlePrev}
+          onNextDay={handleNext}
         />
       )}
       {viewMode === "Week" && (
         <WeekView
           date={date}
+          daysToShow={weekViewDays}
           onViewEvent={setViewingEvent}
           onAddForDay={handleAddForDay}
+          onPrevPeriod={handlePrev}
+          onNextPeriod={handleNext}
         />
       )}
       {viewMode === "Agenda" && (

@@ -13,9 +13,11 @@ interface DayViewProps {
   date: Date;
   onView: (event: CalendarEventDto) => void;
   onAdd: () => void;
+  onPrevDay: () => void;
+  onNextDay: () => void;
 }
 
-export function DayView({ date, onView, onAdd }: DayViewProps) {
+export function DayView({ date, onView, onAdd, onPrevDay, onNextDay }: DayViewProps) {
   const [filter, setFilter] = useState<Set<string>>(new Set());
   const from = startOfDay(date);
   const to = addDays(from, 1);
@@ -30,7 +32,14 @@ export function DayView({ date, onView, onAdd }: DayViewProps) {
     <div className="relative flex flex-1 flex-col overflow-hidden">
       <CategoryFilterPills selected={filter} onChange={setFilter} />
 
-      <TimeGridView days={[date]} events={filtered} onView={onView} onAddForDay={onAdd} />
+      <TimeGridView
+        days={[date]}
+        events={filtered}
+        onView={onView}
+        onAddForDay={onAdd}
+        onSwipeLeft={onNextDay}
+        onSwipeRight={onPrevDay}
+      />
 
       <button
         onClick={onAdd}

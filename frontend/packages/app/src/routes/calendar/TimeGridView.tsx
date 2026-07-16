@@ -8,9 +8,12 @@ import {
 } from "@chaos-coordinator/core";
 import { categoryTint } from "@chaos-coordinator/shared";
 
-const ROW_HEIGHT = 56; // px per hour
+const ROW_HEIGHT = 28; // px per hour
 const GUTTER_WIDTH = 40; // px
 const SCROLL_TO_HOUR = 7; // schedule opens scrolled to 7 AM rather than midnight
+const SWIPE_THRESHOLD_PX = 50; // minimum horizontal drag before it counts as a swipe, not a tap
+const MIN_BLOCK_HEIGHT = 16; // px — short events still get a visible sliver
+const MIN_HEIGHT_FOR_TIME_LABEL = 26; // px — below this, only the title fits
 
 function formatHourLabel(hour: number): string {
   if (hour === 0) return "12 AM";
@@ -28,15 +31,20 @@ interface TimeGridViewProps {
   events: CalendarEventDto[];
   onView: (event: CalendarEventDto) => void;
   onAddForDay: (day: Date) => void;
+  /** Swipe left = forward in time, swipe right = back — both optional since callers may not have
+   * paging to offer. */
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
 /** Traditional block-style schedule grid (hour rows down the side, events as positioned blocks) —
  * shared by the single-day Day view and the multi-day Week view, which differ only in how many
  * `days` they pass in. */
-export function TimeGridView({ days, events, onView, onAddForDay }: TimeGridViewProps) {
+export function TimeGridView({ days, events, onView, onAddForDay, onSwipeLeft, onSwipeRight }: TimeGridViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(new Date());
   const today = new Date();
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60_000);
@@ -52,8 +60,29 @@ export function TimeGridView({ days, events, onView, onAddForDay }: TimeGridView
   );
   const hasBanners = bannerEventsByDay.some((list) => list.length > 0);
 
+  function handlePointerDown(e: React.PointerEvent) {
+    touchStart.current = { x: e.clientX, y: e.clientY };
+  }
+
+  // Horizontal drag beyond the threshold, and clearly more horizontal than vertical (so it
+  // doesn't fire while the user is just scrolling the grid up/down), pages the view.
+  function handlePointerUp(e: React.PointerEvent) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) onSwipeLeft?.();
+    else onSwipeRight?.();
+  }
+
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div
+      className="flex flex-1 flex-col overflow-hidden"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+    >
       <div className="flex border-b border-border" style={{ paddingLeft: GUTTER_WIDTH }}>
         {days.map((day) => {
           const isToday = isSameDay(day, today);
@@ -129,26 +158,31 @@ export function TimeGridView({ days, events, onView, onAddForDay }: TimeGridView
                   </div>
                 )}
 
-                {blocks.map(({ event, startMin, endMin, col, totalCols }) => (
-                  <button
-                    key={event.id}
-                    onClick={() => onView(event)}
-                    className="absolute overflow-hidden rounded-lg px-1.5 py-1 text-left shadow-sm"
-                    style={{
-                      top: (startMin / 60) * ROW_HEIGHT,
-                      height: Math.max(20, ((endMin - startMin) / 60) * ROW_HEIGHT - 2),
-                      left: `${(col / totalCols) * 100}%`,
-                      width: `${100 / totalCols}%`,
-                      background: categoryTint(event.category.color),
-                      borderLeft: `3px solid ${event.category.color}`,
-                    }}
-                  >
-                    <div className="truncate text-[10.5px] font-bold leading-tight text-ink">{event.title}</div>
-                    <div className="truncate text-[9px] font-semibold leading-tight text-ink-muted">
-                      {formatEventTimeRange(event.start, event.end)}
-                    </div>
-                  </button>
-                ))}
+                {blocks.map(({ event, startMin, endMin, col, totalCols }) => {
+                  const height = Math.max(MIN_BLOCK_HEIGHT, ((endMin - startMin) / 60) * ROW_HEIGHT - 1);
+                  return (
+                    <button
+                      key={event.id}
+                      onClick={() => onView(event)}
+                      className="absolute overflow-hidden rounded-lg px-1.5 py-0.5 text-left shadow-sm"
+                      style={{
+                        top: (startMin / 60) * ROW_HEIGHT,
+                        height,
+                        left: `${(col / totalCols) * 100}%`,
+                        width: `${100 / totalCols}%`,
+                        background: categoryTint(event.category.color),
+                        borderLeft: `3px solid ${event.category.color}`,
+                      }}
+                    >
+                      <div className="truncate text-[10px] font-bold leading-tight text-ink">{event.title}</div>
+                      {height >= MIN_HEIGHT_FOR_TIME_LABEL && (
+                        <div className="truncate text-[8.5px] font-semibold leading-tight text-ink-muted">
+                          {formatEventTimeRange(event.start, event.end)}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             );
           })}

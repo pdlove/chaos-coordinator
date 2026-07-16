@@ -3,22 +3,22 @@ import { addDays, eventMatchesCategoryFilter, startOfDay, useEvents, type Calend
 import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 import { TimeGridView } from "./TimeGridView";
 
-/** Number of days shown at once in the Week schedule grid. */
-export const WEEK_VIEW_DAYS = 3;
-
 interface WeekViewProps {
   date: Date;
+  daysToShow: number;
   onViewEvent: (event: CalendarEventDto) => void;
   onAddForDay: (day: Date) => void;
+  onPrevPeriod: () => void;
+  onNextPeriod: () => void;
 }
 
-export function WeekView({ date, onViewEvent, onAddForDay }: WeekViewProps) {
+export function WeekView({ date, daysToShow, onViewEvent, onAddForDay, onPrevPeriod, onNextPeriod }: WeekViewProps) {
   const [filter, setFilter] = useState<Set<string>>(new Set());
   const from = startOfDay(date);
-  const to = addDays(from, WEEK_VIEW_DAYS);
+  const to = addDays(from, daysToShow);
   const { data: events } = useEvents(from, to);
 
-  const days = Array.from({ length: WEEK_VIEW_DAYS }, (_, i) => addDays(from, i));
+  const days = Array.from({ length: daysToShow }, (_, i) => addDays(from, i));
 
   const filtered = useMemo(
     () => (events ?? []).filter((e) => eventMatchesCategoryFilter(e, filter)),
@@ -28,7 +28,14 @@ export function WeekView({ date, onViewEvent, onAddForDay }: WeekViewProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <CategoryFilterPills selected={filter} onChange={setFilter} />
-      <TimeGridView days={days} events={filtered} onView={onViewEvent} onAddForDay={onAddForDay} />
+      <TimeGridView
+        days={days}
+        events={filtered}
+        onView={onViewEvent}
+        onAddForDay={onAddForDay}
+        onSwipeLeft={onNextPeriod}
+        onSwipeRight={onPrevPeriod}
+      />
     </div>
   );
 }
