@@ -120,12 +120,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ---- Migrate + seed on startup ----
+// ---- Migrate on startup ----
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db);
 }
 
 // ---- Pipeline ----
@@ -151,6 +150,21 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseSession();
+
+// HouseholdContext throws this when a controller needs a household but the request has no
+// authenticated session — turn it into a 401 instead of a 500.
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (UnauthenticatedException)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+    }
+});
+
 app.UseAuthorization();
 
 app.MapControllers();

@@ -8,14 +8,11 @@ namespace ChaosCoordinator.Api.Auth;
 /// households (see plan_001.md Workstream 1), so "the household" can no longer be decided once
 /// at startup.
 ///
-/// Resolution: from the logged-in user's session, via their HouseholdId.
-///
-/// TEMPORARY FALLBACK: with no session at all, falls back to the earliest-created household.
-/// This keeps the wall display and any other currently-anonymous caller working exactly as
-/// before — today there's only one household in practice, so the fallback is a no-op — but it
-/// is a real cross-household leak once a second household exists via registration. It must be
-/// removed once device-token auth (Workstream 3) gives the wall display its own real identity
-/// instead of relying on there being nothing else to resolve.</summary>
+/// Resolution: from the logged-in user's session, via their HouseholdId. There is no anonymous
+/// fallback — a request with no authenticated session throws UnauthenticatedException (mapped to
+/// 401 in Program.cs) rather than guessing a household. The wall display's pre-login screens are
+/// the one caller that still needs to resolve a household without a session; that requires its
+/// own identity (device-token auth, plan_001.md Workstream 1) and is not solved here.</summary>
 public class HouseholdContext(AppDbContext db, ICurrentUserAccessor currentUser)
 {
     private Guid? _householdId;
@@ -47,10 +44,6 @@ public class HouseholdContext(AppDbContext db, ICurrentUserAccessor currentUser)
             if (householdId != Guid.Empty) return householdId;
         }
 
-        var fallback = await db.Households.OrderBy(h => h.CreatedAt).Select(h => h.Id).FirstOrDefaultAsync();
-        if (fallback == Guid.Empty)
-            throw new InvalidOperationException("Could not resolve a household for this request.");
-
-        return fallback;
+        throw new UnauthenticatedException();
     }
 }

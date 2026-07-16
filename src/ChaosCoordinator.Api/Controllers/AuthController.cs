@@ -12,7 +12,6 @@ namespace ChaosCoordinator.Api.Controllers;
 [Route("api/auth")]
 public class AuthController(
     AppDbContext db,
-    HouseholdContext household,
     IPinElevationStore pinElevation,
     IEmailSender emailSender,
     ITurnstileVerifier turnstileVerifier
@@ -32,9 +31,9 @@ public class AuthController(
     // Mirrors UserEditModal.tsx's COLOR_CHOICES on the frontend.
     private static readonly string[] AvatarColors = ["#FF6B57", "#4C8BF5", "#1FB6A6", "#F2A93B", "#9B6BD9", "#E8607A"];
 
-    // Every household needs at least one category to create events at all. Matches DbSeeder's
-    // sample-household defaults and the AddCalendarCategoriesAndLocations migration's backfill
-    // for pre-existing households, so newly registered and pre-existing households look the same.
+    // Every household needs at least one category to create events at all. Matches the
+    // AddCalendarCategoriesAndLocations migration's backfill for pre-existing households, so
+    // newly registered and pre-existing households look the same.
     private static readonly (string Name, string Color)[] DefaultCategories =
     [
         ("Work", "#4C8BF5"), ("School", "#9B6BD9"), ("Doctor", "#E8607A"),
@@ -52,7 +51,9 @@ public class AuthController(
             var remembered = Request.Cookies[RememberCookieName];
             if (remembered is not null && Guid.TryParse(remembered, out var rememberedId))
             {
-                var user = await db.Users.FirstOrDefaultAsync(u => u.Id == rememberedId && u.HouseholdId == household.HouseholdId);
+                // No household filter needed: user IDs are globally unique, and resolving the
+                // household up front would need the very session this is trying to restore.
+                var user = await db.Users.FirstOrDefaultAsync(u => u.Id == rememberedId);
                 if (user is not null)
                 {
                     HttpContext.Session.SetString(SessionKeys.CurrentUserId, user.Id.ToString());
@@ -80,7 +81,9 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == request.UserId && u.HouseholdId == household.HouseholdId);
+        // No household filter needed: user IDs are globally unique, and there's no session yet
+        // to resolve one from.
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == request.UserId);
         if (user?.PinHash is null || !BCrypt.Net.BCrypt.Verify(request.Pin, user.PinHash))
             return Unauthorized(new { error = "invalid_credentials" });
 
