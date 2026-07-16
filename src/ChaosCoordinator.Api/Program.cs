@@ -47,14 +47,24 @@ builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 builder.Services.AddScoped<HouseholdContext>();
 builder.Services.AddScoped<ChaosCoordinator.Api.Services.BillGenerationService>();
 
-// Real delivery once Graph:TenantId/ClientId/ClientSecret/SenderAddress are set (env vars
-// Graph__TenantId etc., or appsettings) — falls back to logging the link instead of sending so
-// registration/invite flows still work end-to-end without those credentials configured.
-builder.Services.Configure<ChaosCoordinator.Api.Services.GraphEmailOptions>(
-    builder.Configuration.GetSection(ChaosCoordinator.Api.Services.GraphEmailOptions.SectionName));
-var graphOptions = builder.Configuration.GetSection(ChaosCoordinator.Api.Services.GraphEmailOptions.SectionName)
-    .Get<ChaosCoordinator.Api.Services.GraphEmailOptions>();
-if (graphOptions is { IsConfigured: true })
+// Real delivery once AZURE_TENANT_ID/AZURE_CLIENT_ID/AZURE_CLIENT_SECRET/EMAIL_FROM are set —
+// falls back to logging the link instead of sending so registration/invite flows still work
+// end-to-end without those credentials configured.
+var graphOptions = new ChaosCoordinator.Api.Services.GraphEmailOptions
+{
+    TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
+    ClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID"),
+    ClientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET"),
+    SenderAddress = Environment.GetEnvironmentVariable("EMAIL_FROM"),
+};
+builder.Services.Configure<ChaosCoordinator.Api.Services.GraphEmailOptions>(o =>
+{
+    o.TenantId = graphOptions.TenantId;
+    o.ClientId = graphOptions.ClientId;
+    o.ClientSecret = graphOptions.ClientSecret;
+    o.SenderAddress = graphOptions.SenderAddress;
+});
+if (graphOptions.IsConfigured)
 {
     builder.Services.AddScoped<ChaosCoordinator.Api.Services.IEmailSender, ChaosCoordinator.Api.Services.GraphEmailSender>();
 }

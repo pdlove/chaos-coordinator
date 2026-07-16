@@ -22,10 +22,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-chaos_coordinator};Username=${POSTGRES_USER:-chaos};Password=${POSTGRES_PASSWORD:-chaos}"
-      GRAPH__TENANTID: "${GRAPH__TENANTID:-}"
-      GRAPH__CLIENTID: "${GRAPH__CLIENTID:-}"
-      GRAPH__CLIENTSECRET: "${GRAPH__CLIENTSECRET:-}"
-      GRAPH__SENDERADDRESS: "${GRAPH__SENDERADDRESS:-}"
+      AZURE_TENANT_ID: "${AZURE_TENANT_ID:-}"
+      AZURE_CLIENT_ID: "${AZURE_CLIENT_ID:-}"
+      AZURE_CLIENT_SECRET: "${AZURE_CLIENT_SECRET:-}"
+      EMAIL_FROM: "${EMAIL_FROM:-}"
       APP_URL: "${APP_URL:-}"
     depends_on:
       postgres:
