@@ -11,7 +11,10 @@
 
   body {
     margin: 0;
-    background: theme("colors.app");
+    /* The app shell (bg-app) grows fluidly up to max-w-app and stays centered — this shows
+       through as a deliberately distinct surround on wider viewports instead of looking like an
+       incomplete layout. */
+    background: theme("colors.page");
     font-family: theme("fontFamily.sans");
     color: theme("colors.ink");
   }

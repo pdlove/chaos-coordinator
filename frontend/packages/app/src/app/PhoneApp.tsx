@@ -28,22 +28,30 @@ export function PhoneApp() {
 
   if (sessionLoading) return null;
 
-  // Signed-out routes never fetch household data — email+password login/registration doesn't
-  // need to know "which household" up front the way the old avatar-tap flow did (see
-  // plan_001.md Workstream 1: that anonymous fetch is a multi-tenant leak this replaces).
-  if (!session?.currentUserId) {
-    return (
-      <Routes>
-        <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/verify-email" element={<VerifyEmailScreen />} />
-        <Route path="/accept-invite" element={<AcceptInviteScreen />} />
-        <Route path="/wall-setup" element={<WallSetupStub />} />
-        <Route path="*" element={<LoginScreen />} />
-      </Routes>
-    );
-  }
-
-  return <AuthenticatedPhoneApp />;
+  // The shell grows fluidly with the viewport up to max-w-app, then stays centered — anything
+  // outside that is styles/tokens.css's distinct page background, not more bg-app, so wide
+  // viewports read as an intentional frame instead of a narrow layout that "didn't fill the
+  // screen." Wraps both the signed-out and authenticated branches so the width doesn't jump
+  // when logging in.
+  return (
+    <div className="mx-auto w-full max-w-app bg-app">
+      {/* Signed-out routes never fetch household data — email+password login/registration
+          doesn't need to know "which household" up front the way the old avatar-tap flow did
+          (see plan_001.md Workstream 1: that anonymous fetch is a multi-tenant leak this
+          replaces). */}
+      {!session?.currentUserId ? (
+        <Routes>
+          <Route path="/register" element={<RegisterScreen />} />
+          <Route path="/verify-email" element={<VerifyEmailScreen />} />
+          <Route path="/accept-invite" element={<AcceptInviteScreen />} />
+          <Route path="/wall-setup" element={<WallSetupStub />} />
+          <Route path="*" element={<LoginScreen />} />
+        </Routes>
+      ) : (
+        <AuthenticatedPhoneApp />
+      )}
+    </div>
+  );
 }
 
 function AuthenticatedPhoneApp() {
@@ -51,7 +59,7 @@ function AuthenticatedPhoneApp() {
   useRealtimeInvalidation(household?.id);
 
   return (
-    <div className="mx-auto flex h-screen max-w-[480px] flex-col bg-app">
+    <div className="flex h-screen flex-col bg-app">
       <Routes>
         <Route path="/" element={<Navigate to="/calendar" replace />} />
         <Route path="/calendar" element={<CalendarPage />} />

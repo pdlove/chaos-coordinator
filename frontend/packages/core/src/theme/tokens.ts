@@ -7,6 +7,10 @@
 
 export const colors = {
   appBg: "#F1EDE4",
+  /** Surrounds the app shell on viewports wider than its max-width (see frames.appMaxWidth) —
+   * deliberately distinct from appBg so the extra space reads as an intentional frame rather than
+   * an incomplete/broken layout. Matches the phone-frame bezel color from the design handoff. */
+  pageBg: "#1C1A17",
   card: "#FFFFFF",
   ink: "#211D18",
   inkMuted: "#8B8478",
@@ -74,3 +78,7 @@ export const frames = {
   wallDashboard: { width: 1180, height: 820 },
   wallModal: { width: 520, height: 640 },
 } as const;
+
+/** The web app's shell grows fluidly with the viewport up to this width, then stays centered
+ * with pageBg filling the margins either side. */
+export const appMaxWidth = 1080;

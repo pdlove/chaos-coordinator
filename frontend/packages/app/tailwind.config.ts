@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { colors, radii } from "../core/src/theme/tokens";
+import { appMaxWidth, colors, radii } from "../core/src/theme/tokens";
 
 // Derived from packages/core/src/theme/tokens.ts — the single source of truth for design values,
 // shared with a future React Native StyleSheet theme. Don't hand-edit color/radius values here;
@@ -10,6 +10,7 @@ export default {
     extend: {
       colors: {
         app: colors.appBg,
+        page: colors.pageBg,
         card: colors.card,
         ink: colors.ink,
         "ink-muted": colors.inkMuted,
@@ -35,6 +36,9 @@ export default {
       },
       fontFamily: {
         sans: ["'Plus Jakarta Sans'", "sans-serif"],
+      },
+      maxWidth: {
+        app: `${appMaxWidth}px`,
       },
     },
   },
