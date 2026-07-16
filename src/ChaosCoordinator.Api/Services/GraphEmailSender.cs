@@ -13,16 +13,39 @@ public class GraphEmailSender : IEmailSender
 {
     private readonly GraphServiceClient _graph;
     private readonly string _senderAddress;
+    private readonly string _senderName;
     private readonly ILogger<GraphEmailSender> _logger;
 
     public GraphEmailSender(IOptions<GraphEmailOptions> options, ILogger<GraphEmailSender> logger)
     {
         var config = options.Value;
-        _senderAddress = config.SenderAddress!;
+        // EMAIL_FROM may be a bare address or a "Display Name <address>" pair — Graph's
+        // /users/{id}/sendMail only accepts the bare address as the path segment, so the display
+        // name (if any) has to be split off rather than passed through as-is.
+        _senderAddress = ParseEmailAddress(config.SenderAddress!);
+        _senderName = ParseEmailName(config.SenderAddress!);
         _logger = logger;
 
         var credential = new ClientSecretCredential(config.TenantId, config.ClientId, config.ClientSecret);
         _graph = new GraphServiceClient(credential, ["https://graph.microsoft.com/.default"]);
+    }
+
+    private static string ParseEmailAddress(string from)
+    {
+        var start = from.IndexOf('<');
+        if (start >= 0)
+        {
+            var end = from.IndexOf('>', start);
+            if (end > start) return from[(start + 1)..end].Trim();
+        }
+        return from.Trim();
+    }
+
+    private static string ParseEmailName(string from)
+    {
+        var start = from.IndexOf('<');
+        if (start > 0) return from[..start].Trim();
+        return from.Trim();
     }
 
     public Task SendEmailVerificationAsync(string toEmail, string toName, string verifyUrl) =>
@@ -46,6 +69,7 @@ public class GraphEmailSender : IEmailSender
             Subject = subject,
             Body = new ItemBody { ContentType = BodyType.Html, Content = htmlBody },
             ToRecipients = [new Recipient { EmailAddress = new EmailAddress { Address = toEmail, Name = toName } }],
+            From = new Recipient { EmailAddress = new EmailAddress { Address = _senderAddress, Name = _senderName } },
         };
 
         try
