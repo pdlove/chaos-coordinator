@@ -3,6 +3,7 @@ import {
   getEventPermissionInfo,
   useCancelEventOccurrence,
   useDeleteEvent,
+  useSessionStore,
   type CalendarEventDto,
   type Role,
 } from "@chaos-coordinator/core";
@@ -29,6 +30,7 @@ function formatDate(iso: string) {
 }
 
 export function EventViewModal({ event, currentUserId, currentUserRole, onClose, onEdit }: EventViewModalProps) {
+  const pinElevated = useSessionStore((s) => s.pinElevated);
   const [pinAction, setPinAction] = useState<"edit" | "delete" | null>(null);
   const [showDeleteScope, setShowDeleteScope] = useState(false);
   const [error, setError] = useState(false);
@@ -61,12 +63,12 @@ export function EventViewModal({ event, currentUserId, currentUserRole, onClose,
   }
 
   function handleEditTap() {
-    if (perm.isOwner) onEdit(event);
+    if (perm.isOwner || pinElevated) onEdit(event);
     else setPinAction("edit");
   }
 
   function handleDeleteTap() {
-    if (!perm.isOwner) {
+    if (!perm.isOwner && !pinElevated) {
       setPinAction("delete");
     } else if (isRecurring) {
       setShowDeleteScope(true);

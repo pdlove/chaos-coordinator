@@ -1,11 +1,17 @@
 import { useState } from "react";
-import { useMarkBillPaid, type BillDto } from "@chaos-coordinator/core";
+import { useMarkBillPaid, useSessionStore, type BillDto } from "@chaos-coordinator/core";
 import { StatusBadge } from "../../components/StatusBadge";
 import { PinPrompt } from "../../components/PinPrompt";
 
 export function BillRow({ bill }: { bill: BillDto }) {
+  const pinElevated = useSessionStore((s) => s.pinElevated);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
   const markPaid = useMarkBillPaid();
+
+  function handleMarkPaidTap() {
+    if (pinElevated) markPaid.mutate(bill.id);
+    else setShowPinPrompt(true);
+  }
 
   const dueLabel = new Date(bill.dueDate).toLocaleDateString([], { month: "short", day: "numeric" });
   const amountLabel =
@@ -36,8 +42,8 @@ export function BillRow({ bill }: { bill: BillDto }) {
           )}
         </div>
         {bill.status !== "Paid" && (
-          <button onClick={() => setShowPinPrompt(true)} className="text-[11px] font-bold text-ink-muted">
-            Mark paid (PIN)
+          <button onClick={handleMarkPaidTap} className="text-[11px] font-bold text-ink-muted">
+            Mark paid{pinElevated ? "" : " (PIN)"}
           </button>
         )}
       </div>

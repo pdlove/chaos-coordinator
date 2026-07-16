@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useBills } from "@chaos-coordinator/core";
+import { useBills, useSessionStore } from "@chaos-coordinator/core";
 import { BillRow } from "./BillRow";
 import { PinPrompt } from "../../components/PinPrompt";
 import { AddBillTemplateModal } from "./AddBillTemplateModal";
@@ -12,9 +12,15 @@ function currentMonth() {
 export function BillsPage() {
   const month = currentMonth();
   const { data, isLoading } = useBills(month);
+  const pinElevated = useSessionStore((s) => s.pinElevated);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
   const [showAddTemplate, setShowAddTemplate] = useState(false);
   const monthLabel = new Date(`${month}-01T00:00:00`).toLocaleDateString([], { month: "long" });
+
+  function openAddTemplate() {
+    if (pinElevated) setShowAddTemplate(true);
+    else setShowPinPrompt(true);
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -58,10 +64,10 @@ export function BillsPage() {
         ))}
 
         <button
-          onClick={() => setShowPinPrompt(true)}
+          onClick={openAddTemplate}
           className="mt-1 flex h-12 items-center justify-center gap-2 rounded-card-lg border-[1.5px] border-dashed border-ink-fainter text-sm font-bold text-ink-muted"
         >
-          + Add recurring bill (PIN)
+          + Add recurring bill{pinElevated ? "" : " (PIN)"}
         </button>
       </div>
 

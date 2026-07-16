@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSessionStore } from "@chaos-coordinator/core";
 import { SegmentedToggle } from "../../components/SegmentedToggle";
 import { PinPrompt } from "../../components/PinPrompt";
 
@@ -8,7 +9,13 @@ type SubTab = "chores" | "household" | "projects";
 export function ChoresLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const pinElevated = useSessionStore((s) => s.pinElevated);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
+
+  function openGroups() {
+    if (pinElevated) navigate("/chores/settings");
+    else setShowPinPrompt(true);
+  }
 
   const isTopLevelTab = ["/chores/list", "/chores/household", "/chores/projects"].includes(location.pathname);
   const active: SubTab = location.pathname.includes("/chores/household")
@@ -24,7 +31,7 @@ export function ChoresLayout() {
           <div className="flex items-center justify-between">
             <div className="text-2xl font-extrabold text-ink">Chores & Tasks</div>
             {active === "chores" && (
-              <button onClick={() => setShowPinPrompt(true)} className="text-[11px] font-bold text-ink-muted">
+              <button onClick={openGroups} className="text-[11px] font-bold text-ink-muted">
                 Groups
               </button>
             )}
