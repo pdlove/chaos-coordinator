@@ -10,7 +10,7 @@ import {
   useEvents,
   type CalendarEventDto,
 } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT, CATEGORY_COLORS, type EventCategory } from "@chaos-coordinator/shared";
+import { categoryTint } from "@chaos-coordinator/shared";
 import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -33,7 +33,7 @@ interface MonthViewProps {
 }
 
 export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
-  const [filter, setFilter] = useState<Set<EventCategory>>(new Set());
+  const [filter, setFilter] = useState<Set<string>>(new Set());
   const [selectedDay, setSelectedDay] = useState(date);
   const gridStart = startOfMonthGrid(date);
   const gridDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -134,7 +134,7 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
                   <span
                     key={e.id}
                     className="truncate rounded px-1 py-[1px] text-[9px] font-bold leading-tight"
-                    style={{ background: CATEGORY_COLORS[e.category].bg, color: CATEGORY_COLORS[e.category].fg }}
+                    style={{ background: categoryTint(e.category.color), color: e.category.color }}
                   >
                     {e.title}
                   </span>
@@ -143,7 +143,7 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
               {overflow.length > 0 && (
                 <div className="mt-auto flex gap-0.5 px-0.5 pb-0.5">
                   {overflow.map((e) => (
-                    <span key={e.id} className="h-1 w-1 rounded-full" style={{ background: CATEGORY_ACCENT[e.category] }} />
+                    <span key={e.id} className="h-1 w-1 rounded-full" style={{ background: e.category.color }} />
                   ))}
                 </div>
               )}
@@ -174,7 +174,7 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
                 key={e.id}
                 onClick={() => onViewEvent(e)}
                 className="rounded-xl bg-card px-3 py-2.5 text-left text-xs font-semibold text-ink shadow-sm"
-                style={{ borderLeft: `3px solid ${CATEGORY_ACCENT[e.category]}` }}
+                style={{ borderLeft: `3px solid ${e.category.color}` }}
               >
                 {formatEventLine(e, selectedDay)}
               </button>

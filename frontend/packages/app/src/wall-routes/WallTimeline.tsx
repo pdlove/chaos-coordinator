@@ -1,5 +1,4 @@
 import { addDays, useEvents } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
 import { AvatarStack } from "../components/AvatarStack";
 
 export function WallTimeline() {
@@ -33,7 +32,7 @@ export function WallTimeline() {
                 </div>
                 <div
                   className="flex flex-1 items-center justify-between rounded-2xl p-3.5"
-                  style={isNow ? { background: "#FFEDE9", borderLeft: "4px solid #FF6B57" } : { background: "#fff", borderLeft: `4px solid ${CATEGORY_ACCENT[e.category]}`, boxShadow: "0 1px 2px rgba(33,29,24,.05)" }}
+                  style={isNow ? { background: "#FFEDE9", borderLeft: "4px solid #FF6B57" } : { background: "#fff", borderLeft: `4px solid ${e.category.color}`, boxShadow: "0 1px 2px rgba(33,29,24,.05)" }}
                 >
                   <div>
                     <div className="text-[15px] font-bold text-ink">{e.title}</div>

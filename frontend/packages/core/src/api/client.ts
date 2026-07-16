@@ -3,15 +3,18 @@ import type {
   BillTemplateDto,
   CalendarEventDto,
   CancelEventOccurrenceRequest,
+  CategoryDto,
   ChoreDto,
   CreateBillTemplateRequest,
   UpdateBillTemplateRequest,
   ChoreGroupDto,
   CompleteChoreRequest,
+  CreateCalendarCategoryRequest,
   CreateChoreGroupRequest,
   CreateChoreRequest,
   CreateEventRequest,
   CreateHouseholdTaskRequest,
+  CreateSavedLocationRequest,
   LoginRequest,
   CreateDietaryTagRequest,
   CreateItemRequest,
@@ -23,7 +26,6 @@ import type {
   CreateUserRequest,
   DietaryTagDto,
   EditEventOccurrenceRequest,
-  EventCategory,
   HouseholdDto,
   HouseholdTaskDto,
   ItemSuggestionDto,
@@ -39,6 +41,7 @@ import type {
   RegisterResponse,
   AcceptInviteRequest,
   VerifyEmailRequest,
+  SavedLocationDto,
   SelectProfileRequest,
   SessionDto,
   SetPinRequest,
@@ -48,12 +51,14 @@ import type {
   SubstitutionDto,
   TruncateEventSeriesRequest,
   UpdateBottomBarTabsRequest,
+  UpdateCalendarCategoryRequest,
   UpdateChoreGroupRequest,
   UpdateChoreRequest,
   UpdateEventRequest,
   UpdateItemRequest,
   UpdateProjectTaskRequest,
   UpdateRecipeRequest,
+  UpdateSavedLocationRequest,
   UpdateUserRequest,
   UpsertMenuEntryRequest,
   UserDto,
@@ -124,7 +129,7 @@ export const api = {
     apiFetch<SessionDto>("/api/auth/verify-pin", { method: "POST", body: JSON.stringify(req) }),
   exitEditMode: () => apiFetch<SessionDto>("/api/auth/exit-edit-mode", { method: "POST" }),
 
-  getEvents: (from: Date, to: Date, category?: EventCategory) => {
+  getEvents: (from: Date, to: Date, category?: string) => {
     const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
     if (category) params.set("category", category);
     return apiFetch<CalendarEventDto[]>(`/api/events?${params}`);
@@ -142,6 +147,20 @@ export const api = {
     apiFetch<CalendarEventDto>(`/api/events/${id}/split`, { method: "POST", body: JSON.stringify(req) }),
   truncateEventSeries: (id: string, req: TruncateEventSeriesRequest) =>
     apiFetch<void>(`/api/events/${id}/truncate`, { method: "POST", body: JSON.stringify(req) }),
+
+  getCalendarCategories: () => apiFetch<CategoryDto[]>("/api/calendar-categories"),
+  createCalendarCategory: (req: CreateCalendarCategoryRequest) =>
+    apiFetch<CategoryDto>("/api/calendar-categories", { method: "POST", body: JSON.stringify(req) }),
+  updateCalendarCategory: (id: string, req: UpdateCalendarCategoryRequest) =>
+    apiFetch<void>(`/api/calendar-categories/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
+  deleteCalendarCategory: (id: string) => apiFetch<void>(`/api/calendar-categories/${id}`, { method: "DELETE" }),
+
+  getSavedLocations: () => apiFetch<SavedLocationDto[]>("/api/saved-locations"),
+  createSavedLocation: (req: CreateSavedLocationRequest) =>
+    apiFetch<SavedLocationDto>("/api/saved-locations", { method: "POST", body: JSON.stringify(req) }),
+  updateSavedLocation: (id: string, req: UpdateSavedLocationRequest) =>
+    apiFetch<void>(`/api/saved-locations/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
+  deleteSavedLocation: (id: string) => apiFetch<void>(`/api/saved-locations/${id}`, { method: "DELETE" }),
 
   getChoreGroups: (date: string) => apiFetch<ChoreGroupDto[]>(`/api/chore-groups?date=${date}`),
   createChoreGroup: (req: CreateChoreGroupRequest) =>

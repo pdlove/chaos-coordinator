@@ -8,7 +8,6 @@ import {
   type CalendarEventDto,
   type Role,
 } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
 import { AvatarStack } from "../../components/AvatarStack";
 import { CategoryPill } from "../../components/CategoryPill";
 import { PinPrompt } from "../../components/PinPrompt";
@@ -43,7 +42,7 @@ export function EventViewModal({ event, currentUserId, currentUserRole, onClose,
   const truncateSeries = useTruncateEventSeries();
 
   const perm = getEventPermissionInfo(event, currentUserId, currentUserRole);
-  const accent = CATEGORY_ACCENT[event.category];
+  const accent = event.category.color;
   const canEdit = perm.isOwner || currentUserRole === "Adult" || currentUserRole === "Other";
   const isRecurring = event.instanceDate !== null;
   const busy = deleteEvent.isPending || cancelOccurrence.isPending || truncateSeries.isPending;

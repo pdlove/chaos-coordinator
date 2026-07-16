@@ -20,6 +20,7 @@ import { MenuPage } from "../routes/food/MenuPage";
 import { RecipesPage } from "../routes/food/RecipesPage";
 import { MorePage } from "../routes/more/MorePage";
 import { BottomBarSettings } from "../routes/more/BottomBarSettings";
+import { CalendarSettings } from "../routes/more/CalendarSettings";
 import { PeopleSettings } from "../routes/more/PeopleSettings";
 import { StubPage } from "../routes/more/StubPage";
 
@@ -81,6 +82,7 @@ function AuthenticatedPhoneApp() {
         <Route path="/more" element={<MorePage />} />
         <Route path="/more/bottom-bar" element={<BottomBarSettings />} />
         <Route path="/more/people" element={<PeopleSettings />} />
+        <Route path="/more/calendar-settings" element={<CalendarSettings />} />
         <Route path="/more/wall-pairing" element={<StubPage title="Wall display pairing" />} />
         <Route path="/more/notifications" element={<StubPage title="Notifications" />} />
         <Route path="/more/settings" element={<StubPage title="Settings" />} />

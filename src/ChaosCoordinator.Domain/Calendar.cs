@@ -8,7 +8,8 @@ public class CalendarEvent
     public string Title { get; set; } = "";
     public DateTime Start { get; set; }
     public DateTime? End { get; set; }
-    public EventCategory Category { get; set; }
+    public Guid CategoryId { get; set; }
+    public CalendarCategory? Category { get; set; }
     public string? Location { get; set; }
     public string? Notes { get; set; }
 
@@ -88,5 +89,36 @@ public class EventException
     public DateTime? End { get; set; }
     public string? Location { get; set; }
     public string? Notes { get; set; }
-    public EventCategory? Category { get; set; }
+    public Guid? CategoryId { get; set; }
+    public CalendarCategory? Category { get; set; }
+}
+
+/// <summary>A household-scoped calendar event category (e.g. "Work", "School") — replaces what
+/// used to be a fixed compiled-in enum so households can add/rename/remove their own. Every
+/// household gets 6 defaults (Work/School/Doctor/Home/Personal/Activities) at registration —
+/// see AuthController.Register — matching what existing households were backfilled with when
+/// this was converted from an enum (see the AddCalendarCategoriesAndLocations migration).</summary>
+public class CalendarCategory
+{
+    public Guid Id { get; set; }
+    public Guid HouseholdId { get; set; }
+
+    public string Name { get; set; } = "";
+    /// <summary>Hex color, e.g. "#4C8BF5" — used as-is for text/accents, and at reduced opacity
+    /// for pill backgrounds (see CategoryPill.tsx).</summary>
+    public string Color { get; set; } = "";
+    public int Order { get; set; }
+}
+
+/// <summary>A household-scoped saved location (name + optional address) — suggested via
+/// autocomplete on the event form's Location field, which otherwise stays free text (typing
+/// something new is always allowed; nothing here is a hard reference from CalendarEvent).</summary>
+public class SavedLocation
+{
+    public Guid Id { get; set; }
+    public Guid HouseholdId { get; set; }
+
+    public string Name { get; set; } = "";
+    public string? Address { get; set; }
+    public int Order { get; set; }
 }

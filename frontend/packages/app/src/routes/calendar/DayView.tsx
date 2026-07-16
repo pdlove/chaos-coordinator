@@ -7,7 +7,6 @@ import {
   type CalendarEventDto,
   type Role,
 } from "@chaos-coordinator/core";
-import type { EventCategory } from "@chaos-coordinator/shared";
 import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 import { EventCard } from "./EventCard";
 
@@ -20,7 +19,7 @@ interface DayViewProps {
 }
 
 export function DayView({ date, currentUserId, currentUserRole, onView, onAdd }: DayViewProps) {
-  const [filter, setFilter] = useState<Set<EventCategory>>(new Set());
+  const [filter, setFilter] = useState<Set<string>>(new Set());
   const from = startOfDay(date);
   const to = addDays(from, 1);
   const { data: events, isLoading } = useEvents(from, to);

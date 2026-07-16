@@ -4,7 +4,7 @@
 // which regenerates it from the live OpenAPI spec via openapi-typescript. Do not hand-edit past
 // Phase 0 — let codegen own this file.
 
-import type { BillStatus, EventCategory, HouseholdTaskStatus, MealType, RecurrenceFrequency, RecurrenceType, Role } from "../constants";
+import type { BillStatus, HouseholdTaskStatus, MealType, RecurrenceFrequency, RecurrenceType, Role } from "../constants";
 
 export interface UserDto {
   id: string;
@@ -87,12 +87,42 @@ export interface AcceptInviteRequest {
   password: string;
 }
 
+export interface CategoryDto {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
+}
+
+export interface SavedLocationDto {
+  id: string;
+  name: string;
+  address: string | null;
+  order: number;
+}
+
+export interface CreateCalendarCategoryRequest {
+  name: string;
+  color: string;
+  order: number;
+}
+
+export type UpdateCalendarCategoryRequest = CreateCalendarCategoryRequest;
+
+export interface CreateSavedLocationRequest {
+  name: string;
+  address: string | null;
+  order: number;
+}
+
+export type UpdateSavedLocationRequest = CreateSavedLocationRequest;
+
 export interface CalendarEventDto {
   id: string;
   title: string;
   start: string;
   end: string | null;
-  category: EventCategory;
+  category: CategoryDto;
   location: string | null;
   notes: string | null;
   ownerId: string;
@@ -127,7 +157,7 @@ export interface CreateEventRequest {
   title: string;
   start: string;
   end: string | null;
-  category: EventCategory;
+  categoryId: string;
   location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
@@ -146,7 +176,7 @@ export interface UpdateEventRequest {
   title: string;
   start: string;
   end: string | null;
-  category: EventCategory;
+  categoryId: string;
   location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
@@ -172,7 +202,7 @@ export interface EditEventOccurrenceRequest {
   title: string;
   start: string;
   end: string | null;
-  category: EventCategory;
+  categoryId: string;
   location: string | null;
   notes: string | null;
 }
@@ -184,7 +214,7 @@ export interface SplitEventSeriesRequest {
   title: string;
   start: string;
   end: string | null;
-  category: EventCategory;
+  categoryId: string;
   location: string | null;
   notes: string | null;
   attendeeUserIds: string[];

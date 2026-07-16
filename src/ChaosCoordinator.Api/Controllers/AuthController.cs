@@ -32,6 +32,15 @@ public class AuthController(
     // Mirrors UserEditModal.tsx's COLOR_CHOICES on the frontend.
     private static readonly string[] AvatarColors = ["#FF6B57", "#4C8BF5", "#1FB6A6", "#F2A93B", "#9B6BD9", "#E8607A"];
 
+    // Every household needs at least one category to create events at all. Matches DbSeeder's
+    // sample-household defaults and the AddCalendarCategoriesAndLocations migration's backfill
+    // for pre-existing households, so newly registered and pre-existing households look the same.
+    private static readonly (string Name, string Color)[] DefaultCategories =
+    [
+        ("Work", "#4C8BF5"), ("School", "#9B6BD9"), ("Doctor", "#E8607A"),
+        ("Home", "#1FB6A6"), ("Personal", "#F2A93B"), ("Activities", "#FF6B57"),
+    ];
+
     [HttpGet("session")]
     public async Task<IActionResult> GetSession()
     {
@@ -205,6 +214,11 @@ public class AuthController(
         var now = DateTime.UtcNow;
         var newHousehold = new Household { Id = Guid.NewGuid(), Name = familyName, CreatedAt = now };
         db.Households.Add(newHousehold);
+
+        db.CalendarCategories.AddRange(DefaultCategories.Select((c, i) => new CalendarCategory
+        {
+            Id = Guid.NewGuid(), HouseholdId = newHousehold.Id, Name = c.Name, Color = c.Color, Order = i,
+        }));
 
         var firstAdult = new User
         {

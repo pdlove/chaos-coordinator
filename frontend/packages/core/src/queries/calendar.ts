@@ -4,13 +4,13 @@ import type {
   CancelEventOccurrenceRequest,
   CreateEventRequest,
   EditEventOccurrenceRequest,
-  EventCategory,
   SplitEventSeriesRequest,
   TruncateEventSeriesRequest,
   UpdateEventRequest,
 } from "@chaos-coordinator/shared";
 
-export function useEvents(from: Date, to: Date, category?: EventCategory) {
+/** category: a CategoryDto id, not a name. */
+export function useEvents(from: Date, to: Date, category?: string) {
   return useQuery({
     queryKey: ["events", from.toISOString(), to.toISOString(), category ?? null],
     queryFn: () => api.getEvents(from, to, category),

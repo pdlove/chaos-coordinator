@@ -10,7 +10,6 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
     {
         b.HasKey(x => x.Id);
         b.Property(x => x.Title).IsRequired().HasMaxLength(200);
-        b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Location).HasMaxLength(500);
         b.Property(x => x.RecurrenceFrequency).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.RecurrenceDays).HasMaxLength(20);
@@ -21,6 +20,33 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
             .WithMany()
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(x => x.Category)
+            .WithMany()
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class CalendarCategoryConfiguration : IEntityTypeConfiguration<CalendarCategory>
+{
+    public void Configure(EntityTypeBuilder<CalendarCategory> b)
+    {
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Name).IsRequired().HasMaxLength(50);
+        b.Property(x => x.Color).IsRequired().HasMaxLength(9);
+        b.HasIndex(x => new { x.HouseholdId, x.Order });
+    }
+}
+
+public class SavedLocationConfiguration : IEntityTypeConfiguration<SavedLocation>
+{
+    public void Configure(EntityTypeBuilder<SavedLocation> b)
+    {
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Address).HasMaxLength(500);
+        b.HasIndex(x => new { x.HouseholdId, x.Order });
     }
 }
 
@@ -49,11 +75,15 @@ public class EventExceptionConfiguration : IEntityTypeConfiguration<EventExcepti
         b.HasKey(x => new { x.EventId, x.Date });
         b.Property(x => x.Title).HasMaxLength(200);
         b.Property(x => x.Location).HasMaxLength(500);
-        b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
 
         b.HasOne(x => x.Event)
             .WithMany(e => e.Exceptions)
             .HasForeignKey(x => x.EventId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        b.HasOne(x => x.Category)
+            .WithMany()
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

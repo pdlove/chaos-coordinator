@@ -8,7 +8,6 @@ import {
   startOfWeek,
   useEvents,
 } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
 import { SegmentedToggle } from "../components/SegmentedToggle";
 
 type ViewMode = "Day" | "Week" | "Month";
@@ -65,7 +64,7 @@ export function WallCalendarFull() {
                   {isToday && " · Today"}
                 </div>
                 {dayEvents.map((e) => (
-                  <div key={e.id} className="rounded-xl bg-card p-2 text-[11px] font-semibold text-ink shadow-sm" style={{ borderLeft: `3px solid ${CATEGORY_ACCENT[e.category]}` }}>
+                  <div key={e.id} className="rounded-xl bg-card p-2 text-[11px] font-semibold text-ink shadow-sm" style={{ borderLeft: `3px solid ${e.category.color}` }}>
                     {new Date(e.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} {e.title}
                   </div>
                 ))}
@@ -89,13 +88,13 @@ export function WallCalendarFull() {
             {Array.from({ length: 42 }, (_, i) => addDays(monthGridStart, i)).map((day) => {
               const isToday = isSameDay(day, today);
               const dayEvents = (events ?? []).filter((e) => isSameDay(new Date(e.start), day));
-              const categories = [...new Set(dayEvents.map((e) => e.category))];
+              const categories = [...new Map(dayEvents.map((e) => [e.category.id, e.category])).values()];
               return (
                 <div key={day.toISOString()} className={`rounded-xl p-2 ${isToday ? "bg-ink" : "bg-card shadow-sm"}`}>
                   <div className={`text-[13px] font-bold ${isToday ? "text-white" : "text-ink"}`}>{day.getDate()}</div>
                   <div className="mt-1 flex gap-1">
                     {categories.slice(0, 3).map((c) => (
-                      <span key={c} className="h-1.5 w-1.5 rounded-full" style={{ background: CATEGORY_ACCENT[c] }} />
+                      <span key={c.id} className="h-1.5 w-1.5 rounded-full" style={{ background: c.color }} />
                     ))}
                   </div>
                 </div>
@@ -110,7 +109,7 @@ export function WallCalendarFull() {
           {(events ?? [])
             .sort((a, b) => a.start.localeCompare(b.start))
             .map((e) => (
-              <div key={e.id} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm" style={{ borderLeft: `4px solid ${CATEGORY_ACCENT[e.category]}` }}>
+              <div key={e.id} className="flex items-center justify-between rounded-2xl bg-card p-4 shadow-sm" style={{ borderLeft: `4px solid ${e.category.color}` }}>
                 <div>
                   <div className="text-[15px] font-bold text-ink">{e.title}</div>
                   <div className="text-xs font-medium text-ink-muted">{new Date(e.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>

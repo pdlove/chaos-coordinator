@@ -28,28 +28,42 @@ public static class DbSeeder
         var todayUtc = DateTime.UtcNow.Date;
 
         // ---- Calendar ----
+        // Every household needs at least these to create events at all — see
+        // AuthController.Register, which seeds the same 6 defaults for real registrations.
+        var categoryDefs = new (string Name, string Color)[]
+        {
+            ("Work", "#4C8BF5"), ("School", "#9B6BD9"), ("Doctor", "#E8607A"),
+            ("Home", "#1FB6A6"), ("Personal", "#F2A93B"), ("Activities", "#FF6B57"),
+        };
+        var categories = categoryDefs.Select((c, i) => new CalendarCategory
+        {
+            Id = Guid.NewGuid(), HouseholdId = household.Id, Name = c.Name, Color = c.Color, Order = i,
+        }).ToList();
+        db.CalendarCategories.AddRange(categories);
+        Guid CategoryId(string name) => categories.First(c => c.Name == name).Id;
+
         var standup = new CalendarEvent
         {
             Id = Guid.NewGuid(), HouseholdId = household.Id, Title = "Team standup",
-            Start = todayUtc.AddHours(9), End = todayUtc.AddHours(9.5), Category = EventCategory.Work,
+            Start = todayUtc.AddHours(9), End = todayUtc.AddHours(9.5), CategoryId = CategoryId("Work"),
             OwnerId = paul.Id, CreatedAt = DateTime.UtcNow,
         };
         var grocery = new CalendarEvent
         {
             Id = Guid.NewGuid(), HouseholdId = household.Id, Title = "Grocery run",
-            Start = todayUtc.AddHours(11), End = todayUtc.AddHours(12), Category = EventCategory.Home,
+            Start = todayUtc.AddHours(11), End = todayUtc.AddHours(12), CategoryId = CategoryId("Home"),
             OwnerId = carmen.Id, CreatedAt = DateTime.UtcNow,
         };
         var dentist = new CalendarEvent
         {
             Id = Guid.NewGuid(), HouseholdId = household.Id, Title = "Dentist — Emma",
-            Start = todayUtc.AddHours(14), End = todayUtc.AddHours(14.75), Category = EventCategory.Doctor,
+            Start = todayUtc.AddHours(14), End = todayUtc.AddHours(14.75), CategoryId = CategoryId("Doctor"),
             OwnerId = carmen.Id, CreatedAt = DateTime.UtcNow,
         };
         var soccer = new CalendarEvent
         {
             Id = Guid.NewGuid(), HouseholdId = household.Id, Title = "Soccer practice",
-            Start = todayUtc.AddHours(16), End = todayUtc.AddHours(17.5), Category = EventCategory.Activities,
+            Start = todayUtc.AddHours(16), End = todayUtc.AddHours(17.5), CategoryId = CategoryId("Activities"),
             OwnerId = paul.Id, CreatedAt = DateTime.UtcNow,
         };
         db.CalendarEvents.AddRange(standup, grocery, dentist, soccer);

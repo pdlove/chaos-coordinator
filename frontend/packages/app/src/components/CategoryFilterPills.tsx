@@ -1,20 +1,20 @@
-import type { EventCategory } from "@chaos-coordinator/shared";
+import { useCalendarCategories } from "@chaos-coordinator/core";
 import { CategoryPill } from "./CategoryPill";
 
-const CATEGORIES: EventCategory[] = ["Work", "School", "Doctor", "Home", "Personal", "Activities"];
-
 interface CategoryFilterPillsProps {
-  /** Empty set = show all (the additive-multi-select default). */
-  selected: Set<EventCategory>;
-  onChange: (next: Set<EventCategory>) => void;
+  /** Empty set = show all (the additive-multi-select default). Values are category ids. */
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
 }
 
 /** Additive multi-select category filter, shared across the Day/Week/Month calendar views. */
 export function CategoryFilterPills({ selected, onChange }: CategoryFilterPillsProps) {
-  function toggle(category: EventCategory) {
+  const { data: categories } = useCalendarCategories();
+
+  function toggle(categoryId: string) {
     const next = new Set(selected);
-    if (next.has(category)) next.delete(category);
-    else next.add(category);
+    if (next.has(categoryId)) next.delete(categoryId);
+    else next.add(categoryId);
     onChange(next);
   }
 
@@ -28,11 +28,11 @@ export function CategoryFilterPills({ selected, onChange }: CategoryFilterPillsP
       >
         All
       </button>
-      {CATEGORIES.map((c) => (
+      {categories?.map((c) => (
         <button
-          key={c}
-          onClick={() => toggle(c)}
-          className={selected.size === 0 || selected.has(c) ? "opacity-100" : "opacity-50"}
+          key={c.id}
+          onClick={() => toggle(c.id)}
+          className={selected.size === 0 || selected.has(c.id) ? "opacity-100" : "opacity-50"}
         >
           <CategoryPill category={c} />
         </button>

@@ -20,19 +20,20 @@ public class EventsController(
 {
     [HttpGet]
     public async Task<ActionResult<List<CalendarEventDto>>> Get(
-        [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] EventCategory? category)
+        [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] Guid? category)
     {
         // For recurring events: include the series if it starts before 'to' AND hasn't ended before 'from'
         var query = db.CalendarEvents
             .Include(e => e.Owner)
+            .Include(e => e.Category)
             .Include(e => e.Attendees).ThenInclude(a => a.User)
-            .Include(e => e.Exceptions)
+            .Include(e => e.Exceptions).ThenInclude(x => x.Category)
             .Where(e => e.HouseholdId == household.HouseholdId
                 && (e.RecurrenceFrequency == null
                     ? e.Start < to && (e.End ?? e.Start) >= from
                     : e.Start < to && (e.RecurrenceEnd == null || e.RecurrenceEnd >= from)));
 
-        if (category is not null) query = query.Where(e => e.Category == category);
+        if (category is not null) query = query.Where(e => e.CategoryId == category);
 
         var events = await query.OrderBy(e => e.Start).ToListAsync();
 
@@ -80,7 +81,7 @@ public class EventsController(
             Title = request.Title,
             Start = request.Start,
             End = request.End,
-            Category = request.Category,
+            CategoryId = request.CategoryId,
             Location = request.Location,
             Notes = request.Notes,
             RecurrenceFrequency = request.RecurrenceFrequency,
@@ -119,7 +120,7 @@ public class EventsController(
         evt.Title = request.Title;
         evt.Start = request.Start;
         evt.End = request.End;
-        evt.Category = request.Category;
+        evt.CategoryId = request.CategoryId;
         evt.Location = request.Location;
         evt.Notes = request.Notes;
         evt.RecurrenceFrequency = request.RecurrenceFrequency;
@@ -211,7 +212,7 @@ public class EventsController(
         exception.End = request.End;
         exception.Location = request.Location;
         exception.Notes = request.Notes;
-        exception.Category = request.Category;
+        exception.CategoryId = request.CategoryId;
 
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
@@ -276,7 +277,7 @@ public class EventsController(
             Title = request.Title,
             Start = request.Start,
             End = request.End,
-            Category = request.Category,
+            CategoryId = request.CategoryId,
             Location = request.Location,
             Notes = request.Notes,
             RecurrenceFrequency = request.RecurrenceFrequency,
@@ -306,7 +307,7 @@ public class EventsController(
                 End = occurrenceException.End,
                 Location = occurrenceException.Location,
                 Notes = occurrenceException.Notes,
-                Category = occurrenceException.Category,
+                CategoryId = occurrenceException.CategoryId,
             });
         }
 
@@ -342,6 +343,7 @@ public class EventsController(
     {
         var evt = await db.CalendarEvents
             .Include(e => e.Owner)
+            .Include(e => e.Category)
             .Include(e => e.Attendees).ThenInclude(a => a.User)
             .SingleAsync(e => e.Id == id);
         return Ok(evt.ToDto(currentUser.UserId, null));

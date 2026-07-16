@@ -2,12 +2,22 @@ using ChaosCoordinator.Domain;
 
 namespace ChaosCoordinator.Api.Dtos;
 
+public record CategoryDto(Guid Id, string Name, string Color, int Order);
+
+public record SavedLocationDto(Guid Id, string Name, string? Address, int Order);
+
+public record CreateCalendarCategoryRequest(string Name, string Color, int Order);
+public record UpdateCalendarCategoryRequest(string Name, string Color, int Order);
+
+public record CreateSavedLocationRequest(string Name, string? Address, int Order);
+public record UpdateSavedLocationRequest(string Name, string? Address, int Order);
+
 public record CalendarEventDto(
     Guid Id,
     string Title,
     DateTime Start,
     DateTime? End,
-    EventCategory Category,
+    CategoryDto Category,
     string? Location,
     string? Notes,
     Guid OwnerId,
@@ -46,7 +56,7 @@ public record CreateEventRequest(
     string Title,
     DateTime Start,
     DateTime? End,
-    EventCategory Category,
+    Guid CategoryId,
     string? Location,
     string? Notes,
     List<Guid> AttendeeUserIds,
@@ -65,7 +75,7 @@ public record UpdateEventRequest(
     string Title,
     DateTime Start,
     DateTime? End,
-    EventCategory Category,
+    Guid CategoryId,
     string? Location,
     string? Notes,
     List<Guid> AttendeeUserIds,
@@ -89,7 +99,7 @@ public record EditOccurrenceRequest(
     string Title,
     DateTime Start,
     DateTime? End,
-    EventCategory Category,
+    Guid CategoryId,
     string? Location,
     string? Notes
 );
@@ -102,7 +112,7 @@ public record SplitSeriesRequest(
     string Title,
     DateTime Start,
     DateTime? End,
-    EventCategory Category,
+    Guid CategoryId,
     string? Location,
     string? Notes,
     List<Guid> AttendeeUserIds,
@@ -121,9 +131,15 @@ public record TruncateSeriesRequest(DateTime Date);
 
 public static class CalendarDtoMapping
 {
+    public static CategoryDto ToDto(this CalendarCategory c) => new(c.Id, c.Name, c.Color, c.Order);
+
+    public static SavedLocationDto ToDto(this SavedLocation l) => new(l.Id, l.Name, l.Address, l.Order);
+
     /// <summary>occurrenceOverride: the EventException for this occurrence's date, if any
     /// (Cancelled occurrences are filtered out by the caller before reaching here — see
-    /// EventsController.Get — so any override passed in here is an edit, not a cancellation).</summary>
+    /// EventsController.Get — so any override passed in here is an edit, not a cancellation).
+    /// Callers must .Include(e => e.Category) (and, when passing an override, its .Category too)
+    /// before calling this.</summary>
     public static CalendarEventDto ToDto(
         this CalendarEvent e, Guid? currentUserId, DateTime? instanceDate, EventException? occurrenceOverride = null)
     {
@@ -149,7 +165,7 @@ public static class CalendarDtoMapping
         var title = e.Title;
         var location = e.Location;
         var notes = e.Notes;
-        var category = e.Category;
+        var category = e.Category!.ToDto();
         if (occurrenceOverride is not null)
         {
             title = occurrenceOverride.Title ?? title;
@@ -157,7 +173,7 @@ public static class CalendarDtoMapping
             dtoEnd = occurrenceOverride.End ?? dtoEnd;
             location = occurrenceOverride.Location ?? location;
             notes = occurrenceOverride.Notes ?? notes;
-            category = occurrenceOverride.Category ?? category;
+            category = occurrenceOverride.Category?.ToDto() ?? category;
         }
 
         return new CalendarEventDto(

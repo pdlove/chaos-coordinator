@@ -1,7 +1,6 @@
 import { type CalendarEventDto, type Role } from "@chaos-coordinator/core";
 import { AvatarStack } from "../../components/AvatarStack";
 import { CategoryPill } from "../../components/CategoryPill";
-import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
 
 interface EventCardProps {
   event: CalendarEventDto;
@@ -16,7 +15,7 @@ function formatTimeRange(start: string, end: string | null) {
 }
 
 export function EventCard({ event, currentUserId: _currentUserId, currentUserRole: _currentUserRole, onView }: EventCardProps) {
-  const accent = CATEGORY_ACCENT[event.category];
+  const accent = event.category.color;
 
   return (
     <button

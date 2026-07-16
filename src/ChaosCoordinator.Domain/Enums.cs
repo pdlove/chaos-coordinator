@@ -2,8 +2,6 @@ namespace ChaosCoordinator.Domain;
 
 public enum Role { Adult, Child, Other }
 
-public enum EventCategory { Work, School, Doctor, Home, Personal, Activities }
-
 public enum RecurrenceType { Daily, Weekly, CustomDays }
 
 /// <summary>Calendar event recurrence — distinct from Chores' RecurrenceType, which predates this

@@ -1,21 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  useCalendarCategories,
   useCreateEvent,
   useDeleteEvent,
   useEditEventOccurrence,
   useHousehold,
+  useSavedLocations,
   useSplitEventSeries,
   useUpdateEvent,
   type CalendarEventDto,
 } from "@chaos-coordinator/core";
-import type { EventCategory } from "@chaos-coordinator/shared";
-import { CategoryPill } from "../../components/CategoryPill";
 import { FormHeader } from "../../components/FormHeader";
 import { FloatingInput, FloatingTextarea } from "../../components/FloatingLabelInput";
 import { RepeatPickerScreen, defaultRecurrence, repeatSummary, type RecurrenceValue } from "./RepeatPickerScreen";
 import { RemindersPickerScreen, formatReminderMinutes } from "./RemindersPickerScreen";
-
-const CATEGORIES: EventCategory[] = ["Work", "School", "Doctor", "Home", "Personal", "Activities"];
 
 /** "this" = one occurrence only, "future" = this and every later occurrence, "all" = the whole
  * series (also used for non-recurring events and brand-new events). */
@@ -40,6 +38,28 @@ function toTimeValue(d: Date) {
 
 function toISOString(date: string, time: string): string {
   return new Date(`${date}T${time || "00:00"}`).toISOString();
+}
+
+function daysBetween(fromDate: string, toDate: string): number {
+  const a = new Date(`${fromDate}T00:00`);
+  const b = new Date(`${toDate}T00:00`);
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+function shiftDateValue(dateStr: string, deltaDays: number): string {
+  const d = new Date(`${dateStr}T00:00`);
+  d.setDate(d.getDate() + deltaDays);
+  return toDateValue(d);
+}
+
+function minutesSinceMidnight(timeStr: string): number {
+  const [h, m] = timeStr.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function shiftTimeValue(timeStr: string, deltaMinutes: number): string {
+  const total = (((minutesSinceMidnight(timeStr) + deltaMinutes) % 1440) + 1440) % 1440;
+  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
 }
 
 function parseCsvInts(csv: string | null | undefined): number[] {
@@ -73,13 +93,15 @@ function remindersSummary(minutes: number[]): string {
 
 export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: EventFormScreenProps) {
   const { data: household } = useHousehold();
+  const { data: categories } = useCalendarCategories();
+  const { data: savedLocations } = useSavedLocations();
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
   const deleteEvent = useDeleteEvent();
   const editOccurrence = useEditEventOccurrence();
   const splitSeries = useSplitEventSeries();
 
-  const [category, setCategory] = useState<EventCategory>(event?.category ?? "Activities");
+  const [categoryId, setCategoryId] = useState(event?.category.id ?? "");
   const [title, setTitle] = useState(event?.title ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
   const [attendeeIds, setAttendeeIds] = useState<string[]>(event?.attendees.map((a) => a.id) ?? []);
@@ -87,7 +109,11 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
     event ? toDateValue(new Date(event.start)) : toDateValue(defaultDate)
   );
   const [startTime, setStartTime] = useState(event ? toTimeValue(new Date(event.start)) : "");
-  const [endDate, setEndDate] = useState(event?.end ? toDateValue(new Date(event.end)) : "");
+  // New events default End's date to the same day as Start (existing events keep whatever end
+  // date/time they already have, including no end at all).
+  const [endDate, setEndDate] = useState(
+    event?.end ? toDateValue(new Date(event.end)) : !event ? toDateValue(defaultDate) : ""
+  );
   const [endTime, setEndTime] = useState(event?.end ? toTimeValue(new Date(event.end)) : "");
   const [travelMinutes, setTravelMinutes] = useState<number | null>(
     event ? travelMinutesFromLeaveBy(event.start, event.travelTimeLeaveBy) : null
@@ -100,6 +126,11 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
   const [showRemindersPicker, setShowRemindersPicker] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // New events default to the household's first configured category once it's loaded.
+  useEffect(() => {
+    if (!categoryId && categories && categories.length > 0) setCategoryId(categories[0].id);
+  }, [categoryId, categories]);
+
   // Repeat pattern, participants, travel time, and reminders are series-level — editing just one
   // occurrence only touches the basics (title/time/location/category/notes for that date).
   const showSeriesLevelFields = scope !== "this";
@@ -107,8 +138,18 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
     createEvent.isPending || updateEvent.isPending || deleteEvent.isPending ||
     editOccurrence.isPending || splitSeries.isPending;
 
-  function toggleAttendee(id: string) {
-    setAttendeeIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  // Moving Start carries End along by the same amount, so an existing end date/time (or duration)
+  // isn't left stranded relative to the new start.
+  function handleStartDateChange(newDate: string) {
+    if (endDate) setEndDate(shiftDateValue(endDate, daysBetween(startDate, newDate)));
+    setStartDate(newDate);
+  }
+
+  function handleStartTimeChange(newTime: string) {
+    if (startTime && endTime) {
+      setEndTime(shiftTimeValue(endTime, minutesSinceMidnight(newTime) - minutesSinceMidnight(startTime)));
+    }
+    setStartTime(newTime);
   }
 
   function recurrenceRequestFields(v: RecurrenceValue) {
@@ -125,7 +166,9 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
   async function handleSave() {
     setSaveError(null);
     const startIso = toISOString(startDate, startTime);
-    const endIso = endDate ? toISOString(endDate, endTime) : null;
+    // endDate defaults to Start's day for new events (see the useState above) even before the
+    // user sets an end at all, so an end only actually exists once an end time is given.
+    const endIso = endTime ? toISOString(endDate, endTime) : null;
     // Recomputed from the current Start + fixed minutes offset every save, so editing Start keeps
     // the offset stable instead of leaving leave-by pinned to a stale absolute time.
     const travelTimeLeaveBy =
@@ -141,7 +184,7 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
             title,
             start: startIso,
             end: endIso,
-            category,
+            categoryId,
             location: location.trim() || null,
             notes: notes.trim() || null,
           },
@@ -154,7 +197,7 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
             title,
             start: startIso,
             end: endIso,
-            category,
+            categoryId,
             location: location.trim() || null,
             notes: notes.trim() || null,
             attendeeUserIds: attendeeIds,
@@ -168,7 +211,7 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
           title,
           start: startIso,
           end: endIso,
-          category,
+          categoryId,
           location: location.trim() || null,
           notes: notes.trim() || null,
           attendeeUserIds: attendeeIds,
@@ -217,38 +260,53 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
       />
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-5">
-        <div className="flex flex-col gap-1">
+        <label className="flex flex-col gap-1">
           <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Category</span>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((c) => (
-              <button key={c} onClick={() => setCategory(c)} className={category === c ? "" : "opacity-50"}>
-                <CategoryPill category={c} />
-              </button>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
+          >
+            {categories?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
-          </div>
-        </div>
+          </select>
+        </label>
 
         <FloatingInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
 
-        <FloatingInput label="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
+        <FloatingInput
+          label="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          list="saved-locations"
+        />
+        <datalist id="saved-locations">
+          {savedLocations?.map((l) => (
+            <option key={l.id} value={l.name}>
+              {l.address}
+            </option>
+          ))}
+        </datalist>
 
         {showSeriesLevelFields && (
-          <div className="flex flex-col gap-1">
+          <label className="flex flex-col gap-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Participants</span>
-            <div className="flex flex-wrap gap-2">
+            <select
+              multiple
+              value={attendeeIds}
+              onChange={(e) => setAttendeeIds(Array.from(e.target.selectedOptions, (o) => o.value))}
+              className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
+            >
               {household?.users.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => toggleAttendee(u.id)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                    attendeeIds.includes(u.id) ? "bg-ink text-white" : "bg-chip text-ink-muted"
-                  }`}
-                >
+                <option key={u.id} value={u.id}>
                   {u.name}
-                </button>
+                </option>
               ))}
-            </div>
-          </div>
+            </select>
+          </label>
         )}
 
         <div className="flex items-center gap-2">
@@ -256,14 +314,14 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
           <input
             type="date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-[132px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
+            onChange={(e) => handleStartDateChange(e.target.value)}
+            className="w-[168px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
           />
           <input
             type="time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="flex-1 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
+            onChange={(e) => handleStartTimeChange(e.target.value)}
+            className="w-[104px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
           />
         </div>
 
@@ -273,13 +331,13 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-[132px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
+            className="w-[168px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
           />
           <input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="flex-1 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
+            className="w-[104px] shrink-0 rounded-xl border border-border-strong bg-card px-2.5 py-2.5 text-sm font-semibold text-ink"
           />
         </div>
 

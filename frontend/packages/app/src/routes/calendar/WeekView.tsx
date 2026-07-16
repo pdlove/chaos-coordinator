@@ -9,7 +9,6 @@ import {
   useEvents,
   type CalendarEventDto,
 } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT, type EventCategory } from "@chaos-coordinator/shared";
 import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -29,7 +28,7 @@ interface WeekViewProps {
 }
 
 export function WeekView({ date, onViewEvent, onAddForDay }: WeekViewProps) {
-  const [filter, setFilter] = useState<Set<EventCategory>>(new Set());
+  const [filter, setFilter] = useState<Set<string>>(new Set());
   const from = startOfWeek(date);
   const to = addDays(from, 7);
   const { data: events } = useEvents(from, to);
@@ -82,7 +81,7 @@ export function WeekView({ date, onViewEvent, onAddForDay }: WeekViewProps) {
                       key={e.id}
                       onClick={() => onViewEvent(e)}
                       className="rounded-xl bg-card px-3 py-2 text-left text-xs font-semibold text-ink shadow-sm"
-                      style={{ borderLeft: `3px solid ${CATEGORY_ACCENT[e.category]}` }}
+                      style={{ borderLeft: `3px solid ${e.category.color}` }}
                     >
                       {formatEventLine(e, day)}
                     </button>

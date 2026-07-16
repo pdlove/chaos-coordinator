@@ -1,4 +1,4 @@
-import type { CalendarEventDto, EventCategory, Role } from "@chaos-coordinator/shared";
+import type { CalendarEventDto, Role } from "@chaos-coordinator/shared";
 import { isSameDay, startOfDay } from "./dates";
 
 export interface EventPermissionInfo {
@@ -20,9 +20,9 @@ export function getEventPermissionInfo(
   return { isOwner, isAttendee, canRequestEdit };
 }
 
-/** Additive multi-select category filter — empty selection means "show all". */
-export function eventMatchesCategoryFilter(event: CalendarEventDto, selected: Set<EventCategory>): boolean {
-  return selected.size === 0 || selected.has(event.category);
+/** Additive multi-select category filter (by category id) — empty selection means "show all". */
+export function eventMatchesCategoryFilter(event: CalendarEventDto, selected: Set<string>): boolean {
+  return selected.size === 0 || selected.has(event.category.id);
 }
 
 /** Does this event occupy any part of `day`? Unlike a same-day-as-start check, this also matches

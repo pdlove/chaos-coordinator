@@ -5,6 +5,8 @@ export * from "./queryClient";
 export * from "./queries/household";
 export * from "./queries/auth";
 export * from "./queries/calendar";
+export * from "./queries/calendarCategories";
+export * from "./queries/savedLocations";
 export * from "./queries/chores";
 export * from "./queries/tasks";
 export * from "./queries/projects";
