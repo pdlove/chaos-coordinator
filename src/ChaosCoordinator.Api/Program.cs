@@ -92,6 +92,32 @@ else
     builder.Services.AddScoped<ChaosCoordinator.Api.Services.ITurnstileVerifier, ChaosCoordinator.Api.Services.NoopTurnstileVerifier>();
 }
 
+// Web Push (calendar reminders, chore alarms, chore-completion alerts) once VAPID_PUBLIC_KEY/
+// VAPID_PRIVATE_KEY/VAPID_SUBJECT are set — falls back to logging instead of sending so those
+// flows still work end-to-end without real VAPID credentials configured.
+var vapidOptions = new ChaosCoordinator.Api.Services.VapidOptions
+{
+    PublicKey = Environment.GetEnvironmentVariable("VAPID_PUBLIC_KEY"),
+    PrivateKey = Environment.GetEnvironmentVariable("VAPID_PRIVATE_KEY"),
+    Subject = Environment.GetEnvironmentVariable("VAPID_SUBJECT"),
+};
+builder.Services.Configure<ChaosCoordinator.Api.Services.VapidOptions>(o =>
+{
+    o.PublicKey = vapidOptions.PublicKey;
+    o.PrivateKey = vapidOptions.PrivateKey;
+    o.Subject = vapidOptions.Subject;
+});
+if (vapidOptions.IsConfigured)
+{
+    builder.Services.AddSingleton<ChaosCoordinator.Api.Services.IPushSender, ChaosCoordinator.Api.Services.WebPushSender>();
+}
+else
+{
+    builder.Services.AddSingleton<ChaosCoordinator.Api.Services.IPushSender, ChaosCoordinator.Api.Services.NoopPushSender>();
+}
+builder.Services.AddScoped<ChaosCoordinator.Api.Services.PushNotificationService>();
+builder.Services.AddHostedService<ChaosCoordinator.Api.Services.ReminderCheckService>();
+
 // Dev-only CORS for hitting the API directly from a Vite dev server on a different port when not
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
 // is a fallback, not the primary flow.

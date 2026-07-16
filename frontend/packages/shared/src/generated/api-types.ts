@@ -243,6 +243,7 @@ export interface ChoreDto {
   recurrenceType: RecurrenceType;
   recurrenceDays: string | null;
   photoRequired: boolean;
+  alarmTime: string | null; // "HH:mm"
   assignees: UserDto[];
   completedToday: boolean;
   completedAt: string | null;
@@ -273,6 +274,7 @@ export interface CreateChoreRequest {
   recurrenceType: RecurrenceType;
   recurrenceDays: string | null;
   photoRequired: boolean;
+  alarmTime: string | null; // "HH:mm"
   assigneeUserIds: string[];
 }
 
@@ -282,6 +284,7 @@ export interface UpdateChoreRequest {
   recurrenceType: RecurrenceType;
   recurrenceDays: string | null;
   photoRequired: boolean;
+  alarmTime: string | null; // "HH:mm"
   assigneeUserIds: string[];
 }
 
@@ -535,4 +538,20 @@ export type UpdateUserRequest = CreateUserRequest;
 
 export interface SetPinRequest {
   pin: string;
+}
+
+// ---- Push notifications ----
+
+export interface VapidPublicKeyDto {
+  publicKey: string | null;
+}
+
+export interface SubscribeToPushRequest {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+export interface UnsubscribeFromPushRequest {
+  endpoint: string;
 }

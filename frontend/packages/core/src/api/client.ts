@@ -48,8 +48,10 @@ import type {
   ShoppingItemDto,
   SplitEventSeriesRequest,
   StoreDto,
+  SubscribeToPushRequest,
   SubstitutionDto,
   TruncateEventSeriesRequest,
+  UnsubscribeFromPushRequest,
   UpdateBottomBarTabsRequest,
   UpdateCalendarCategoryRequest,
   UpdateChoreGroupRequest,
@@ -62,6 +64,7 @@ import type {
   UpdateUserRequest,
   UpsertMenuEntryRequest,
   UserDto,
+  VapidPublicKeyDto,
   VerifyPinRequest,
 } from "@chaos-coordinator/shared";
 
@@ -240,4 +243,9 @@ export const api = {
   addDietaryTag: (userId: string, req: CreateDietaryTagRequest) =>
     apiFetch<DietaryTagDto>(`/api/users/${userId}/dietary-tags`, { method: "POST", body: JSON.stringify(req) }),
   deleteDietaryTag: (userId: string, tagId: string) => apiFetch<void>(`/api/users/${userId}/dietary-tags/${tagId}`, { method: "DELETE" }),
+
+  getVapidPublicKey: () => apiFetch<VapidPublicKeyDto>("/api/push/vapid-public-key"),
+  subscribeToPush: (req: SubscribeToPushRequest) => apiFetch<void>("/api/push/subscribe", { method: "POST", body: JSON.stringify(req) }),
+  unsubscribeFromPush: (req: UnsubscribeFromPushRequest) =>
+    apiFetch<void>("/api/push/unsubscribe", { method: "POST", body: JSON.stringify(req) }),
 };

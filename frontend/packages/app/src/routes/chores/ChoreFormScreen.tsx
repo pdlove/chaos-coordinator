@@ -37,6 +37,7 @@ export function ChoreFormScreen({ chore, initialGroupId, onClose }: ChoreFormScr
   const [photoRequired, setPhotoRequired] = useState(chore?.photoRequired ?? false);
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>(chore?.recurrenceType ?? "Daily");
   const [recurrenceDays, setRecurrenceDays] = useState<string | null>(chore?.recurrenceDays ?? null);
+  const [alarmTime, setAlarmTime] = useState<string | null>(chore?.alarmTime ?? null);
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export function ChoreFormScreen({ chore, initialGroupId, onClose }: ChoreFormScr
       recurrenceType,
       recurrenceDays,
       photoRequired,
+      alarmTime,
       assigneeUserIds: assigneeIds,
     };
     try {
@@ -138,6 +140,29 @@ export function ChoreFormScreen({ chore, initialGroupId, onClose }: ChoreFormScr
           <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Repeat</span>
           <span className="text-sm font-semibold text-ink">{choreRepeatSummary(recurrenceType, recurrenceDays)}</span>
         </button>
+
+        <div className="flex items-center justify-between rounded-xl bg-card px-3.5 py-3">
+          <span className="text-sm font-bold text-ink">Alarm</span>
+          <div className="flex items-center gap-2">
+            {alarmTime && (
+              <input
+                type="time"
+                value={alarmTime}
+                onChange={(e) => setAlarmTime(e.target.value)}
+                className="rounded-lg bg-chip px-3 py-1.5 text-sm font-bold text-ink-muted"
+              />
+            )}
+            <button
+              onClick={() => setAlarmTime((t) => (t ? null : "08:00"))}
+              aria-label="Toggle alarm"
+              className={`flex h-6 w-10 flex-none items-center rounded-full px-0.5 transition-colors ${
+                alarmTime ? "justify-end bg-ink" : "justify-start bg-chip"
+              }`}
+            >
+              <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+        </div>
 
         <button
           onClick={() => setPhotoRequired((v) => !v)}

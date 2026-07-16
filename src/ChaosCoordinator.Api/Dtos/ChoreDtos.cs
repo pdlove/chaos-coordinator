@@ -10,6 +10,7 @@ public record ChoreDto(
     RecurrenceType RecurrenceType,
     string? RecurrenceDays,
     bool PhotoRequired,
+    string? AlarmTime,
     List<UserDto> Assignees,
     bool CompletedToday,
     DateTime? CompletedAt,
@@ -29,6 +30,7 @@ public record CreateChoreRequest(
     RecurrenceType RecurrenceType,
     string? RecurrenceDays,
     bool PhotoRequired,
+    string? AlarmTime,
     List<Guid> AssigneeUserIds
 );
 
@@ -38,6 +40,7 @@ public record UpdateChoreRequest(
     RecurrenceType RecurrenceType,
     string? RecurrenceDays,
     bool PhotoRequired,
+    string? AlarmTime,
     List<Guid> AssigneeUserIds
 );
 
@@ -50,6 +53,7 @@ public static class ChoreDtoMapping
         var completion = c.Completions.FirstOrDefault(x => x.Date == date);
         return new ChoreDto(
             c.Id, c.GroupId, c.Title, c.Instructions, c.RecurrenceType, c.RecurrenceDays, c.PhotoRequired,
+            c.AlarmTime?.ToString("HH:mm"),
             c.Assignments.Where(a => a.User is not null).Select(a => a.User!.ToDto()).ToList(),
             completion is not null,
             completion?.CompletedAt,

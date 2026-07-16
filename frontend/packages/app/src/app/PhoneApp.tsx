@@ -23,6 +23,7 @@ import { BottomBarSettings } from "../routes/more/BottomBarSettings";
 import { CalendarSettings } from "../routes/more/CalendarSettings";
 import { PeopleSettings } from "../routes/more/PeopleSettings";
 import { StubPage } from "../routes/more/StubPage";
+import { NotificationsSettings } from "../routes/more/NotificationsSettings";
 
 export function PhoneApp() {
   const { data: session, isLoading: sessionLoading } = useSession();
@@ -84,7 +85,7 @@ function AuthenticatedPhoneApp() {
         <Route path="/more/people" element={<PeopleSettings />} />
         <Route path="/more/calendar-settings" element={<CalendarSettings />} />
         <Route path="/more/wall-pairing" element={<StubPage title="Wall display pairing" />} />
-        <Route path="/more/notifications" element={<StubPage title="Notifications" />} />
+        <Route path="/more/notifications" element={<NotificationsSettings />} />
         <Route path="/more/settings" element={<StubPage title="Settings" />} />
         <Route path="*" element={<Navigate to="/calendar" replace />} />
       </Routes>

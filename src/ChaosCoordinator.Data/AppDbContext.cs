@@ -39,6 +39,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Substitution> Substitutions => Set<Substitution>();
     public DbSet<DietaryTag> DietaryTags => Set<DietaryTag>();
 
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+    public DbSet<SentReminder> SentReminders => Set<SentReminder>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

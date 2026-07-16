@@ -1,6 +1,7 @@
 using ChaosCoordinator.Api.Auth;
 using ChaosCoordinator.Api.Dtos;
 using ChaosCoordinator.Api.Realtime;
+using ChaosCoordinator.Api.Services;
 using ChaosCoordinator.Data;
 using ChaosCoordinator.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,8 @@ public class ChoresController(
     ICurrentUserAccessor currentUser,
     HouseholdContext household,
     IPinElevationStore pinElevation,
-    IHouseholdNotifier notifier
+    IHouseholdNotifier notifier,
+    PushNotificationService push
 ) : ControllerBase
 {
     [HttpPost]
@@ -34,6 +36,7 @@ public class ChoresController(
             RecurrenceType = request.RecurrenceType,
             RecurrenceDays = request.RecurrenceDays,
             PhotoRequired = request.PhotoRequired,
+            AlarmTime = request.AlarmTime is { } alarm ? TimeOnly.Parse(alarm) : null,
             Assignments = request.AssigneeUserIds.Select(uid => new ChoreAssignment { UserId = uid }).ToList(),
         };
         db.Chores.Add(chore);
@@ -61,6 +64,7 @@ public class ChoresController(
         chore.RecurrenceType = request.RecurrenceType;
         chore.RecurrenceDays = request.RecurrenceDays;
         chore.PhotoRequired = request.PhotoRequired;
+        chore.AlarmTime = request.AlarmTime is { } alarm ? TimeOnly.Parse(alarm) : null;
 
         db.ChoreAssignments.RemoveRange(chore.Assignments);
         chore.Assignments = request.AssigneeUserIds.Select(uid => new ChoreAssignment { ChoreId = chore.Id, UserId = uid }).ToList();
@@ -105,7 +109,8 @@ public class ChoresController(
 
         var completedById = currentUser.UserId ?? chore.Assignments.First().UserId;
         var existing = await db.ChoreCompletions.FirstOrDefaultAsync(x => x.ChoreId == id && x.Date == request.Date);
-        if (existing is null)
+        var isNewCompletion = existing is null;
+        if (isNewCompletion)
         {
             db.ChoreCompletions.Add(new ChoreCompletion
             {
@@ -120,6 +125,18 @@ public class ChoresController(
 
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
+
+        // Only on an actual new completion, not a no-op re-post of an already-completed chore.
+        if (isNewCompletion)
+        {
+            var completer = await db.Users.SingleAsync(u => u.Id == completedById);
+            var adultIds = await db.Users
+                .Where(u => u.HouseholdId == household.HouseholdId && u.Role == Role.Adult && u.Id != completedById)
+                .Select(u => u.Id)
+                .ToListAsync();
+            await push.NotifyUsersAsync(adultIds, new PushPayload(chore.Title, $"{completer.Name} finished this chore"));
+        }
+
         return NoContent();
     }
 

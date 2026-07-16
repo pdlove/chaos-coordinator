@@ -29,6 +29,10 @@ public class Chore
     public bool PhotoRequired { get; set; }
     public bool Archived { get; set; }
 
+    /// <summary>Specific one-off time of day this chore should alarm, independent of the group's
+    /// shared DoneByTime deadline — e.g. "take medicine" at 14:00. Null means no alarm.</summary>
+    public TimeOnly? AlarmTime { get; set; }
+
     public ICollection<ChoreAssignment> Assignments { get; set; } = new List<ChoreAssignment>();
     public ICollection<ChoreCompletion> Completions { get; set; } = new List<ChoreCompletion>();
 }
