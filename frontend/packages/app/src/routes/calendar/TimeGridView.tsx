@@ -83,7 +83,7 @@ export function TimeGridView({ days, events, onView, onAddForDay, onSwipeLeft, o
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     >
-      <div className="flex border-b border-border" style={{ paddingLeft: GUTTER_WIDTH }}>
+      <div className="flex border-b border-ink-fainter" style={{ paddingLeft: GUTTER_WIDTH }}>
         {days.map((day) => {
           const isToday = isSameDay(day, today);
           return (
@@ -109,7 +109,7 @@ export function TimeGridView({ days, events, onView, onAddForDay, onSwipeLeft, o
       </div>
 
       {hasBanners && (
-        <div className="flex gap-1 border-b border-border py-1.5" style={{ paddingLeft: GUTTER_WIDTH }}>
+        <div className="flex gap-1 border-b border-ink-fainter py-1.5" style={{ paddingLeft: GUTTER_WIDTH }}>
           {days.map((day, i) => (
             <div key={day.toISOString()} className="flex flex-1 flex-col gap-1 px-1">
               {bannerEventsByDay[i].map((e) => (
@@ -131,7 +131,7 @@ export function TimeGridView({ days, events, onView, onAddForDay, onSwipeLeft, o
         <div className="flex-none" style={{ width: GUTTER_WIDTH }}>
           {Array.from({ length: 24 }, (_, hour) => (
             <div key={hour} style={{ height: ROW_HEIGHT }} className="relative">
-              <span className="absolute -top-1.5 right-1 text-[9.5px] font-semibold text-ink-fainter">
+              <span className="absolute -top-1.5 right-1 text-[9.5px] font-semibold text-ink-muted">
                 {formatHourLabel(hour)}
               </span>
             </div>
@@ -146,9 +146,9 @@ export function TimeGridView({ days, events, onView, onAddForDay, onSwipeLeft, o
             const nowMin = now.getHours() * 60 + now.getMinutes();
 
             return (
-              <div key={day.toISOString()} className="relative border-l border-border" style={{ height: 24 * ROW_HEIGHT }}>
+              <div key={day.toISOString()} className="relative border-l border-ink-fainter" style={{ height: 24 * ROW_HEIGHT }}>
                 {Array.from({ length: 24 }, (_, hour) => (
-                  <div key={hour} className="absolute inset-x-0 border-t border-border" style={{ top: hour * ROW_HEIGHT }} />
+                  <div key={hour} className="absolute inset-x-0 border-t border-ink-fainter" style={{ top: hour * ROW_HEIGHT }} />
                 ))}
 
                 {isToday && (
