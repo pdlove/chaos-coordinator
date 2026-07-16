@@ -36,6 +36,10 @@ export function useSetUserPin() {
   return useMutation({ mutationFn: ({ id, req }: { id: string; req: SetPinRequest }) => api.setUserPin(id, req) });
 }
 
+export function useSendAccountEmail() {
+  return useMutation({ mutationFn: (id: string) => api.sendAccountEmail(id) });
+}
+
 export function useDietaryTags(userId: string | undefined) {
   return useQuery({
     queryKey: ["dietaryTags", userId],

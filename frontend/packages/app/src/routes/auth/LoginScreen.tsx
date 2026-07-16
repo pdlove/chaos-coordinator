@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { usePasswordLogin } from "@chaos-coordinator/core";
+import { Turnstile } from "../../components/Turnstile";
 
 export function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const login = usePasswordLogin();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    login.mutate({ email, password, remember: rememberMe });
+    login.mutate({ email, password, remember: rememberMe, turnstileToken });
   }
 
   return (
@@ -58,6 +60,8 @@ export function LoginScreen() {
           <span className="text-sm font-semibold text-ink-muted">Remember sign-in</span>
         </label>
 
+        <Turnstile onVerify={setTurnstileToken} />
+
         {login.isError && (
           <div className="rounded-xl bg-[#FDEBEF] px-3 py-2.5 text-sm font-semibold text-cat-doctor">
             Couldn't sign in — check your email and password.
@@ -66,7 +70,7 @@ export function LoginScreen() {
 
         <button
           type="submit"
-          disabled={login.isPending || !email || !password}
+          disabled={login.isPending || !email || !password || turnstileToken === null}
           className="rounded-2xl bg-ink py-3 text-sm font-bold text-white disabled:opacity-50"
         >
           Sign In

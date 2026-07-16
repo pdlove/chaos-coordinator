@@ -12,6 +12,7 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
         b.Property(x => x.Title).IsRequired().HasMaxLength(200);
         b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Location).HasMaxLength(500);
+        b.Property(x => x.RecurrenceFrequency).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.RecurrenceDays).HasMaxLength(20);
         b.Property(x => x.Reminders).HasMaxLength(100);
         b.HasIndex(x => new { x.HouseholdId, x.Start });
@@ -46,6 +47,9 @@ public class EventExceptionConfiguration : IEntityTypeConfiguration<EventExcepti
     public void Configure(EntityTypeBuilder<EventException> b)
     {
         b.HasKey(x => new { x.EventId, x.Date });
+        b.Property(x => x.Title).HasMaxLength(200);
+        b.Property(x => x.Location).HasMaxLength(500);
+        b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
 
         b.HasOne(x => x.Event)
             .WithMany(e => e.Exceptions)

@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { CancelEventOccurrenceRequest, CreateEventRequest, EventCategory, UpdateEventRequest } from "@chaos-coordinator/shared";
+import type {
+  CancelEventOccurrenceRequest,
+  CreateEventRequest,
+  EditEventOccurrenceRequest,
+  EventCategory,
+  SplitEventSeriesRequest,
+  TruncateEventSeriesRequest,
+  UpdateEventRequest,
+} from "@chaos-coordinator/shared";
 
 export function useEvents(from: Date, to: Date, category?: EventCategory) {
   return useQuery({
@@ -38,6 +46,36 @@ export function useCancelEventOccurrence() {
   return useMutation({
     mutationFn: ({ id, req }: { id: string; req: CancelEventOccurrenceRequest }) =>
       api.cancelEventOccurrence(id, req),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+  });
+}
+
+/** "This event only" edit for one occurrence of a recurring event. */
+export function useEditEventOccurrence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: EditEventOccurrenceRequest }) =>
+      api.editEventOccurrence(id, req),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+  });
+}
+
+/** "This and following" edit — truncates the original series and continues it as a new one. */
+export function useSplitEventSeries() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: SplitEventSeriesRequest }) =>
+      api.splitEventSeries(id, req),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+  });
+}
+
+/** "This and following" delete — truncates the series with no continuation. */
+export function useTruncateEventSeries() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: TruncateEventSeriesRequest }) =>
+      api.truncateEventSeries(id, req),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
   });
 }

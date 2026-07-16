@@ -4,7 +4,7 @@ import { SegmentedToggle } from "../../components/SegmentedToggle";
 import { DayView } from "./DayView";
 import { WeekView } from "./WeekView";
 import { MonthView } from "./MonthView";
-import { EventFormScreen } from "./EventFormScreen";
+import { EventFormScreen, type EditScope } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
 
 type ViewMode = "Day" | "Week" | "Month";
@@ -14,6 +14,7 @@ export function CalendarPage() {
   const [date, setDate] = useState(new Date());
   const [viewingEvent, setViewingEvent] = useState<CalendarEventDto | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEventDto | null | undefined>(undefined);
+  const [editScope, setEditScope] = useState<EditScope>("all");
 
   const { data: household } = useHousehold();
   const currentUserId = useSessionStore((s) => s.currentUserId) ?? undefined;
@@ -39,12 +40,14 @@ export function CalendarPage() {
   }
 
   function handleAddForDay(day: Date) {
+    setEditScope("all");
     setEditingEvent(null);
     setDate(day);
   }
 
-  function handleEditFromView(event: CalendarEventDto) {
+  function handleEditFromView(event: CalendarEventDto, scope: EditScope) {
     setViewingEvent(null);
+    setEditScope(scope);
     setEditingEvent(event);
   }
 
@@ -85,7 +88,10 @@ export function CalendarPage() {
           currentUserId={currentUserId}
           currentUserRole={currentUser?.role}
           onView={setViewingEvent}
-          onAdd={() => setEditingEvent(null)}
+          onAdd={() => {
+            setEditScope("all");
+            setEditingEvent(null);
+          }}
         />
       )}
       {viewMode === "Week" && (
@@ -114,7 +120,15 @@ export function CalendarPage() {
       )}
 
       {editingEvent !== undefined && (
-        <EventFormScreen event={editingEvent} defaultDate={date} onClose={() => setEditingEvent(undefined)} />
+        <EventFormScreen
+          event={editingEvent}
+          defaultDate={date}
+          scope={editScope}
+          onClose={() => {
+            setEditingEvent(undefined);
+            setEditScope("all");
+          }}
+        />
       )}
     </div>
   );

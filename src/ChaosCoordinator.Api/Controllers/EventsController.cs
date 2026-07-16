@@ -28,7 +28,7 @@ public class EventsController(
             .Include(e => e.Attendees).ThenInclude(a => a.User)
             .Include(e => e.Exceptions)
             .Where(e => e.HouseholdId == household.HouseholdId
-                && (e.RecurrenceDays == null
+                && (e.RecurrenceFrequency == null
                     ? e.Start < to && (e.End ?? e.Start) >= from
                     : e.Start < to && (e.RecurrenceEnd == null || e.RecurrenceEnd >= from)));
 
@@ -39,17 +39,25 @@ public class EventsController(
         var result = new List<CalendarEventDto>();
         foreach (var evt in events)
         {
-            if (evt.RecurrenceDays is null)
+            if (evt.RecurrenceFrequency is null)
             {
                 result.Add(evt.ToDto(currentUser.UserId, null));
             }
             else
             {
-                var cancelled = evt.Exceptions.Select(x => x.Date).ToHashSet();
+                var exceptionsByDate = evt.Exceptions.ToDictionary(x => x.Date);
                 foreach (var (instanceStart, _) in RecurrenceExpander.Expand(evt, from, to))
                 {
-                    if (!cancelled.Contains(DateOnly.FromDateTime(instanceStart)))
+                    var date = DateOnly.FromDateTime(instanceStart);
+                    if (exceptionsByDate.TryGetValue(date, out var occurrenceException))
+                    {
+                        if (occurrenceException.Cancelled) continue;
+                        result.Add(evt.ToDto(currentUser.UserId, instanceStart, occurrenceException));
+                    }
+                    else
+                    {
                         result.Add(evt.ToDto(currentUser.UserId, instanceStart));
+                    }
                 }
             }
         }
@@ -75,7 +83,12 @@ public class EventsController(
             Category = request.Category,
             Location = request.Location,
             Notes = request.Notes,
+            RecurrenceFrequency = request.RecurrenceFrequency,
+            RecurrenceInterval = request.RecurrenceInterval,
             RecurrenceDays = request.RecurrenceDays,
+            RecurrenceMonthDay = request.RecurrenceMonthDay,
+            RecurrenceWeekOrdinal = request.RecurrenceWeekOrdinal,
+            RecurrenceWeekday = request.RecurrenceWeekday,
             RecurrenceEnd = request.RecurrenceEnd,
             TravelTimeLeaveBy = request.TravelTimeLeaveBy,
             Reminders = request.Reminders,
@@ -90,6 +103,8 @@ public class EventsController(
         return await Reload(evt.Id);
     }
 
+    /// <summary>Edits the whole series ("all events"). For a single recurring instance, use
+    /// POST {id}/instances; for "this and following", use POST {id}/split.</summary>
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<CalendarEventDto>> Update(Guid id, UpdateEventRequest request)
     {
@@ -107,7 +122,12 @@ public class EventsController(
         evt.Category = request.Category;
         evt.Location = request.Location;
         evt.Notes = request.Notes;
+        evt.RecurrenceFrequency = request.RecurrenceFrequency;
+        evt.RecurrenceInterval = request.RecurrenceInterval;
         evt.RecurrenceDays = request.RecurrenceDays;
+        evt.RecurrenceMonthDay = request.RecurrenceMonthDay;
+        evt.RecurrenceWeekOrdinal = request.RecurrenceWeekOrdinal;
+        evt.RecurrenceWeekday = request.RecurrenceWeekday;
         evt.RecurrenceEnd = request.RecurrenceEnd;
         evt.TravelTimeLeaveBy = request.TravelTimeLeaveBy;
         evt.Reminders = request.Reminders;
@@ -144,21 +164,165 @@ public class EventsController(
         var evt = await db.CalendarEvents
             .FirstOrDefaultAsync(e => e.Id == id && e.HouseholdId == household.HouseholdId);
         if (evt is null) return NotFound();
-        if (evt.RecurrenceDays is null) return BadRequest(new { error = "not_recurring" });
+        if (evt.RecurrenceFrequency is null) return BadRequest(new { error = "not_recurring" });
 
         var authError = await CheckEditAuthorization(evt);
         if (authError is not null) return authError;
 
         var date = DateOnly.FromDateTime(request.Date);
-        var exists = await db.EventExceptions.AnyAsync(x => x.EventId == id && x.Date == date);
-        if (!exists)
+        var exception = await db.EventExceptions.FirstOrDefaultAsync(x => x.EventId == id && x.Date == date);
+        if (exception is null)
         {
-            db.EventExceptions.Add(new EventException { EventId = id, Date = date });
-            await db.SaveChangesAsync();
-            await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
+            db.EventExceptions.Add(new EventException { EventId = id, Date = date, Cancelled = true });
+        }
+        else
+        {
+            exception.Cancelled = true;
         }
 
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
         return NoContent();
+    }
+
+    /// <summary>Edit just one occurrence ("this event only") — upserts a non-cancelling override.</summary>
+    [HttpPost("{id:guid}/instances")]
+    public async Task<IActionResult> EditOccurrence(Guid id, EditOccurrenceRequest request)
+    {
+        var evt = await db.CalendarEvents
+            .FirstOrDefaultAsync(e => e.Id == id && e.HouseholdId == household.HouseholdId);
+        if (evt is null) return NotFound();
+        if (evt.RecurrenceFrequency is null) return BadRequest(new { error = "not_recurring" });
+
+        var authError = await CheckEditAuthorization(evt);
+        if (authError is not null) return authError;
+
+        var date = DateOnly.FromDateTime(request.Date);
+        var exception = await db.EventExceptions.FirstOrDefaultAsync(x => x.EventId == id && x.Date == date);
+        if (exception is null)
+        {
+            exception = new EventException { EventId = id, Date = date };
+            db.EventExceptions.Add(exception);
+        }
+
+        exception.Cancelled = false;
+        exception.Title = request.Title;
+        exception.Start = request.Start;
+        exception.End = request.End;
+        exception.Location = request.Location;
+        exception.Notes = request.Notes;
+        exception.Category = request.Category;
+
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
+        return NoContent();
+    }
+
+    /// <summary>Delete "this and following" — truncates the series the day before Date, with no
+    /// continuation. If Date is on/before the series' own start, there's nothing left before it,
+    /// so the whole series is deleted instead. For an edit that continues the series, use
+    /// POST {id}/split.</summary>
+    [HttpPost("{id:guid}/truncate")]
+    public async Task<IActionResult> Truncate(Guid id, TruncateSeriesRequest request)
+    {
+        var evt = await db.CalendarEvents
+            .Include(e => e.Exceptions)
+            .FirstOrDefaultAsync(e => e.Id == id && e.HouseholdId == household.HouseholdId);
+        if (evt is null) return NotFound();
+        if (evt.RecurrenceFrequency is null) return BadRequest(new { error = "not_recurring" });
+
+        var authError = await CheckEditAuthorization(evt);
+        if (authError is not null) return authError;
+
+        var truncateDate = DateOnly.FromDateTime(request.Date);
+        if (truncateDate <= DateOnly.FromDateTime(evt.Start))
+        {
+            db.CalendarEvents.Remove(evt);
+        }
+        else
+        {
+            evt.RecurrenceEnd = DateTime.SpecifyKind(truncateDate.AddDays(-1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            db.EventExceptions.RemoveRange(evt.Exceptions.Where(x => x.Date >= truncateDate));
+        }
+
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
+        return NoContent();
+    }
+
+    /// <summary>Edit "this and following" — truncates the original series the day before Date (or
+    /// deletes it outright if nothing remains before Date), then creates a new series starting at
+    /// Date with the edited fields. Any per-instance overrides/cancellations dated on/after Date
+    /// move to the new series so they keep applying to the same calendar dates.</summary>
+    [HttpPost("{id:guid}/split")]
+    public async Task<ActionResult<CalendarEventDto>> Split(Guid id, SplitSeriesRequest request)
+    {
+        var evt = await db.CalendarEvents
+            .Include(e => e.Exceptions)
+            .FirstOrDefaultAsync(e => e.Id == id && e.HouseholdId == household.HouseholdId);
+        if (evt is null) return NotFound();
+        if (evt.RecurrenceFrequency is null) return BadRequest(new { error = "not_recurring" });
+
+        var authError = await CheckEditAuthorization(evt);
+        if (authError is not null) return authError;
+
+        var splitDate = DateOnly.FromDateTime(request.Date);
+        var attendeeIds = new HashSet<Guid>(request.AttendeeUserIds) { evt.OwnerId };
+
+        var newSeries = new CalendarEvent
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = evt.HouseholdId,
+            Title = request.Title,
+            Start = request.Start,
+            End = request.End,
+            Category = request.Category,
+            Location = request.Location,
+            Notes = request.Notes,
+            RecurrenceFrequency = request.RecurrenceFrequency,
+            RecurrenceInterval = request.RecurrenceInterval,
+            RecurrenceDays = request.RecurrenceDays,
+            RecurrenceMonthDay = request.RecurrenceMonthDay,
+            RecurrenceWeekOrdinal = request.RecurrenceWeekOrdinal,
+            RecurrenceWeekday = request.RecurrenceWeekday,
+            RecurrenceEnd = evt.RecurrenceEnd,
+            TravelTimeLeaveBy = request.TravelTimeLeaveBy,
+            Reminders = request.Reminders,
+            OwnerId = evt.OwnerId,
+            CreatedAt = DateTime.UtcNow,
+            Attendees = attendeeIds.Select(uid => new EventAttendee { UserId = uid }).ToList(),
+        };
+
+        foreach (var occurrenceException in evt.Exceptions.Where(x => x.Date >= splitDate).ToList())
+        {
+            db.EventExceptions.Remove(occurrenceException);
+            db.EventExceptions.Add(new EventException
+            {
+                EventId = newSeries.Id,
+                Date = occurrenceException.Date,
+                Cancelled = occurrenceException.Cancelled,
+                Title = occurrenceException.Title,
+                Start = occurrenceException.Start,
+                End = occurrenceException.End,
+                Location = occurrenceException.Location,
+                Notes = occurrenceException.Notes,
+                Category = occurrenceException.Category,
+            });
+        }
+
+        if (splitDate <= DateOnly.FromDateTime(evt.Start))
+        {
+            db.CalendarEvents.Remove(evt);
+        }
+        else
+        {
+            evt.RecurrenceEnd = DateTime.SpecifyKind(splitDate.AddDays(-1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        }
+
+        db.CalendarEvents.Add(newSeries);
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.CalendarChanged);
+        return await Reload(newSeries.Id);
     }
 
     /// <summary>Owners can always edit/delete their own event. Editing someone else's requires

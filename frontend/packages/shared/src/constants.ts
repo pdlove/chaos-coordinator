@@ -7,6 +7,9 @@ export type EventCategory = "Work" | "School" | "Doctor" | "Home" | "Personal" |
 
 export type RecurrenceType = "Daily" | "Weekly" | "CustomDays";
 
+/** Calendar event recurrence — distinct from chores' RecurrenceType above. */
+export type RecurrenceFrequency = "Daily" | "Weekly" | "Monthly";
+
 export type HouseholdTaskStatus = "Unclaimed" | "Claimed" | "InProgress" | "Done";
 
 export type BillStatus = "Upcoming" | "DueSoon" | "Overdue" | "Paid";

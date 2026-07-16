@@ -73,6 +73,25 @@ else
     builder.Services.AddScoped<ChaosCoordinator.Api.Services.IEmailSender, ChaosCoordinator.Api.Services.LoggingEmailSender>();
 }
 
+// Bot protection on login/registration once TURNSTILE_SECRET_KEY is set — falls back to a
+// no-op verifier so those flows keep working end-to-end without Cloudflare credentials configured.
+var turnstileOptions = new ChaosCoordinator.Api.Services.TurnstileOptions
+{
+    SecretKey = Environment.GetEnvironmentVariable("TURNSTILE_SECRET_KEY"),
+};
+builder.Services.Configure<ChaosCoordinator.Api.Services.TurnstileOptions>(o =>
+{
+    o.SecretKey = turnstileOptions.SecretKey;
+});
+if (turnstileOptions.IsConfigured)
+{
+    builder.Services.AddHttpClient<ChaosCoordinator.Api.Services.ITurnstileVerifier, ChaosCoordinator.Api.Services.CloudflareTurnstileVerifier>();
+}
+else
+{
+    builder.Services.AddScoped<ChaosCoordinator.Api.Services.ITurnstileVerifier, ChaosCoordinator.Api.Services.NoopTurnstileVerifier>();
+}
+
 // Dev-only CORS for hitting the API directly from a Vite dev server on a different port when not
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
 // is a fallback, not the primary flow.

@@ -153,8 +153,17 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
       </div>
 
       <div className="mt-2 flex-1 overflow-y-auto border-t border-border px-5 pt-2.5">
-        <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-ink-faint">
-          {selectedDay.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">
+            {selectedDay.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}
+          </span>
+          <button
+            onClick={() => onAddForDay(selectedDay)}
+            aria-label="Add event"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-chip text-sm font-bold text-ink"
+          >
+            +
+          </button>
         </div>
         {selectedEvents.length === 0 ? (
           <div className="text-xs font-medium text-ink-fainter">No events</div>

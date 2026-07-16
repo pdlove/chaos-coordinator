@@ -22,6 +22,7 @@ import type {
   CreateSubstitutionRequest,
   CreateUserRequest,
   DietaryTagDto,
+  EditEventOccurrenceRequest,
   EventCategory,
   HouseholdDto,
   HouseholdTaskDto,
@@ -42,8 +43,10 @@ import type {
   SessionDto,
   SetPinRequest,
   ShoppingItemDto,
+  SplitEventSeriesRequest,
   StoreDto,
   SubstitutionDto,
+  TruncateEventSeriesRequest,
   UpdateBottomBarTabsRequest,
   UpdateChoreGroupRequest,
   UpdateChoreRequest,
@@ -133,6 +136,12 @@ export const api = {
   deleteEvent: (id: string) => apiFetch<void>(`/api/events/${id}`, { method: "DELETE" }),
   cancelEventOccurrence: (id: string, req: CancelEventOccurrenceRequest) =>
     apiFetch<void>(`/api/events/${id}/exceptions`, { method: "POST", body: JSON.stringify(req) }),
+  editEventOccurrence: (id: string, req: EditEventOccurrenceRequest) =>
+    apiFetch<void>(`/api/events/${id}/instances`, { method: "POST", body: JSON.stringify(req) }),
+  splitEventSeries: (id: string, req: SplitEventSeriesRequest) =>
+    apiFetch<CalendarEventDto>(`/api/events/${id}/split`, { method: "POST", body: JSON.stringify(req) }),
+  truncateEventSeries: (id: string, req: TruncateEventSeriesRequest) =>
+    apiFetch<void>(`/api/events/${id}/truncate`, { method: "POST", body: JSON.stringify(req) }),
 
   getChoreGroups: (date: string) => apiFetch<ChoreGroupDto[]>(`/api/chore-groups?date=${date}`),
   createChoreGroup: (req: CreateChoreGroupRequest) =>
@@ -207,6 +216,7 @@ export const api = {
   updateUser: (id: string, req: UpdateUserRequest) => apiFetch<void>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   deleteUser: (id: string) => apiFetch<void>(`/api/users/${id}`, { method: "DELETE" }),
   setUserPin: (id: string, req: SetPinRequest) => apiFetch<void>(`/api/users/${id}/pin`, { method: "POST", body: JSON.stringify(req) }),
+  sendAccountEmail: (id: string) => apiFetch<void>(`/api/users/${id}/send-account-email`, { method: "POST" }),
   getDietaryTags: (userId: string) => apiFetch<DietaryTagDto[]>(`/api/users/${userId}/dietary-tags`),
   addDietaryTag: (userId: string, req: CreateDietaryTagRequest) =>
     apiFetch<DietaryTagDto>(`/api/users/${userId}/dietary-tags`, { method: "POST", body: JSON.stringify(req) }),

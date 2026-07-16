@@ -4,7 +4,7 @@
 // which regenerates it from the live OpenAPI spec via openapi-typescript. Do not hand-edit past
 // Phase 0 — let codegen own this file.
 
-import type { BillStatus, EventCategory, HouseholdTaskStatus, MealType, RecurrenceType, Role } from "../constants";
+import type { BillStatus, EventCategory, HouseholdTaskStatus, MealType, RecurrenceFrequency, RecurrenceType, Role } from "../constants";
 
 export interface UserDto {
   id: string;
@@ -14,6 +14,9 @@ export interface UserDto {
   role: Role;
   order: number;
   hasPin: boolean;
+  email: string | null;
+  /** True once this user has clicked a verification/invite link for email. */
+  emailVerified: boolean;
 }
 
 export interface HouseholdDto {
@@ -51,6 +54,7 @@ export interface RegisterMemberRequest {
   name: string;
   role: Role;
   email: string | null;
+  sendInvite: boolean;
 }
 
 export interface RegisterHouseholdRequest {
@@ -59,6 +63,7 @@ export interface RegisterHouseholdRequest {
   firstAdultEmail: string;
   firstAdultPassword: string;
   additionalMembers: RegisterMemberRequest[];
+  turnstileToken?: string | null;
 }
 
 export interface RegisterResponse {
@@ -70,6 +75,7 @@ export interface PasswordLoginRequest {
   email: string;
   password: string;
   remember: boolean;
+  turnstileToken?: string | null;
 }
 
 export interface VerifyEmailRequest {
@@ -94,11 +100,22 @@ export interface CalendarEventDto {
   attendees: UserDto[];
   createdAt: string;
   isOwnedByCurrentUser: boolean;
-  /** Comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3". Null = non-recurring. */
+  /** Null = non-recurring. */
+  recurrenceFrequency: RecurrenceFrequency | null;
+  /** Repeat every N days/weeks/months, per recurrenceFrequency. */
+  recurrenceInterval: number;
+  /** Weekly only: comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3". */
   recurrenceDays: string | null;
+  /** Monthly "specific date" mode: day of month, or -1 for last day. */
+  recurrenceMonthDay: number | null;
+  /** Monthly "nth weekday" mode: 1-4, or -1 for last. Pairs with recurrenceWeekday. */
+  recurrenceWeekOrdinal: number | null;
+  /** Monthly "nth weekday" mode: DayOfWeek int (0=Sun…6=Sat). */
+  recurrenceWeekday: number | null;
   /** ISO datetime of the series end date. Null = open-ended. */
   recurrenceEnd: string | null;
-  /** Set for recurring instances; pass as `date` to POST /api/events/{id}/exceptions to cancel this occurrence only. */
+  /** Set for recurring instances; pass as `date` to POST /api/events/{id}/exceptions,
+   * /instances, /split, or /truncate to act on this occurrence. */
   instanceDate: string | null;
   /** "Leave by" date/time. Null = no travel time set. Display as (start - travelTimeLeaveBy) minutes. */
   travelTimeLeaveBy: string | null;
@@ -114,7 +131,12 @@ export interface CreateEventRequest {
   location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
+  recurrenceFrequency: RecurrenceFrequency | null;
+  recurrenceInterval: number;
   recurrenceDays: string | null;
+  recurrenceMonthDay: number | null;
+  recurrenceWeekOrdinal: number | null;
+  recurrenceWeekday: number | null;
   recurrenceEnd: string | null;
   travelTimeLeaveBy: string | null;
   reminders: string | null;
@@ -128,7 +150,12 @@ export interface UpdateEventRequest {
   location: string | null;
   notes: string | null;
   attendeeUserIds: string[];
+  recurrenceFrequency: RecurrenceFrequency | null;
+  recurrenceInterval: number;
   recurrenceDays: string | null;
+  recurrenceMonthDay: number | null;
+  recurrenceWeekOrdinal: number | null;
+  recurrenceWeekday: number | null;
   recurrenceEnd: string | null;
   travelTimeLeaveBy: string | null;
   reminders: string | null;
@@ -136,6 +163,43 @@ export interface UpdateEventRequest {
 
 export interface CancelEventOccurrenceRequest {
   /** ISO datetime of the occurrence to cancel. */
+  date: string;
+}
+
+/** Edit just one occurrence of a recurring event ("this event only"). */
+export interface EditEventOccurrenceRequest {
+  date: string;
+  title: string;
+  start: string;
+  end: string | null;
+  category: EventCategory;
+  location: string | null;
+  notes: string | null;
+}
+
+/** Edit "this and following" occurrences — truncates the original series at `date` and creates a
+ * new series starting there with the edited fields. */
+export interface SplitEventSeriesRequest {
+  date: string;
+  title: string;
+  start: string;
+  end: string | null;
+  category: EventCategory;
+  location: string | null;
+  notes: string | null;
+  attendeeUserIds: string[];
+  recurrenceFrequency: RecurrenceFrequency | null;
+  recurrenceInterval: number;
+  recurrenceDays: string | null;
+  recurrenceMonthDay: number | null;
+  recurrenceWeekOrdinal: number | null;
+  recurrenceWeekday: number | null;
+  travelTimeLeaveBy: string | null;
+  reminders: string | null;
+}
+
+/** Delete "this and following" occurrences — truncates the series at `date`, no continuation. */
+export interface TruncateEventSeriesRequest {
   date: string;
 }
 
@@ -434,6 +498,7 @@ export interface CreateUserRequest {
   color: string;
   role: Role;
   order: number;
+  email: string | null;
 }
 
 export type UpdateUserRequest = CreateUserRequest;

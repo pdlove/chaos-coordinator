@@ -15,8 +15,18 @@ public record CalendarEventDto(
     List<UserDto> Attendees,
     DateTime CreatedAt,
     bool IsOwnedByCurrentUser,
-    /// <summary>Comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3". Null = non-recurring.</summary>
+    /// <summary>Null = non-recurring.</summary>
+    RecurrenceFrequency? RecurrenceFrequency,
+    /// <summary>Repeat every N days/weeks/months, per RecurrenceFrequency.</summary>
+    int RecurrenceInterval,
+    /// <summary>Weekly only: comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3".</summary>
     string? RecurrenceDays,
+    /// <summary>Monthly "specific date" mode: day of month, or -1 for last day.</summary>
+    int? RecurrenceMonthDay,
+    /// <summary>Monthly "nth weekday" mode: 1-4, or -1 for last. Pairs with RecurrenceWeekday.</summary>
+    int? RecurrenceWeekOrdinal,
+    /// <summary>Monthly "nth weekday" mode: DayOfWeek int (0=Sun…6=Sat).</summary>
+    int? RecurrenceWeekday,
     /// <summary>Inclusive end date of the recurrence series. Null = open-ended.</summary>
     DateTime? RecurrenceEnd,
     /// <summary>For recurring event instances: the Start of this specific occurrence.
@@ -40,7 +50,12 @@ public record CreateEventRequest(
     string? Location,
     string? Notes,
     List<Guid> AttendeeUserIds,
+    RecurrenceFrequency? RecurrenceFrequency,
+    int RecurrenceInterval,
     string? RecurrenceDays,
+    int? RecurrenceMonthDay,
+    int? RecurrenceWeekOrdinal,
+    int? RecurrenceWeekday,
     DateTime? RecurrenceEnd,
     DateTime? TravelTimeLeaveBy,
     string? Reminders
@@ -54,7 +69,12 @@ public record UpdateEventRequest(
     string? Location,
     string? Notes,
     List<Guid> AttendeeUserIds,
+    RecurrenceFrequency? RecurrenceFrequency,
+    int RecurrenceInterval,
     string? RecurrenceDays,
+    int? RecurrenceMonthDay,
+    int? RecurrenceWeekOrdinal,
+    int? RecurrenceWeekday,
     DateTime? RecurrenceEnd,
     DateTime? TravelTimeLeaveBy,
     string? Reminders
@@ -62,9 +82,50 @@ public record UpdateEventRequest(
 
 public record CancelOccurrenceRequest(DateTime Date);
 
+/// <summary>Edit just one occurrence of a recurring event ("this event only") — upserts an
+/// EventException with Cancelled = false and these overrides.</summary>
+public record EditOccurrenceRequest(
+    DateTime Date,
+    string Title,
+    DateTime Start,
+    DateTime? End,
+    EventCategory Category,
+    string? Location,
+    string? Notes
+);
+
+/// <summary>Edit "this and following" occurrences — truncates the original series at Date and
+/// creates a new series starting at Date with the edited fields, continuing the same recurrence
+/// pattern (or the new one, if RecurrenceFrequency/etc. were also changed).</summary>
+public record SplitSeriesRequest(
+    DateTime Date,
+    string Title,
+    DateTime Start,
+    DateTime? End,
+    EventCategory Category,
+    string? Location,
+    string? Notes,
+    List<Guid> AttendeeUserIds,
+    RecurrenceFrequency? RecurrenceFrequency,
+    int RecurrenceInterval,
+    string? RecurrenceDays,
+    int? RecurrenceMonthDay,
+    int? RecurrenceWeekOrdinal,
+    int? RecurrenceWeekday,
+    DateTime? TravelTimeLeaveBy,
+    string? Reminders
+);
+
+/// <summary>"This and following" delete — just truncates the series at Date, no continuation.</summary>
+public record TruncateSeriesRequest(DateTime Date);
+
 public static class CalendarDtoMapping
 {
-    public static CalendarEventDto ToDto(this CalendarEvent e, Guid? currentUserId, DateTime? instanceDate)
+    /// <summary>occurrenceOverride: the EventException for this occurrence's date, if any
+    /// (Cancelled occurrences are filtered out by the caller before reaching here — see
+    /// EventsController.Get — so any override passed in here is an edit, not a cancellation).</summary>
+    public static CalendarEventDto ToDto(
+        this CalendarEvent e, Guid? currentUserId, DateTime? instanceDate, EventException? occurrenceOverride = null)
     {
         DateTime dtoStart;
         DateTime? dtoEnd;
@@ -85,14 +146,33 @@ public static class CalendarDtoMapping
             dtoTravelTimeLeaveBy = e.TravelTimeLeaveBy;
         }
 
+        var title = e.Title;
+        var location = e.Location;
+        var notes = e.Notes;
+        var category = e.Category;
+        if (occurrenceOverride is not null)
+        {
+            title = occurrenceOverride.Title ?? title;
+            dtoStart = occurrenceOverride.Start ?? dtoStart;
+            dtoEnd = occurrenceOverride.End ?? dtoEnd;
+            location = occurrenceOverride.Location ?? location;
+            notes = occurrenceOverride.Notes ?? notes;
+            category = occurrenceOverride.Category ?? category;
+        }
+
         return new CalendarEventDto(
-            e.Id, e.Title, dtoStart, dtoEnd,
-            e.Category, e.Location, e.Notes,
+            e.Id, title, dtoStart, dtoEnd,
+            category, location, notes,
             e.OwnerId, e.Owner?.Name ?? "",
             e.Attendees.Where(a => a.User is not null).Select(a => a.User!.ToDto()).ToList(),
             e.CreatedAt,
             currentUserId is not null && e.OwnerId == currentUserId,
+            e.RecurrenceFrequency,
+            e.RecurrenceInterval,
             e.RecurrenceDays,
+            e.RecurrenceMonthDay,
+            e.RecurrenceWeekOrdinal,
+            e.RecurrenceWeekday,
             e.RecurrenceEnd,
             instanceDate,
             dtoTravelTimeLeaveBy,

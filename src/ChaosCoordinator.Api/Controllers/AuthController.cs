@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ChaosCoordinator.Api.Auth;
 using ChaosCoordinator.Api.Dtos;
 using ChaosCoordinator.Api.Services;
@@ -12,7 +10,13 @@ namespace ChaosCoordinator.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(AppDbContext db, HouseholdContext household, IPinElevationStore pinElevation, IEmailSender emailSender) : ControllerBase
+public class AuthController(
+    AppDbContext db,
+    HouseholdContext household,
+    IPinElevationStore pinElevation,
+    IEmailSender emailSender,
+    ITurnstileVerifier turnstileVerifier
+) : ControllerBase
 {
     private static readonly TimeSpan ElevationDuration = TimeSpan.FromMinutes(10);
     /// <summary>Password login already proves identity as strongly as a PIN — an Adult signed
@@ -79,6 +83,9 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
     [HttpPost("login-password")]
     public async Task<IActionResult> LoginWithPassword(PasswordLoginRequest request)
     {
+        if (!await turnstileVerifier.VerifyAsync(request.TurnstileToken))
+            return BadRequest(new { error = "turnstile_failed" });
+
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user?.PasswordHash is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -138,6 +145,9 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterHouseholdRequest request)
     {
+        if (!await turnstileVerifier.VerifyAsync(request.TurnstileToken))
+            return BadRequest(new { error = "turnstile_failed" });
+
         var familyName = request.FamilyName.Trim();
         var firstAdultName = request.FirstAdultName.Trim();
         var firstAdultEmail = request.FirstAdultEmail.Trim().ToLowerInvariant();
@@ -146,7 +156,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
             return BadRequest(new { error = "family_name_required" });
         if (string.IsNullOrWhiteSpace(firstAdultName))
             return BadRequest(new { error = "first_adult_name_required" });
-        if (!IsValidEmail(firstAdultEmail))
+        if (!AccountTokens.IsValidEmail(firstAdultEmail))
             return BadRequest(new { error = "invalid_email", field = "firstAdultEmail" });
         if (request.FirstAdultPassword.Length < 8)
             return BadRequest(new { error = "password_too_short" });
@@ -154,7 +164,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
             return BadRequest(new { error = "too_many_members", max = MaxAdditionalMembers });
 
         var emailsInRequest = new HashSet<string> { firstAdultEmail };
-        var normalizedMembers = new List<(string Name, Role Role, string? Email)>();
+        var normalizedMembers = new List<(string Name, Role Role, string? Email, bool SendInvite)>();
         foreach (var m in request.AdditionalMembers)
         {
             var name = m.Name.Trim();
@@ -163,17 +173,26 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
 
             if (m.Role == Role.Child)
             {
-                normalizedMembers.Add((name, m.Role, null));
+                normalizedMembers.Add((name, m.Role, null, false));
                 continue;
             }
 
-            var email = m.Email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
+            var rawEmail = m.Email?.Trim().ToLowerInvariant();
+            if (m.SendInvite)
+            {
+                if (string.IsNullOrWhiteSpace(rawEmail) || !AccountTokens.IsValidEmail(rawEmail))
+                    return BadRequest(new { error = "invalid_email", field = "member_email", member = name });
+            }
+            else if (!string.IsNullOrWhiteSpace(rawEmail) && !AccountTokens.IsValidEmail(rawEmail))
+            {
                 return BadRequest(new { error = "invalid_email", field = "member_email", member = name });
-            if (!emailsInRequest.Add(email))
+            }
+
+            var email = string.IsNullOrWhiteSpace(rawEmail) ? null : rawEmail;
+            if (email is not null && !emailsInRequest.Add(email))
                 return BadRequest(new { error = "duplicate_email", email });
 
-            normalizedMembers.Add((name, m.Role, email));
+            normalizedMembers.Add((name, m.Role, email, m.SendInvite));
         }
 
         var alreadyRegistered = await db.Users
@@ -201,7 +220,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
         };
         db.Users.Add(firstAdult);
 
-        var (verifyRaw, verifyHash) = GenerateToken();
+        var (verifyRaw, verifyHash) = AccountTokens.Generate();
         db.AccountTokens.Add(new AccountToken
         {
             Id = Guid.NewGuid(),
@@ -214,7 +233,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
 
         var order = 1;
         var invites = new List<(string Name, string Email, string RawToken)>();
-        foreach (var (name, role, email) in normalizedMembers)
+        foreach (var (name, role, email, sendInvite) in normalizedMembers)
         {
             var member = new User
             {
@@ -229,9 +248,9 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
             };
             db.Users.Add(member);
 
-            if (email is not null)
+            if (email is not null && sendInvite)
             {
-                var (rawToken, tokenHash) = GenerateToken();
+                var (rawToken, tokenHash) = AccountTokens.Generate();
                 db.AccountTokens.Add(new AccountToken
                 {
                     Id = Guid.NewGuid(),
@@ -326,7 +345,7 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
     {
         if (string.IsNullOrEmpty(rawToken)) return null;
 
-        var hash = HashToken(rawToken);
+        var hash = AccountTokens.Hash(rawToken);
         var token = await db.AccountTokens
             .Include(t => t.User)
             .ThenInclude(u => u!.Household)
@@ -336,27 +355,11 @@ public class AuthController(AppDbContext db, HouseholdContext household, IPinEle
         return token;
     }
 
-    private static string HashToken(string rawToken) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
-
-    private static (string RawToken, string TokenHash) GenerateToken()
-    {
-        var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
-            .Replace('+', '-').Replace('/', '_').TrimEnd('=');
-        return (raw, HashToken(raw));
-    }
-
     private static string DeriveInitials(string name)
     {
         var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length >= 2) return $"{parts[0][0]}{parts[1][0]}".ToUpperInvariant();
         if (parts.Length == 1) return parts[0].Length >= 2 ? parts[0][..2].ToUpperInvariant() : parts[0].ToUpperInvariant();
         return "??";
-    }
-
-    private static bool IsValidEmail(string email)
-    {
-        try { return new System.Net.Mail.MailAddress(email).Address == email; }
-        catch { return false; }
     }
 }

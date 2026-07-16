@@ -12,10 +12,29 @@ public class CalendarEvent
     public string? Location { get; set; }
     public string? Notes { get; set; }
 
-    /// <summary>Null = does not repeat. Otherwise: comma-separated DayOfWeek ints (0=Sun…6=Sat),
-    /// e.g. "1,3" for every Monday and Wednesday. The event repeats at the same time of day as
-    /// Start, with the same duration, on the matching days from Start.Date through RecurrenceEnd.</summary>
+    /// <summary>Null = does not repeat. See RecurrenceExpander for how the frequency-specific
+    /// fields below combine to produce occurrences.</summary>
+    public RecurrenceFrequency? RecurrenceFrequency { get; set; }
+
+    /// <summary>Repeat every N days/weeks/months, depending on RecurrenceFrequency. Default 1
+    /// (every day/week/month).</summary>
+    public int RecurrenceInterval { get; set; } = 1;
+
+    /// <summary>Weekly only: comma-separated DayOfWeek ints (0=Sun…6=Sat), e.g. "1,3" for every
+    /// Monday and Wednesday.</summary>
     public string? RecurrenceDays { get; set; }
+
+    /// <summary>Monthly "specific date" mode: day of month (1-31), or -1 for "last day of the
+    /// month". Mutually exclusive with RecurrenceWeekOrdinal/RecurrenceWeekday.</summary>
+    public int? RecurrenceMonthDay { get; set; }
+
+    /// <summary>Monthly "nth weekday" mode: 1-4 for first..fourth, -1 for "last". Pairs with
+    /// RecurrenceWeekday, e.g. (2, Tuesday) = "the second Tuesday". Mutually exclusive with
+    /// RecurrenceMonthDay.</summary>
+    public int? RecurrenceWeekOrdinal { get; set; }
+
+    /// <summary>Monthly "nth weekday" mode: DayOfWeek int (0=Sun…6=Sat) paired with RecurrenceWeekOrdinal.</summary>
+    public int? RecurrenceWeekday { get; set; }
 
     /// <summary>Inclusive end date for the recurrence. Null = repeats indefinitely (server caps
     /// expansion to the requested query window).</summary>
@@ -50,12 +69,24 @@ public class EventAttendee
     public User? User { get; set; }
 }
 
-/// <summary>A cancelled (skipped) occurrence of a recurring event.</summary>
+/// <summary>An override for one occurrence of a recurring event — either a cancellation (skip
+/// this occurrence entirely) or an edit of just this instance (Cancelled = false, with one or
+/// more override fields set). Attendees/travel-time/reminders are not overridable per-instance;
+/// those stay series-level even when Cancelled is false.</summary>
 public class EventException
 {
     public Guid EventId { get; set; }
     public CalendarEvent? Event { get; set; }
 
-    /// <summary>The calendar date of the cancelled occurrence.</summary>
+    /// <summary>The calendar date of the occurrence being overridden.</summary>
     public DateOnly Date { get; set; }
+
+    public bool Cancelled { get; set; } = true;
+
+    public string? Title { get; set; }
+    public DateTime? Start { get; set; }
+    public DateTime? End { get; set; }
+    public string? Location { get; set; }
+    public string? Notes { get; set; }
+    public EventCategory? Category { get; set; }
 }
