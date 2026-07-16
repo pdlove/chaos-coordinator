@@ -21,6 +21,16 @@ public class CalendarEvent
     /// expansion to the requested query window).</summary>
     public DateTime? RecurrenceEnd { get; set; }
 
+    /// <summary>"Leave by" date/time — stored absolute (not a raw minute count) so it's directly
+    /// filterable/queryable once delivery infra exists. Null = no travel time set. The UI
+    /// displays/edits this as a minutes-before-Start offset and recomputes it whenever Start
+    /// changes, to keep the offset (not the absolute time) stable.</summary>
+    public DateTime? TravelTimeLeaveBy { get; set; }
+
+    /// <summary>Comma-separated minutes-before-Start offsets, e.g. "10,60,1440". Storage/display
+    /// only for now — no delivery infrastructure (push/email) in this pass.</summary>
+    public string? Reminders { get; set; }
+
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
 

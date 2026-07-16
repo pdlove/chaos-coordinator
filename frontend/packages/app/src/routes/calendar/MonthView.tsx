@@ -1,16 +1,30 @@
 import { useMemo, useRef, useState } from "react";
 import {
   addDays,
+  eventMatchesCategoryFilter,
+  eventSpansDay,
+  getEventDaySegment,
   isSameDay,
   startOfMonth,
   startOfMonthGrid,
   useEvents,
   type CalendarEventDto,
 } from "@chaos-coordinator/core";
-import { CATEGORY_ACCENT } from "@chaos-coordinator/shared";
+import { CATEGORY_ACCENT, CATEGORY_COLORS, type EventCategory } from "@chaos-coordinator/shared";
+import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
-const DOUBLE_TAP_MS = 300;
+const LONG_PRESS_MS = 500;
+const MAX_SNIPPETS = 2;
+const MAX_OVERFLOW_DOTS = 4;
+
+function formatEventLine(e: CalendarEventDto, day: Date) {
+  const fmt = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const segment = getEventDaySegment(e, day);
+  if (segment === "middle") return `All Day · ${e.title}`;
+  if (segment === "end") return `Ends at ${fmt(e.end!)} · ${e.title}`;
+  return `${fmt(e.start)} · ${e.title}`;
+}
 
 interface MonthViewProps {
   date: Date;
@@ -19,6 +33,7 @@ interface MonthViewProps {
 }
 
 export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
+  const [filter, setFilter] = useState<Set<EventCategory>>(new Set());
   const [selectedDay, setSelectedDay] = useState(date);
   const gridStart = startOfMonthGrid(date);
   const gridDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
@@ -27,35 +42,57 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
   const today = new Date();
   const month = startOfMonth(date).getMonth();
 
-  const lastTapRef = useRef<{ key: string; time: number } | null>(null);
+  // Long-press (not single tap) starts a new entry, since single tap is already spoken for by day
+  // selection in this view — see plan_001.md decision #10.
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
 
-  const eventsByDay = useMemo(() => {
-    const map = new Map<string, CalendarEventDto[]>();
-    for (const e of events ?? []) {
-      const key = new Date(e.start).toDateString();
-      map.set(key, [...(map.get(key) ?? []), e]);
-    }
-    return map;
-  }, [events]);
-
-  const selectedEvents = (eventsByDay.get(selectedDay.toDateString()) ?? []).sort((a, b) =>
-    a.start.localeCompare(b.start)
-  );
-
-  function handleDayTap(day: Date) {
-    const key = day.toDateString();
-    const now = Date.now();
-    if (lastTapRef.current?.key === key && now - lastTapRef.current.time < DOUBLE_TAP_MS) {
-      lastTapRef.current = null;
+  function handlePointerDown(day: Date) {
+    longPressFired.current = false;
+    pressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
       onAddForDay(day);
-    } else {
-      lastTapRef.current = { key, time: now };
-      setSelectedDay(day);
+    }, LONG_PRESS_MS);
+  }
+
+  function clearPressTimer() {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
     }
   }
 
+  function handleDayClick(day: Date) {
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return;
+    }
+    setSelectedDay(day);
+  }
+
+  const filtered = useMemo(
+    () => (events ?? []).filter((e) => eventMatchesCategoryFilter(e, filter)),
+    [events, filter]
+  );
+
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, CalendarEventDto[]>();
+    for (let i = 0; i < 42; i++) {
+      const day = addDays(gridStart, i);
+      map.set(
+        day.toDateString(),
+        filtered.filter((e) => eventSpansDay(e, day)).sort((a, b) => a.start.localeCompare(b.start))
+      );
+    }
+    return map;
+  }, [filtered, gridStart]);
+
+  const selectedEvents = eventsByDay.get(selectedDay.toDateString()) ?? [];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      <CategoryFilterPills selected={filter} onChange={setFilter} />
+
       <div className="grid grid-cols-7 px-5 text-center">
         {DAY_LETTERS.map((l, i) => (
           <span key={i} className="py-1.5 text-[10.5px] font-bold text-ink-fainter">
@@ -63,10 +100,11 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
           </span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-1 px-5">
+      <div className="grid grid-cols-7 gap-1 px-5">
         {gridDays.map((day) => {
           const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
-          const categories = [...new Set(dayEvents.map((e) => e.category))];
+          const snippetEvents = dayEvents.slice(0, MAX_SNIPPETS);
+          const overflow = dayEvents.slice(MAX_SNIPPETS, MAX_SNIPPETS + MAX_OVERFLOW_DOTS);
           const isToday = isSameDay(day, today);
           const isSelected = isSameDay(day, selectedDay);
           const inMonth = day.getMonth() === month;
@@ -74,8 +112,15 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
           return (
             <button
               key={day.toISOString()}
-              onClick={() => handleDayTap(day)}
-              className="flex flex-col items-center gap-1 py-1"
+              onPointerDown={() => handlePointerDown(day)}
+              onPointerUp={clearPressTimer}
+              onPointerLeave={clearPressTimer}
+              onPointerCancel={clearPressTimer}
+              onContextMenu={(e) => e.preventDefault()}
+              onClick={() => handleDayClick(day)}
+              className={`flex min-h-[68px] flex-col items-stretch gap-0.5 rounded-xl p-1 pt-1 text-left ${
+                isSelected ? "bg-chip" : ""
+              }`}
             >
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
@@ -84,11 +129,24 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
               >
                 {day.getDate()}
               </span>
-              <div className="flex h-1 gap-0.5">
-                {categories.slice(0, 3).map((c) => (
-                  <span key={c} className="h-1 w-1 rounded-full" style={{ background: CATEGORY_ACCENT[c] }} />
+              <div className="flex flex-col gap-0.5">
+                {snippetEvents.map((e) => (
+                  <span
+                    key={e.id}
+                    className="truncate rounded px-1 py-[1px] text-[9px] font-bold leading-tight"
+                    style={{ background: CATEGORY_COLORS[e.category].bg, color: CATEGORY_COLORS[e.category].fg }}
+                  >
+                    {e.title}
+                  </span>
                 ))}
               </div>
+              {overflow.length > 0 && (
+                <div className="mt-auto flex gap-0.5 px-0.5 pb-0.5">
+                  {overflow.map((e) => (
+                    <span key={e.id} className="h-1 w-1 rounded-full" style={{ background: CATEGORY_ACCENT[e.category] }} />
+                  ))}
+                </div>
+              )}
             </button>
           );
         })}
@@ -109,7 +167,7 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
                 className="rounded-xl bg-card px-3 py-2.5 text-left text-xs font-semibold text-ink shadow-sm"
                 style={{ borderLeft: `3px solid ${CATEGORY_ACCENT[e.category]}` }}
               >
-                {new Date(e.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · {e.title}
+                {formatEventLine(e, selectedDay)}
               </button>
             ))}
           </div>

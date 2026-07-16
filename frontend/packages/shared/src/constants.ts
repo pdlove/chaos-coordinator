@@ -1,7 +1,7 @@
 // Mirrors the C# enums in ChaosCoordinator.Domain — serialized as strings over the wire
 // (HasConversion<string>() in the EF Core Fluent config), so these string unions are the wire format.
 
-export type Role = "Parent" | "Child" | "Adult";
+export type Role = "Adult" | "Child" | "Other";
 
 export type EventCategory = "Work" | "School" | "Doctor" | "Home" | "Personal" | "Activities";
 

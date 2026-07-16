@@ -24,9 +24,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSignalR();
 
-// Session cookie is the only identity mechanism this app needs — a trust-based single-household
-// app where "current profile" is a UI convenience and PIN elevation is the real security boundary.
-// See Auth/RequirePinElevationAttribute.cs and Controllers/AuthController.cs.
+// Session cookie carries "who's logged in" (email+password login, or PIN login on the wall
+// display); HouseholdContext resolves which household that user belongs to per-request. PIN
+// elevation remains the separate, stronger boundary for sensitive actions — see
+// Auth/RequirePinElevationAttribute.cs and Controllers/AuthController.cs.
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
@@ -41,8 +42,26 @@ builder.Services.AddSingleton<IPinElevationStore, PinElevationStore>();
 builder.Services.AddScoped<IHouseholdNotifier, HouseholdNotifier>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
-builder.Services.AddSingleton<HouseholdContext>();
+// Scoped, not singleton — see HouseholdContext for why (multi-tenant: resolved per-request from
+// the logged-in user, not decided once at startup).
+builder.Services.AddScoped<HouseholdContext>();
 builder.Services.AddScoped<ChaosCoordinator.Api.Services.BillGenerationService>();
+
+// Real delivery once Graph:TenantId/ClientId/ClientSecret/SenderAddress are set (env vars
+// Graph__TenantId etc., or appsettings) — falls back to logging the link instead of sending so
+// registration/invite flows still work end-to-end without those credentials configured.
+builder.Services.Configure<ChaosCoordinator.Api.Services.GraphEmailOptions>(
+    builder.Configuration.GetSection(ChaosCoordinator.Api.Services.GraphEmailOptions.SectionName));
+var graphOptions = builder.Configuration.GetSection(ChaosCoordinator.Api.Services.GraphEmailOptions.SectionName)
+    .Get<ChaosCoordinator.Api.Services.GraphEmailOptions>();
+if (graphOptions is { IsConfigured: true })
+{
+    builder.Services.AddScoped<ChaosCoordinator.Api.Services.IEmailSender, ChaosCoordinator.Api.Services.GraphEmailSender>();
+}
+else
+{
+    builder.Services.AddScoped<ChaosCoordinator.Api.Services.IEmailSender, ChaosCoordinator.Api.Services.LoggingEmailSender>();
+}
 
 // Dev-only CORS for hitting the API directly from a Vite dev server on a different port when not
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
@@ -78,9 +97,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(db);
-
-    var householdContext = scope.ServiceProvider.GetRequiredService<HouseholdContext>();
-    householdContext.HouseholdId = await db.Households.Select(h => h.Id).SingleAsync();
 }
 
 // ---- Pipeline ----

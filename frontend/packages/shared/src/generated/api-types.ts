@@ -47,6 +47,40 @@ export interface LoginRequest {
   remember: boolean;
 }
 
+export interface RegisterMemberRequest {
+  name: string;
+  role: Role;
+  email: string | null;
+}
+
+export interface RegisterHouseholdRequest {
+  familyName: string;
+  firstAdultName: string;
+  firstAdultEmail: string;
+  firstAdultPassword: string;
+  additionalMembers: RegisterMemberRequest[];
+}
+
+export interface RegisterResponse {
+  householdId: string;
+  firstAdultUserId: string;
+}
+
+export interface PasswordLoginRequest {
+  email: string;
+  password: string;
+  remember: boolean;
+}
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface AcceptInviteRequest {
+  token: string;
+  password: string;
+}
+
 export interface CalendarEventDto {
   id: string;
   title: string;
@@ -66,6 +100,10 @@ export interface CalendarEventDto {
   recurrenceEnd: string | null;
   /** Set for recurring instances; pass as `date` to POST /api/events/{id}/exceptions to cancel this occurrence only. */
   instanceDate: string | null;
+  /** "Leave by" date/time. Null = no travel time set. Display as (start - travelTimeLeaveBy) minutes. */
+  travelTimeLeaveBy: string | null;
+  /** Comma-separated minutes-before-start offsets, e.g. "10,60,1440". Storage/display only. */
+  reminders: string | null;
 }
 
 export interface CreateEventRequest {
@@ -78,6 +116,8 @@ export interface CreateEventRequest {
   attendeeUserIds: string[];
   recurrenceDays: string | null;
   recurrenceEnd: string | null;
+  travelTimeLeaveBy: string | null;
+  reminders: string | null;
 }
 
 export interface UpdateEventRequest {
@@ -90,6 +130,8 @@ export interface UpdateEventRequest {
   attendeeUserIds: string[];
   recurrenceDays: string | null;
   recurrenceEnd: string | null;
+  travelTimeLeaveBy: string | null;
+  reminders: string | null;
 }
 
 export interface CancelEventOccurrenceRequest {

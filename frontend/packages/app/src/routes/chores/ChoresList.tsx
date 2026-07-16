@@ -4,11 +4,14 @@ import {
   isGroupOverdue,
   useChoreGroups,
   useCompleteChore,
+  useSessionStore,
   useUncompleteChore,
   type ChoreDto,
 } from "@chaos-coordinator/core";
 import { AvatarStack } from "../../components/AvatarStack";
+import { PinPrompt } from "../../components/PinPrompt";
 import { ChoreDetailModal } from "./ChoreDetailModal";
+import { ChoreFormScreen } from "./ChoreFormScreen";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -19,7 +22,10 @@ export function ChoresList() {
   const { data: groups, isLoading } = useChoreGroups(date);
   const completeChore = useCompleteChore();
   const uncompleteChore = useUncompleteChore();
+  const pinElevated = useSessionStore((s) => s.pinElevated);
   const [detailChore, setDetailChore] = useState<ChoreDto | null>(null);
+  const [editingChore, setEditingChore] = useState<ChoreDto | null | undefined>(undefined); // undefined = closed, null = new
+  const [pinRequest, setPinRequest] = useState<"add" | ChoreDto | null>(null);
 
   function toggle(chore: ChoreDto) {
     if (chore.completedToday) {
@@ -31,10 +37,23 @@ export function ChoresList() {
     }
   }
 
+  function requestAdd() {
+    if (pinElevated) setEditingChore(null);
+    else setPinRequest("add");
+  }
+
+  function requestEdit(chore: ChoreDto) {
+    setDetailChore(null);
+    if (pinElevated) setEditingChore(chore);
+    else setPinRequest(chore);
+  }
+
   const visibleGroups = (groups ?? []).filter((g) => g.chores.length > 0);
+  const firstGroupId = groups?.[0]?.id;
 
   return (
-    <div className="flex flex-1 flex-col gap-4.5 overflow-y-auto px-5 pb-5">
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col gap-4.5 overflow-y-auto px-5 pb-5">
       {isLoading && <div className="text-sm font-medium text-ink-muted">Loading…</div>}
       {visibleGroups.map((group) => {
         const hasIncomplete = group.chores.some((c) => !c.completedToday);
@@ -90,7 +109,40 @@ export function ChoresList() {
       {!isLoading && visibleGroups.length === 0 && (
         <div className="mt-8 text-center text-sm font-medium text-ink-fainter">No chores today</div>
       )}
-      {detailChore && <ChoreDetailModal chore={detailChore} onClose={() => setDetailChore(null)} />}
+      </div>
+
+      {firstGroupId && (
+        <button
+          onClick={requestAdd}
+          className="absolute bottom-5 right-4 flex items-center justify-center rounded-full bg-ink text-2xl text-white shadow-lg"
+          style={{ width: 52, height: 52 }}
+          aria-label="New chore"
+        >
+          +
+        </button>
+      )}
+
+      {detailChore && (
+        <ChoreDetailModal chore={detailChore} onClose={() => setDetailChore(null)} onEdit={requestEdit} />
+      )}
+
+      {pinRequest && (
+        <PinPrompt
+          onCancel={() => setPinRequest(null)}
+          onSuccess={() => {
+            setEditingChore(pinRequest === "add" ? null : pinRequest);
+            setPinRequest(null);
+          }}
+        />
+      )}
+
+      {editingChore !== undefined && firstGroupId && (
+        <ChoreFormScreen
+          chore={editingChore}
+          initialGroupId={editingChore?.groupId ?? firstGroupId}
+          onClose={() => setEditingChore(undefined)}
+        />
+      )}
     </div>
   );
 }

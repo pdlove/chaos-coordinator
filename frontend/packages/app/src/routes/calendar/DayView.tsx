@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
-import { addDays, startOfDay, useEvents, type CalendarEventDto, type Role } from "@chaos-coordinator/core";
+import {
+  addDays,
+  eventMatchesCategoryFilter,
+  startOfDay,
+  useEvents,
+  type CalendarEventDto,
+  type Role,
+} from "@chaos-coordinator/core";
 import type { EventCategory } from "@chaos-coordinator/shared";
-import { CategoryPill } from "../../components/CategoryPill";
+import { CategoryFilterPills } from "../../components/CategoryFilterPills";
 import { EventCard } from "./EventCard";
-
-const CATEGORIES: EventCategory[] = ["Work", "School", "Doctor", "Home", "Personal", "Activities"];
 
 interface DayViewProps {
   date: Date;
@@ -15,33 +20,19 @@ interface DayViewProps {
 }
 
 export function DayView({ date, currentUserId, currentUserRole, onView, onAdd }: DayViewProps) {
-  const [filter, setFilter] = useState<EventCategory | "All">("All");
+  const [filter, setFilter] = useState<Set<EventCategory>>(new Set());
   const from = startOfDay(date);
   const to = addDays(from, 1);
   const { data: events, isLoading } = useEvents(from, to);
 
   const filtered = useMemo(
-    () => (events ?? []).filter((e) => filter === "All" || e.category === filter),
+    () => (events ?? []).filter((e) => eventMatchesCategoryFilter(e, filter)),
     [events, filter]
   );
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      <div className="flex flex-none gap-2 overflow-x-auto px-5 pb-3.5">
-        <button
-          onClick={() => setFilter("All")}
-          className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11.5px] font-bold ${
-            filter === "All" ? "bg-ink text-white" : "bg-chip text-ink-muted"
-          }`}
-        >
-          All
-        </button>
-        {CATEGORIES.map((c) => (
-          <button key={c} onClick={() => setFilter(c)} className={filter === c ? "opacity-100" : "opacity-50"}>
-            <CategoryPill category={c} />
-          </button>
-        ))}
-      </div>
+      <CategoryFilterPills selected={filter} onChange={setFilter} />
 
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-5 pb-5">
         {isLoading && <div className="text-sm font-medium text-ink-muted">Loading…</div>}

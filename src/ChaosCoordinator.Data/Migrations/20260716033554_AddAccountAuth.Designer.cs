@@ -3,6 +3,7 @@ using System;
 using ChaosCoordinator.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChaosCoordinator.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716033554_AddAccountAuth")]
+    partial class AddAccountAuth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,10 +199,6 @@ namespace ChaosCoordinator.Data.Migrations
                     b.Property<DateTime?>("RecurrenceEnd")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Reminders")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<DateTime>("Start")
                         .HasColumnType("timestamp with time zone");
 
@@ -207,9 +206,6 @@ namespace ChaosCoordinator.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime?>("TravelTimeLeaveBy")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

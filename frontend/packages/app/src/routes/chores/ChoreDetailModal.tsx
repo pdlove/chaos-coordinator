@@ -17,7 +17,13 @@ const RECURRENCE_LABEL: Record<string, string> = {
   CustomDays: "Custom days",
 };
 
-export function ChoreDetailModal({ chore, onClose }: { chore: ChoreDto; onClose: () => void }) {
+interface ChoreDetailModalProps {
+  chore: ChoreDto;
+  onClose: () => void;
+  onEdit: (chore: ChoreDto) => void;
+}
+
+export function ChoreDetailModal({ chore, onClose, onEdit }: ChoreDetailModalProps) {
   const completeChore = useCompleteChore();
   const uncompleteChore = useUncompleteChore();
   const uploadPhoto = useUploadChorePhoto();
@@ -49,7 +55,12 @@ export function ChoreDetailModal({ chore, onClose }: { chore: ChoreDto; onClose:
         className="flex max-h-[85vh] w-full max-w-[420px] flex-col gap-4 overflow-y-auto rounded-t-card-lg bg-app p-6 sm:rounded-card-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-lg font-extrabold text-ink">{chore.title}</div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-lg font-extrabold text-ink">{chore.title}</div>
+          <button onClick={() => onEdit(chore)} className="text-xs font-bold text-ink-muted">
+            Edit
+          </button>
+        </div>
 
         <div className="flex gap-6">
           <div>

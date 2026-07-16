@@ -4,7 +4,7 @@ import { SegmentedToggle } from "../../components/SegmentedToggle";
 import { DayView } from "./DayView";
 import { WeekView } from "./WeekView";
 import { MonthView } from "./MonthView";
-import { EventFormModal } from "./EventFormModal";
+import { EventFormScreen } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
 
 type ViewMode = "Day" | "Week" | "Month";
@@ -114,7 +114,7 @@ export function CalendarPage() {
       )}
 
       {editingEvent !== undefined && (
-        <EventFormModal event={editingEvent} defaultDate={date} onClose={() => setEditingEvent(undefined)} />
+        <EventFormScreen event={editingEvent} defaultDate={date} onClose={() => setEditingEvent(undefined)} />
       )}
     </div>
   );

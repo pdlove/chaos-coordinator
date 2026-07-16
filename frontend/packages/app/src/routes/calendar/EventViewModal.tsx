@@ -38,7 +38,7 @@ export function EventViewModal({ event, currentUserId, currentUserRole, onClose,
 
   const perm = getEventPermissionInfo(event, currentUserId, currentUserRole);
   const accent = CATEGORY_ACCENT[event.category];
-  const canEdit = perm.isOwner || currentUserRole === "Parent" || currentUserRole === "Adult";
+  const canEdit = perm.isOwner || currentUserRole === "Adult" || currentUserRole === "Other";
   const isRecurring = event.instanceDate !== null;
   const busy = deleteEvent.isPending || cancelOccurrence.isPending;
 

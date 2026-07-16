@@ -13,6 +13,7 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
         b.Property(x => x.Category).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Location).HasMaxLength(500);
         b.Property(x => x.RecurrenceDays).HasMaxLength(20);
+        b.Property(x => x.Reminders).HasMaxLength(100);
         b.HasIndex(x => new { x.HouseholdId, x.Start });
 
         b.HasOne(x => x.Owner)

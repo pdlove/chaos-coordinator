@@ -7,13 +7,13 @@ export function WallPinUnlock({ onSuccess, onCancel }: { onSuccess: () => void; 
   const { data: household } = useHousehold();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const verifyPin = useVerifyPin();
-  const parents = household?.users.filter((u) => u.role === "Parent") ?? [];
+  const parents = household?.users.filter((u) => u.role === "Adult") ?? [];
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-app" onClick={(e) => e.stopPropagation()}>
       <div className="text-center">
         <div className="text-xl font-extrabold text-ink">Who's editing?</div>
-        <div className="mt-1.5 text-sm font-medium text-ink-muted">Choose a parent, then enter their PIN</div>
+        <div className="mt-1.5 text-sm font-medium text-ink-muted">Choose an adult, then enter their PIN</div>
       </div>
 
       <div className="flex gap-6">

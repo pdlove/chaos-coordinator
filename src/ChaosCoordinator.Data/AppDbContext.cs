@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Household> Households => Set<Household>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<AccountToken> AccountTokens => Set<AccountToken>();
 
     public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<EventAttendee> EventAttendees => Set<EventAttendee>();

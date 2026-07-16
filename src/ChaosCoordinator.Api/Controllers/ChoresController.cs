@@ -39,7 +39,13 @@ public class ChoresController(
         db.Chores.Add(chore);
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ChoresChanged);
-        return Ok(chore.ToDto(DateOnly.FromDateTime(DateTime.Today)));
+
+        // Assignments were attached above with only UserId set (no tracked User to populate the
+        // reference nav from) — reload with the include so the response DTO's assignees aren't
+        // silently empty, matching EventsController.Create's Reload pattern.
+        var reloaded = await db.Chores.Include(c => c.Assignments).ThenInclude(a => a.User)
+            .SingleAsync(c => c.Id == chore.Id);
+        return Ok(reloaded.ToDto(DateOnly.FromDateTime(DateTime.Today)));
     }
 
     [HttpPatch("{id:guid}")]

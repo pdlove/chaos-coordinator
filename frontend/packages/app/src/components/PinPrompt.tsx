@@ -8,14 +8,14 @@ interface PinPromptProps {
   onCancel: () => void;
 }
 
-/** "Who's editing? Choose a parent, then enter their PIN" — used wherever an action needs a
- * parent PIN (editing/deleting another member's calendar event, chore-group settings, bills, etc). */
+/** "Who's editing? Choose an adult, then enter their PIN" — used wherever an action needs an
+ * adult's elevation PIN (editing/deleting another member's calendar event, chore-group settings, bills, etc). */
 export function PinPrompt({ onSuccess, onCancel }: PinPromptProps) {
   const { data: household } = useHousehold();
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const verifyPin = useVerifyPin();
 
-  const parents = household?.users.filter((u) => u.role === "Parent") ?? [];
+  const parents = household?.users.filter((u) => u.role === "Adult") ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/55" onClick={onCancel}>
@@ -25,7 +25,7 @@ export function PinPrompt({ onSuccess, onCancel }: PinPromptProps) {
       >
         <div className="text-center">
           <div className="text-lg font-extrabold text-ink">Who's editing?</div>
-          <div className="mt-1 text-xs font-medium text-ink-muted">Choose a parent, then enter their PIN</div>
+          <div className="mt-1 text-xs font-medium text-ink-muted">Choose an adult, then enter their PIN</div>
         </div>
 
         <div className="flex gap-4">

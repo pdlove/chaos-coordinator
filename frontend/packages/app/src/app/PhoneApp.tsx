@@ -1,6 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useHousehold, useRealtimeInvalidation, useSession } from "@chaos-coordinator/core";
 import { LoginScreen } from "../routes/auth/LoginScreen";
+import { RegisterScreen } from "../routes/auth/RegisterScreen";
+import { VerifyEmailScreen } from "../routes/auth/VerifyEmailScreen";
+import { AcceptInviteScreen } from "../routes/auth/AcceptInviteScreen";
+import { WallSetupStub } from "../routes/auth/WallSetupStub";
 import { BottomNav } from "../components/BottomNav";
 import { CalendarPage } from "../routes/calendar/CalendarPage";
 import { ChoresLayout } from "../routes/chores/ChoresLayout";
@@ -21,15 +25,30 @@ import { StubPage } from "../routes/more/StubPage";
 
 export function PhoneApp() {
   const { data: session, isLoading: sessionLoading } = useSession();
-  const { data: household } = useHousehold();
-
-  useRealtimeInvalidation(household?.id);
 
   if (sessionLoading) return null;
 
+  // Signed-out routes never fetch household data — email+password login/registration doesn't
+  // need to know "which household" up front the way the old avatar-tap flow did (see
+  // plan_001.md Workstream 1: that anonymous fetch is a multi-tenant leak this replaces).
   if (!session?.currentUserId) {
-    return <LoginScreen />;
+    return (
+      <Routes>
+        <Route path="/register" element={<RegisterScreen />} />
+        <Route path="/verify-email" element={<VerifyEmailScreen />} />
+        <Route path="/accept-invite" element={<AcceptInviteScreen />} />
+        <Route path="/wall-setup" element={<WallSetupStub />} />
+        <Route path="*" element={<LoginScreen />} />
+      </Routes>
+    );
   }
+
+  return <AuthenticatedPhoneApp />;
+}
+
+function AuthenticatedPhoneApp() {
+  const { data: household } = useHousehold();
+  useRealtimeInvalidation(household?.id);
 
   return (
     <div className="mx-auto flex h-screen max-w-[480px] flex-col bg-app">

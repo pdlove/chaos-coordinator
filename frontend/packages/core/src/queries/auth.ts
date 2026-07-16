@@ -3,6 +3,42 @@ import { api } from "../api/client";
 import { useSessionStore } from "../store/session";
 import type { LoginRequest, SessionDto } from "@chaos-coordinator/shared";
 
+export function useRegister() {
+  return useMutation({ mutationFn: api.register });
+}
+
+export function usePasswordLogin() {
+  const queryClient = useQueryClient();
+  const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
+  const setPinElevated = useSessionStore((s) => s.setPinElevated);
+
+  return useMutation({
+    mutationFn: api.loginWithPassword,
+    onSuccess: (session) => {
+      applySession(session, setCurrentUserId, setPinElevated);
+      queryClient.setQueryData(["session"], session);
+    },
+  });
+}
+
+export function useVerifyEmail() {
+  return useMutation({ mutationFn: api.verifyEmail });
+}
+
+export function useAcceptInvite() {
+  const queryClient = useQueryClient();
+  const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
+  const setPinElevated = useSessionStore((s) => s.setPinElevated);
+
+  return useMutation({
+    mutationFn: api.acceptInvite,
+    onSuccess: (session) => {
+      applySession(session, setCurrentUserId, setPinElevated);
+      queryClient.setQueryData(["session"], session);
+    },
+  });
+}
+
 export function useSession() {
   const setCurrentUserId = useSessionStore((s) => s.setCurrentUserId);
   const setPinElevated = useSessionStore((s) => s.setPinElevated);

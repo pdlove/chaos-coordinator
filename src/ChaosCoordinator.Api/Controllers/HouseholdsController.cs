@@ -14,11 +14,10 @@ public class HouseholdsController(AppDbContext db, HouseholdContext household, I
     private static readonly HashSet<string> ValidTabs = ["calendar", "chores", "shopping", "bills", "food"];
     private const int MaxBottomBarTabs = 4;
 
-    /// <summary>Single-household-per-deployment: there is exactly one row, seeded at startup.</summary>
     [HttpGet]
     public async Task<ActionResult<HouseholdDto>> Get()
     {
-        var h = await db.Households.Include(x => x.Users).SingleAsync();
+        var h = await db.Households.Include(x => x.Users).SingleAsync(x => x.Id == household.HouseholdId);
         var users = h.Users.OrderBy(u => u.Order).Select(u => u.ToDto()).ToList();
         return Ok(new HouseholdDto(h.Id, h.Name, users, h.BottomBarTabsList()));
     }

@@ -77,6 +77,8 @@ public class EventsController(
             Notes = request.Notes,
             RecurrenceDays = request.RecurrenceDays,
             RecurrenceEnd = request.RecurrenceEnd,
+            TravelTimeLeaveBy = request.TravelTimeLeaveBy,
+            Reminders = request.Reminders,
             OwnerId = ownerId,
             CreatedAt = DateTime.UtcNow,
             Attendees = attendeeIds.Select(uid => new EventAttendee { UserId = uid }).ToList(),
@@ -107,6 +109,8 @@ public class EventsController(
         evt.Notes = request.Notes;
         evt.RecurrenceDays = request.RecurrenceDays;
         evt.RecurrenceEnd = request.RecurrenceEnd;
+        evt.TravelTimeLeaveBy = request.TravelTimeLeaveBy;
+        evt.Reminders = request.Reminders;
 
         var attendeeIds = new HashSet<Guid>(request.AttendeeUserIds) { evt.OwnerId };
         db.EventAttendees.RemoveRange(evt.Attendees);

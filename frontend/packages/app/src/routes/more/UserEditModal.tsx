@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCreateUser, useDeleteUser, useSetUserPin, useUpdateUser, type Role, type UserDto } from "@chaos-coordinator/core";
 
-const ROLES: Role[] = ["Parent", "Child", "Adult"];
+const ROLES: Role[] = ["Adult", "Child", "Other"];
 const COLOR_CHOICES = ["#FF6B57", "#4C8BF5", "#1FB6A6", "#F2A93B", "#9B6BD9", "#E8607A"];
 
 interface UserEditModalProps {
@@ -74,7 +74,7 @@ export function UserEditModal({ user, order, onClose }: UserEditModalProps) {
           </div>
         </div>
 
-        {user && role === "Parent" && (
+        {user && role === "Adult" && (
           <div className="flex flex-col gap-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Set 4-digit PIN</span>
             <div className="flex gap-2">

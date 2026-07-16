@@ -1,98 +1,86 @@
 import { useState } from "react";
-import { useHousehold, useLogin } from "@chaos-coordinator/core";
-import type { UserDto } from "@chaos-coordinator/shared";
-import { Avatar } from "../../components/Avatar";
-import { PinPad } from "../../components/PinPad";
+import { Link } from "react-router-dom";
+import { usePasswordLogin } from "@chaos-coordinator/core";
 
 export function LoginScreen() {
-  const { data: household, isLoading, isError } = useHousehold();
-  const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
-  const login = useLogin();
+  const login = usePasswordLogin();
 
-  if (isLoading) {
-    return <Centered text="Loading…" />;
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    login.mutate({ email, password, remember: rememberMe });
   }
 
-  if (isError || !household) {
-    return <Centered text="Couldn't reach the server. Is it running?" />;
-  }
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-7 bg-app px-6">
+      <div className="text-center">
+        <div className="text-2xl font-extrabold text-ink">Chaos Coordinator</div>
+        <div className="mt-1 text-sm font-medium text-ink-muted">Sign in to your family account</div>
+      </div>
 
-  if (selectedUser) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-7 bg-app px-6">
-        <button
-          onClick={() => { setSelectedUser(null); login.reset(); }}
-          className="absolute left-5 top-5 text-sm font-semibold text-ink-muted"
-        >
-          ← Back
-        </button>
+      <form onSubmit={handleSubmit} className="flex w-full max-w-[340px] flex-col gap-4">
+        <label className="flex flex-col gap-1">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
+            placeholder="you@example.com"
+            autoComplete="email"
+            autoFocus
+          />
+        </label>
 
-        <div className="flex flex-col items-center gap-3">
-          <Avatar initials={selectedUser.initials} color={selectedUser.color} size={64} />
-          <div className="text-xl font-extrabold text-ink">{selectedUser.name}</div>
-        </div>
+        <label className="flex flex-col gap-1">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Password</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
+            placeholder="••••••••"
+            autoComplete="current-password"
+          />
+        </label>
 
-        {selectedUser.hasPin ? (
-          <>
-            <PinPad
-              error={login.isError ? "Wrong PIN — try again" : undefined}
-              onSubmit={(pin) =>
-                login.mutate({ userId: selectedUser.id, pin, remember: rememberMe })
-              }
+        <label className="flex cursor-pointer items-center gap-2.5">
+          <div
+            onClick={() => setRememberMe((v) => !v)}
+            className={`relative h-6 w-10 rounded-full transition-colors ${rememberMe ? "bg-ink" : "bg-chip"}`}
+          >
+            <div
+              className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${rememberMe ? "translate-x-5" : "translate-x-1"}`}
             />
+          </div>
+          <span className="text-sm font-semibold text-ink-muted">Remember sign-in</span>
+        </label>
 
-            <label className="flex cursor-pointer items-center gap-2.5">
-              <div
-                onClick={() => setRememberMe((v) => !v)}
-                className={`relative h-6 w-10 rounded-full transition-colors ${rememberMe ? "bg-ink" : "bg-chip"}`}
-              >
-                <div
-                  className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${rememberMe ? "translate-x-5" : "translate-x-1"}`}
-                />
-              </div>
-              <span className="text-sm font-semibold text-ink-muted">Remember sign-in</span>
-            </label>
-          </>
-        ) : (
-          <div className="rounded-xl bg-chip px-5 py-4 text-center text-sm font-semibold text-ink-muted">
-            No PIN set. Ask a parent to set one in Settings → People & roles.
+        {login.isError && (
+          <div className="rounded-xl bg-[#FDEBEF] px-3 py-2.5 text-sm font-semibold text-cat-doctor">
+            Couldn't sign in — check your email and password.
           </div>
         )}
-      </div>
-    );
-  }
 
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-app px-6">
-      <div className="text-center">
-        <div className="text-2xl font-extrabold text-ink">{household.name}</div>
-        <div className="mt-1 text-sm font-medium text-ink-muted">Who's signing in?</div>
-      </div>
-      <div className="flex flex-wrap justify-center gap-5">
-        {household.users.map((user) => (
-          <button
-            key={user.id}
-            onClick={() => { setSelectedUser(user); login.reset(); }}
-            className="flex flex-col items-center gap-2"
-          >
-            <div className={!user.hasPin ? "opacity-40" : ""}>
-              <Avatar initials={user.initials} color={user.color} size={56} />
-            </div>
-            <span className={`text-xs font-bold ${user.hasPin ? "text-ink" : "text-ink-faint"}`}>
-              {user.name}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
+        <button
+          type="submit"
+          disabled={login.isPending || !email || !password}
+          className="rounded-2xl bg-ink py-3 text-sm font-bold text-white disabled:opacity-50"
+        >
+          Sign In
+        </button>
+      </form>
 
-function Centered({ text }: { text: string }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-app px-6 text-center text-sm font-medium text-ink-muted">
-      {text}
+      <div className="flex flex-col items-center gap-2 text-sm font-semibold">
+        <Link to="/register" className="text-ink underline underline-offset-2">
+          Family Registration
+        </Link>
+        <Link to="/wall-setup" className="text-ink-muted">
+          Set up as Wall Display
+        </Link>
+      </div>
     </div>
   );
 }

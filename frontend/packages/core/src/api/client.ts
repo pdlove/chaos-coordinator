@@ -27,12 +27,17 @@ import type {
   HouseholdTaskDto,
   ItemSuggestionDto,
   MenuEntryDto,
+  PasswordLoginRequest,
   PayItemRequest,
   PriceHistoryEntryDto,
   ProjectDetailDto,
   ProjectSummaryDto,
   ProjectTaskDto,
   RecipeDto,
+  RegisterHouseholdRequest,
+  RegisterResponse,
+  AcceptInviteRequest,
+  VerifyEmailRequest,
   SelectProfileRequest,
   SessionDto,
   SetPinRequest,
@@ -102,6 +107,13 @@ export const api = {
   getSession: () => apiFetch<SessionDto>("/api/auth/session"),
   login: (req: LoginRequest) =>
     apiFetch<SessionDto>("/api/auth/login", { method: "POST", body: JSON.stringify(req) }),
+  loginWithPassword: (req: PasswordLoginRequest) =>
+    apiFetch<SessionDto>("/api/auth/login-password", { method: "POST", body: JSON.stringify(req) }),
+  register: (req: RegisterHouseholdRequest) =>
+    apiFetch<RegisterResponse>("/api/auth/register", { method: "POST", body: JSON.stringify(req) }),
+  verifyEmail: (req: VerifyEmailRequest) => apiFetch<void>("/api/auth/verify-email", { method: "POST", body: JSON.stringify(req) }),
+  acceptInvite: (req: AcceptInviteRequest) =>
+    apiFetch<SessionDto>("/api/auth/accept-invite", { method: "POST", body: JSON.stringify(req) }),
   logout: () => apiFetch<SessionDto>("/api/auth/logout", { method: "POST" }),
   selectProfile: (req: SelectProfileRequest) =>
     apiFetch<SessionDto>("/api/auth/select-profile", { method: "POST", body: JSON.stringify(req) }),

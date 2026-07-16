@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Graph" Version="5.105.0" />
+    <!-- Direct pin — Microsoft.Graph 5.105.0 transitively pulls Microsoft.Kiota.Abstractions
+         1.21.1, which has a known high-severity advisory (GHSA-7j59-v9qr-6fq9). Force the patched
+         version instead of waiting on a Graph SDK bump. -->
+    <PackageReference Include="Microsoft.Kiota.Abstractions" Version="1.22.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
