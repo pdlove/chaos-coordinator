@@ -17,11 +17,11 @@ services:
 
   server:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-chaos_coordinator};Username=${POSTGRES_USER:-chaos};Password=${POSTGRES_PASSWORD:-chaos}"
+      DATABASE_URL: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-chaos_coordinator};Username=${POSTGRES_USER:-chaos};Password=${POSTGRES_PASSWORD:-chaos}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
 
   web:
     build:
-      context: ./web
+      context: ./frontend
       dockerfile: packages/app/Dockerfile
     restart: unless-stopped
     ports:

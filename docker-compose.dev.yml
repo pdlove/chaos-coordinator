@@ -1,0 +1,21 @@
+# Local development / single-box test deployment.
+# Expects TimescaleDB/PostgreSQL running on the host machine.
+# Copy .env.example to .env, fill in the required values, then run:
+#   docker compose -f docker-compose.dev.yml up --build
+
+services:
+
+  # ─── NetLoom application ───────────────────────────────────────────────────
+  chaoscoordinator:
+    network_mode: bridge
+    container_name: chaos-coordinator-test
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3005:8080"
+    env_file:
+      - ~/chaoscoordinator.dev.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+# Combined image: .NET API + React frontend served by nginx.
+# nginx listens on :80, serves static assets, and proxies /api/ and /hubs/ to dotnet on :8080.
+# Build context must be the repo root.
+
+# ── Stage 1: build .NET API ──────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS dotnet-build
+WORKDIR /src
+
+COPY ChaosCoordinator.slnx ./
+COPY src/ChaosCoordinator.Domain/ChaosCoordinator.Domain.csproj src/ChaosCoordinator.Domain/
+COPY src/ChaosCoordinator.Data/ChaosCoordinator.Data.csproj src/ChaosCoordinator.Data/
+COPY src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj src/ChaosCoordinator.Api/
+RUN dotnet restore src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj
+
+COPY src/ ./src/
+RUN dotnet publish src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj -c Release -o /app
+
+# ── Stage 2: build frontend ───────────────────────────────────────────────────
+FROM node:22-alpine AS frontend-build
+WORKDIR /workspace
+
+# Copy workspace-level manifests first for layer-cached npm install.
+COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/packages/shared/package.json packages/shared/package.json
+COPY frontend/packages/core/package.json packages/core/package.json
+COPY frontend/packages/app/package.json packages/app/package.json
+RUN npm install
+
+COPY frontend/ .
+RUN npm run build --workspace=@chaos-coordinator/app
+
+# ── Stage 3: combined runtime ─────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+WORKDIR /app
+
+# .NET API
+COPY --from=dotnet-build /app ./
+
+# Frontend static assets — served by ASP.NET Core from the "public" webroot.
+COPY --from=frontend-build /workspace/packages/app/dist ./public
+
+# Chore-completion photos — mount a named volume here.
+RUN mkdir -p /app/uploads
+VOLUME ["/app/uploads"]
+
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "ChaosCoordinator.Api.dll"]

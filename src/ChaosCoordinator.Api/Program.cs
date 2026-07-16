@@ -5,7 +5,11 @@ using ChaosCoordinator.Api.Realtime;
 using ChaosCoordinator.Data;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "public",
+});
 
 // ---- Services ----
 builder.Services.AddControllers()
@@ -15,7 +19,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(Environment.GetEnvironmentVariable("DATABASE_URL")
+        ?? builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddSignalR();
 
@@ -43,6 +48,9 @@ builder.Services.AddScoped<ChaosCoordinator.Api.Services.BillGenerationService>(
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
 // is a fallback, not the primary flow.
 const string DevCorsPolicy = "DevCors";
+const string ProdCorsPolicy = "ProdCors";
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS");
+var appUrl = Environment.GetEnvironmentVariable("APP_URL");
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(DevCorsPolicy, policy =>
@@ -50,6 +58,16 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
+
+    if (corsOrigins is not null)
+    {
+        var origins = corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        options.AddPolicy(ProdCorsPolicy, policy =>
+            policy.WithOrigins(origins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials());
+    }
 });
 
 var app = builder.Build();
@@ -72,6 +90,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseCors(DevCorsPolicy);
 }
+else if (corsOrigins is not null)
+{
+    app.UseCors(ProdCorsPolicy);
+}
 
 var uploadsDir = Path.Combine(app.Environment.ContentRootPath, "uploads");
 Directory.CreateDirectory(uploadsDir);
@@ -81,10 +103,17 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads",
 });
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseSession();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<HouseholdHub>("/hubs/household");
+
+// SPA fallbacks — wall display has its own entry point; everything else gets the main app.
+app.MapFallbackToFile("/wall", "wall.html");
+app.MapFallbackToFile("/wall/{**slug}", "wall.html");
+app.MapFallbackToFile("index.html");
 
 app.Run();
