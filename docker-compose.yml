@@ -27,6 +27,7 @@ services:
       AZURE_CLIENT_SECRET: "${AZURE_CLIENT_SECRET:-}"
       EMAIL_FROM: "${EMAIL_FROM:-}"
       APP_URL: "${APP_URL:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
     depends_on:
       postgres:
         condition: service_healthy
