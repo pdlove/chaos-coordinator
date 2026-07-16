@@ -12,6 +12,8 @@ import {
 } from "@chaos-coordinator/core";
 import { FormHeader } from "../../components/FormHeader";
 import { FloatingInput, FloatingTextarea } from "../../components/FloatingLabelInput";
+import { CategorySelectPills } from "../../components/CategorySelectPills";
+import { AttendeePillPicker } from "../../components/AttendeePillPicker";
 import { RepeatPickerScreen, defaultRecurrence, repeatSummary, type RecurrenceValue } from "./RepeatPickerScreen";
 import { RemindersPickerScreen, formatReminderMinutes } from "./RemindersPickerScreen";
 
@@ -152,6 +154,10 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
     setStartTime(newTime);
   }
 
+  function toggleAttendee(userId: string) {
+    setAttendeeIds((ids) => (ids.includes(userId) ? ids.filter((id) => id !== userId) : [...ids, userId]));
+  }
+
   function recurrenceRequestFields(v: RecurrenceValue) {
     return {
       recurrenceFrequency: v.frequency,
@@ -260,20 +266,10 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
       />
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-5">
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Category</span>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
-          >
-            {categories?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <CategorySelectPills categories={categories ?? []} value={categoryId} onChange={setCategoryId} />
+        </div>
 
         <FloatingInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
 
@@ -292,21 +288,10 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
         </datalist>
 
         {showSeriesLevelFields && (
-          <label className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Participants</span>
-            <select
-              multiple
-              value={attendeeIds}
-              onChange={(e) => setAttendeeIds(Array.from(e.target.selectedOptions, (o) => o.value))}
-              className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
-            >
-              {household?.users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <AttendeePillPicker users={household?.users ?? []} selectedIds={attendeeIds} onToggle={toggleAttendee} />
+          </div>
         )}
 
         <div className="flex items-center gap-2">
