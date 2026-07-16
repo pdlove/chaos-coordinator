@@ -6,6 +6,12 @@
 FROM node:22-alpine AS build
 WORKDIR /workspace
 
+# Baked into the client bundle at build time (Vite only reads process.env at `vite build`, not at
+# container runtime) — never add TURNSTILE_SECRET_KEY here, only the public site key. See
+# vite.config.ts's envPrefix comment for why that distinction matters.
+ARG TURNSTILE_SITE_KEY
+ENV TURNSTILE_SITE_KEY=$TURNSTILE_SITE_KEY
+
 COPY package.json package-lock.json* ./
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/core/package.json packages/core/package.json

@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+const SITE_KEY = import.meta.env.TURNSTILE_SITE_KEY as string | undefined;
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
 let scriptLoadPromise: Promise<void> | null = null;
@@ -36,7 +36,7 @@ interface TurnstileProps {
 }
 
 /** Renders a Cloudflare Turnstile challenge and reports the resulting token. With no
- * VITE_TURNSTILE_SITE_KEY configured (e.g. local dev), it immediately reports an empty token
+ * TURNSTILE_SITE_KEY configured (e.g. local dev), it immediately reports an empty token
  * instead of rendering anything, so login/registration aren't blocked — the backend's
  * NoopTurnstileVerifier accepts that the same way. */
 export function Turnstile({ onVerify }: TurnstileProps) {

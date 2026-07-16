@@ -12,6 +12,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.combined
+      # Build args are substituted from the shell/.env at `docker compose build` time — env_file:
+      # below only populates the container's runtime env, so it does NOT satisfy this. Export
+      # TURNSTILE_SITE_KEY (e.g. `export $(grep TURNSTILE_SITE_KEY ~/chaoscoordinator.dev.env)`)
+      # before `docker compose -f docker-compose.dev.yml up --build`.
+      args:
+        TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
     restart: unless-stopped
     ports:
       - "127.0.0.1:3005:8080"

@@ -20,6 +20,12 @@ RUN dotnet publish src/ChaosCoordinator.Api/ChaosCoordinator.Api.csproj -c Relea
 FROM node:22-alpine AS frontend-build
 WORKDIR /workspace
 
+# Baked into the client bundle at build time (Vite only reads process.env at `vite build`, not at
+# container runtime) — never add TURNSTILE_SECRET_KEY here, only the public site key. See
+# vite.config.ts's envPrefix comment for why that distinction matters.
+ARG TURNSTILE_SITE_KEY
+ENV TURNSTILE_SITE_KEY=$TURNSTILE_SITE_KEY
+
 # Copy workspace-level manifests first for layer-cached npm install.
 COPY frontend/package.json frontend/package-lock.json* ./
 COPY frontend/packages/shared/package.json packages/shared/package.json
