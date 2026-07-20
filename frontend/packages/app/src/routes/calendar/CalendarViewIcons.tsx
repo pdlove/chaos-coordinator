@@ -32,6 +32,20 @@ export function WeekIcon() {
   );
 }
 
+export function CameraIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M3 7a1.5 1.5 0 0 1 1.5-1.5h1.3l.7-1.4a1 1 0 0 1 .9-.6h4.2a1 1 0 0 1 .9.6l.7 1.4h1.3A1.5 1.5 0 0 1 17 7v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14V7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="10.5" r="2.6" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 export function MonthIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 20 20" fill="none">

@@ -28,6 +28,7 @@ public class EventsController(
             .Include(e => e.Category)
             .Include(e => e.Attendees).ThenInclude(a => a.User)
             .Include(e => e.Exceptions).ThenInclude(x => x.Category)
+            .Include(e => e.ImportBatch).ThenInclude(b => b!.Images)
             .AsSplitQuery()
             .Where(e => e.HouseholdId == household.HouseholdId
                 && (e.RecurrenceFrequency == null
@@ -346,6 +347,7 @@ public class EventsController(
             .Include(e => e.Owner)
             .Include(e => e.Category)
             .Include(e => e.Attendees).ThenInclude(a => a.User)
+            .Include(e => e.ImportBatch).ThenInclude(b => b!.Images)
             .SingleAsync(e => e.Id == id);
         return Ok(evt.ToDto(currentUser.UserId, null));
     }

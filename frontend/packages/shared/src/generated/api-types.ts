@@ -151,6 +151,9 @@ export interface CalendarEventDto {
   travelTimeLeaveBy: string | null;
   /** Comma-separated minutes-before-start offsets, e.g. "10,60,1440". Storage/display only. */
   reminders: string | null;
+  /** Source image(s) this event was created from via the photo-import flow. Empty when the
+   * event was created the normal way. */
+  sourceImageUrls: string[];
 }
 
 export interface CreateEventRequest {
@@ -189,6 +192,53 @@ export interface UpdateEventRequest {
   recurrenceEnd: string | null;
   travelTimeLeaveBy: string | null;
   reminders: string | null;
+}
+
+// ---- Create events from a photo / pasted text ----
+
+/** Minimal summary of an existing event a candidate might duplicate. */
+export interface ExistingEventSummaryDto {
+  id: string;
+  title: string;
+  start: string;
+}
+
+/** One event as read off the submitted photo(s)/text, with category/attendees/reminders already
+ * pre-filled from the request's defaults (still editable before confirming). `duplicateOf` is set
+ * when it looks like it might already exist on the calendar. */
+export interface ExtractedEventCandidateDto {
+  title: string;
+  start: string;
+  end: string | null;
+  location: string | null;
+  notes: string | null;
+  categoryId: string;
+  attendeeUserIds: string[];
+  reminders: string | null;
+  duplicateOf: ExistingEventSummaryDto | null;
+}
+
+export interface ExtractEventsResponse {
+  batchId: string;
+  candidates: ExtractedEventCandidateDto[];
+}
+
+/** One candidate the user chose to keep, with whatever edits they made in the review screen. No
+ * recurrence fields — imported entries are always one-off. */
+export interface ConfirmedEventCandidate {
+  title: string;
+  start: string;
+  end: string | null;
+  categoryId: string;
+  location: string | null;
+  notes: string | null;
+  attendeeUserIds: string[];
+  reminders: string | null;
+}
+
+export interface ConfirmEventImportRequest {
+  batchId: string;
+  events: ConfirmedEventCandidate[];
 }
 
 export interface CancelEventOccurrenceRequest {

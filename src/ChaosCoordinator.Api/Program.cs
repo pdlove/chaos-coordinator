@@ -130,6 +130,29 @@ else
 builder.Services.AddScoped<ChaosCoordinator.Api.Services.PushNotificationService>();
 builder.Services.AddHostedService<ChaosCoordinator.Api.Services.ReminderCheckService>();
 
+// Local Ollama vision model for the "create events from a photo" import flow. Not in Docker —
+// runs on the host, reached via OLLAMA_BASE_URL (host.docker.internal:11434 when this API runs
+// in the docker-compose.dev.yml container, which already has host-gateway wired for this).
+// There's no no-op fallback here (unlike email/push/turnstile above) — extraction just isn't
+// optional, so EventImportController surfaces a clear error if it can't be reached.
+var ollamaOptions = new ChaosCoordinator.Api.Services.OllamaOptions
+{
+    BaseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434",
+    VisionModel = Environment.GetEnvironmentVariable("OLLAMA_VISION_MODEL") ?? "llava",
+};
+builder.Services.Configure<ChaosCoordinator.Api.Services.OllamaOptions>(o =>
+{
+    o.BaseUrl = ollamaOptions.BaseUrl;
+    o.VisionModel = ollamaOptions.VisionModel;
+});
+builder.Services.AddHttpClient<ChaosCoordinator.Api.Services.IEventExtractionService, ChaosCoordinator.Api.Services.OllamaEventExtractionService>(client =>
+{
+    client.BaseAddress = new Uri(ollamaOptions.BaseUrl);
+    // Local CPU/GPU inference is slow — the frontend sets real "this can take a minute"
+    // expectations around this call, so the HttpClient shouldn't time out before it can return.
+    client.Timeout = TimeSpan.FromSeconds(120);
+});
+
 // Dev-only CORS for hitting the API directly from a Vite dev server on a different port when not
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
 // is a fallback, not the primary flow.

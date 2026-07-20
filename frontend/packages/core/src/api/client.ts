@@ -9,6 +9,7 @@ import type {
   UpdateBillTemplateRequest,
   ChoreGroupDto,
   CompleteChoreRequest,
+  ConfirmEventImportRequest,
   CreateCalendarCategoryRequest,
   CreateChoreGroupRequest,
   CreateChoreRequest,
@@ -26,6 +27,7 @@ import type {
   CreateUserRequest,
   DietaryTagDto,
   EditEventOccurrenceRequest,
+  ExtractEventsResponse,
   HouseholdDto,
   HouseholdTaskDto,
   ItemSuggestionDto,
@@ -150,6 +152,27 @@ export const api = {
     apiFetch<CalendarEventDto>(`/api/events/${id}/split`, { method: "POST", body: JSON.stringify(req) }),
   truncateEventSeries: (id: string, req: TruncateEventSeriesRequest) =>
     apiFetch<void>(`/api/events/${id}/truncate`, { method: "POST", body: JSON.stringify(req) }),
+
+  extractEventImport: async (params: {
+    images: { blob: Blob; fileName: string }[];
+    text?: string;
+    defaultCategoryId: string;
+    defaultAttendeeUserIds: string[];
+    defaultReminders?: string;
+  }) => {
+    const form = new FormData();
+    for (const { blob, fileName } of params.images) form.append("Images", blob, fileName);
+    if (params.text) form.append("Text", params.text);
+    form.append("DefaultCategoryId", params.defaultCategoryId);
+    for (const id of params.defaultAttendeeUserIds) form.append("DefaultAttendeeUserIds", id);
+    if (params.defaultReminders) form.append("DefaultReminders", params.defaultReminders);
+
+    const res = await fetch(`${baseUrl}/api/events/import/extract`, { method: "POST", credentials: "include", body: form });
+    if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
+    return (await res.json()) as ExtractEventsResponse;
+  },
+  confirmEventImport: (req: ConfirmEventImportRequest) =>
+    apiFetch<CalendarEventDto[]>("/api/events/import/confirm", { method: "POST", body: JSON.stringify(req) }),
 
   getCalendarCategories: () => apiFetch<CategoryDto[]>("/api/calendar-categories"),
   createCalendarCategory: (req: CreateCalendarCategoryRequest) =>

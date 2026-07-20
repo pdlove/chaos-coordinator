@@ -25,6 +25,13 @@ public class CalendarEventConfiguration : IEntityTypeConfiguration<CalendarEvent
             .WithMany()
             .HasForeignKey(x => x.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Restrict, not Cascade/SetNull-on-delete-of-batch — a batch is never deleted once
+        // created (see EventImportBatchConfiguration), so this FK just stays populated forever.
+        b.HasOne(x => x.ImportBatch)
+            .WithMany()
+            .HasForeignKey(x => x.ImportBatchId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

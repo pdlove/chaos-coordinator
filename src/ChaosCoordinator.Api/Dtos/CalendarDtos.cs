@@ -49,7 +49,11 @@ public record CalendarEventDto(
     DateTime? TravelTimeLeaveBy,
     /// <summary>Comma-separated minutes-before-Start offsets, e.g. "10,60,1440". Storage/display
     /// only — no delivery infrastructure yet.</summary>
-    string? Reminders
+    string? Reminders,
+    /// <summary>Source image(s) this event was created from via the photo-import flow, if any —
+    /// empty when the event was created the normal way. Callers must .Include(e => e.ImportBatch)
+    /// .ThenInclude(b => b!.Images) before calling ToDto for this to populate.</summary>
+    List<string> SourceImageUrls
 );
 
 public record CreateEventRequest(
@@ -192,7 +196,8 @@ public static class CalendarDtoMapping
             e.RecurrenceEnd,
             instanceDate,
             dtoTravelTimeLeaveBy,
-            e.Reminders
+            e.Reminders,
+            e.ImportBatch?.Images.OrderBy(i => i.Order).Select(i => i.ImageUrl).ToList() ?? []
         );
     }
 }

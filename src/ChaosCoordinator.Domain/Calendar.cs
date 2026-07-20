@@ -56,6 +56,12 @@ public class CalendarEvent
 
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Set when this event was created via the photo/paste-text import flow — links
+    /// back to the batch (and therefore its source image(s)/pasted text) it came from. Null for
+    /// events created the normal way.</summary>
+    public Guid? ImportBatchId { get; set; }
+    public EventImportBatch? ImportBatch { get; set; }
+
     public ICollection<EventAttendee> Attendees { get; set; } = new List<EventAttendee>();
     public ICollection<EventException> Exceptions { get; set; } = new List<EventException>();
 }
@@ -120,5 +126,40 @@ public class SavedLocation
 
     public string Name { get; set; } = "";
     public string? Address { get; set; }
+    public int Order { get; set; }
+}
+
+/// <summary>One "create events from a photo/pasted text" submission — the unit the user reviews
+/// and confirms/discards as a group. Images are stored as soon as they're uploaded (see
+/// EventImportController.Extract), independent of whether the user goes on to confirm any events,
+/// so the source is never lost. A single batch can produce several CalendarEvents (e.g. a
+/// newsletter photo listing five dates), and a single event's source can span more than one image
+/// (e.g. a two-page flyer) — both are covered by CalendarEvent.ImportBatchId pointing back here
+/// rather than a many-to-many join table.</summary>
+public class EventImportBatch
+{
+    public Guid Id { get; set; }
+    public Guid HouseholdId { get; set; }
+
+    public Guid CreatedByUserId { get; set; }
+    public User? CreatedByUser { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    /// <summary>Pasted-text source, if that's how this batch was submitted (instead of, or
+    /// alongside, images).</summary>
+    public string? PastedText { get; set; }
+
+    public ICollection<EventImportImage> Images { get; set; } = new List<EventImportImage>();
+}
+
+/// <summary>One uploaded source image belonging to an EventImportBatch.</summary>
+public class EventImportImage
+{
+    public Guid Id { get; set; }
+    public Guid BatchId { get; set; }
+    public EventImportBatch? Batch { get; set; }
+
+    public string ImageUrl { get; set; } = "";
     public int Order { get; set; }
 }

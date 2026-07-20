@@ -142,6 +142,21 @@ export function EventViewModal({ event, currentUserId, currentUserRole, onClose,
               </div>
             )}
 
+            {event.sourceImageUrls.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">
+                  Created from photo
+                </span>
+                <div className="flex gap-2 overflow-x-auto">
+                  {event.sourceImageUrls.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noreferrer">
+                      <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {event.attendees.length > 0 && (
               <div className="flex items-center gap-2.5">
                 <AvatarStack people={event.attendees.map((a) => ({ initials: a.initials, color: a.color }))} />

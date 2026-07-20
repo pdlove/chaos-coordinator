@@ -14,6 +14,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<EventException> EventExceptions => Set<EventException>();
     public DbSet<CalendarCategory> CalendarCategories => Set<CalendarCategory>();
     public DbSet<SavedLocation> SavedLocations => Set<SavedLocation>();
+    public DbSet<EventImportBatch> EventImportBatches => Set<EventImportBatch>();
+    public DbSet<EventImportImage> EventImportImages => Set<EventImportImage>();
 
     public DbSet<ChoreGroup> ChoreGroups => Set<ChoreGroup>();
     public DbSet<Chore> Chores => Set<Chore>();
