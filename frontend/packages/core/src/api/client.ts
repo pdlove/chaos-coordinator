@@ -231,6 +231,8 @@ export const api = {
   getShoppingItems: (storeId: string) => apiFetch<ShoppingItemDto[]>(`/api/stores/${storeId}/items`),
   createShoppingItem: (storeId: string, req: CreateItemRequest) =>
     apiFetch<ShoppingItemDto>(`/api/stores/${storeId}/items`, { method: "POST", body: JSON.stringify(req) }),
+  organizeShoppingItems: (storeId: string) =>
+    apiFetch<ShoppingItemDto[]>(`/api/stores/${storeId}/organize`, { method: "POST" }),
   updateShoppingItem: (id: string, req: UpdateItemRequest) =>
     apiFetch<void>(`/api/items/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   payShoppingItem: (id: string, req: PayItemRequest) => apiFetch<void>(`/api/items/${id}/pay`, { method: "POST", body: JSON.stringify(req) }),

@@ -12,6 +12,20 @@ export function ProjectDetail() {
   const updateTask = useUpdateProjectTask();
   const [newTitle, setNewTitle] = useState("");
 
+  // Pasting several lines at once adds one task per non-blank line instead of dumping the whole
+  // block into a single task title — see the identical helper in HouseholdTasksList.tsx.
+  // Sequential awaits, not Promise.all — the backend assigns Order from the current task count,
+  // so concurrent creates could race onto the same order value.
+  async function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const lines = e.clipboardData.getData("text").split(/\r\n|\r|\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1 || !id) return;
+    e.preventDefault();
+    for (const line of lines) {
+      await addTask.mutateAsync({ projectId: id, req: { title: line, assigneeId: null } });
+    }
+    setNewTitle("");
+  }
+
   if (!project) return null;
 
   return (
@@ -47,7 +61,8 @@ export function ProjectDetail() {
           <input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Add task to this list"
+            onPaste={handlePaste}
+            placeholder="Add task to this list (paste a list to add several)"
             className="flex-1 rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
           />
           <button

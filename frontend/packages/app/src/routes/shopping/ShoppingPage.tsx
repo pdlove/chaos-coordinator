@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
+  ApiError,
+  isGroupHeader,
   useCreateStore,
+  useOrganizeShoppingItems,
   useShoppingItems,
   useStores,
   useUpdateShoppingItem,
@@ -9,6 +12,16 @@ import {
 import { AddItemModal } from "./AddItemModal";
 import { ItemEditModal } from "./ItemEditModal";
 
+function describeOrganizeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 503) {
+      return "The AI service isn't reachable right now — check its setup on the server, then try again.";
+    }
+    return `Something went wrong (server returned ${err.status}). Try again, or check the server logs.`;
+  }
+  return "Couldn't reach the server — check your connection.";
+}
+
 export function ShoppingPage() {
   const { data: stores } = useStores();
   const [activeStoreId, setActiveStoreId] = useState<string | undefined>(undefined);
@@ -16,18 +29,22 @@ export function ShoppingPage() {
   const { data: items } = useShoppingItems(storeId);
   const updateItem = useUpdateShoppingItem();
   const createStore = useCreateStore();
+  const organizeItems = useOrganizeShoppingItems();
 
   const [addingItem, setAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemDto | null>(null);
   const [newStoreName, setNewStoreName] = useState<string | null>(null);
+  const [organizeError, setOrganizeError] = useState<string | null>(null);
 
-  const grouped = useMemo(() => {
-    const map = new Map<string, ShoppingItemDto[]>();
-    for (const item of items ?? []) {
-      map.set(item.department, [...(map.get(item.department) ?? []), item]);
+  async function handleOrganize() {
+    if (!storeId) return;
+    setOrganizeError(null);
+    try {
+      await organizeItems.mutateAsync(storeId);
+    } catch (err) {
+      setOrganizeError(describeOrganizeError(err));
     }
-    return [...map.entries()];
-  }, [items]);
+  }
 
   const activeStoreName = stores?.find((s) => s.id === storeId)?.name ?? "";
 
@@ -71,11 +88,18 @@ export function ShoppingPage() {
       </div>
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
-        {grouped.map(([department, deptItems]) => (
-          <div key={department}>
-            <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-ink-faint">{department}</div>
-            <div className="flex flex-col divide-y divide-border overflow-hidden rounded-card bg-card shadow-sm">
-              {deptItems.map((item) => (
+        {/* Flat, backend-ordered list — section structure comes entirely from inline header rows
+            (typed by hand in ALL CAPS, or inserted by "Organize list"), not from bucketing by
+            department, so the two ways of grouping the list render identically. */}
+        {!!items?.length && (
+          <div className="flex flex-col divide-y divide-border overflow-hidden rounded-card bg-card shadow-sm">
+            {items.map((item) =>
+              isGroupHeader(item.name) ? (
+                // No checkbox, no price/quantity, not tappable (nothing on it to edit today).
+                <div key={item.id} className="bg-chip px-3 py-2 text-[12px] font-extrabold uppercase tracking-wide text-ink-muted">
+                  {item.name}
+                </div>
+              ) : (
                 <div key={item.id} className="flex items-center gap-2.5 p-3">
                   <button
                     onClick={() =>
@@ -106,10 +130,10 @@ export function ShoppingPage() {
                     <span className="flex-none rounded-full bg-chip px-2.5 py-1 text-[11px] font-bold text-ink-muted">×{item.quantity}</span>
                   )}
                 </div>
-              ))}
-            </div>
+              )
+            )}
           </div>
-        ))}
+        )}
 
         {storeId && (
           <button
@@ -118,6 +142,20 @@ export function ShoppingPage() {
           >
             + Add item
           </button>
+        )}
+
+        {storeId && !!items?.length && (
+          <button
+            onClick={handleOrganize}
+            disabled={organizeItems.isPending}
+            className="flex h-12 items-center justify-center gap-2 rounded-card-lg bg-chip text-sm font-bold text-ink disabled:opacity-50"
+          >
+            {organizeItems.isPending ? "Organizing…" : "✨ Organize list"}
+          </button>
+        )}
+
+        {organizeError && (
+          <div className="rounded-xl bg-[#FDEBEF] px-3 py-2.5 text-sm font-semibold text-cat-doctor">{organizeError}</div>
         )}
       </div>
 

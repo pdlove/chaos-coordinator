@@ -187,6 +187,28 @@ else
     });
 }
 
+// Shopping list "Organize" (sort by likely store-aisle order) — same text-capable model either
+// way, just no images this time. Follows the exact same Claude-if-configured-else-Ollama choice
+// as IEventExtractionService above, reusing the same options/credentials.
+if (anthropicOptions.IsConfigured)
+{
+    builder.Services.AddHttpClient<ChaosCoordinator.Api.Services.IShoppingListOrganizerService, ChaosCoordinator.Api.Services.ClaudeShoppingListOrganizerService>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.anthropic.com");
+        client.DefaultRequestHeaders.Add("x-api-key", anthropicOptions.ApiKey);
+        client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+        client.Timeout = TimeSpan.FromSeconds(60);
+    });
+}
+else
+{
+    builder.Services.AddHttpClient<ChaosCoordinator.Api.Services.IShoppingListOrganizerService, ChaosCoordinator.Api.Services.OllamaShoppingListOrganizerService>(client =>
+    {
+        client.BaseAddress = new Uri(ollamaOptions.BaseUrl);
+        client.Timeout = TimeSpan.FromSeconds(120);
+    });
+}
+
 // Dev-only CORS for hitting the API directly from a Vite dev server on a different port when not
 // using its proxy. The supported path (dev via Vite proxy, prod via nginx) is same-origin, so this
 // is a fallback, not the primary flow.

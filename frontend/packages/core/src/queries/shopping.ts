@@ -56,6 +56,17 @@ export function useDeleteShoppingItem() {
   return useMutation({ mutationFn: (id: string) => api.deleteShoppingItem(id), onSuccess: invalidate });
 }
 
+/** Re-sorts (and corrects departments for) a store's list into a likely store-walking order via
+ * AI. The mutation's own return value is already the freshly sorted list; invalidating just keeps
+ * every other view of the same store's items (if any) in sync. */
+export function useOrganizeShoppingItems() {
+  const invalidate = useInvalidateItems();
+  return useMutation({
+    mutationFn: (storeId: string) => api.organizeShoppingItems(storeId),
+    onSuccess: invalidate,
+  });
+}
+
 export function useItemPriceHistory(id: string | undefined) {
   return useQuery({
     queryKey: ["itemPriceHistory", id],

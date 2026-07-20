@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCreateShoppingItem, useSearchItems } from "@chaos-coordinator/core";
+import { isGroupHeader, useCreateShoppingItem, useSearchItems } from "@chaos-coordinator/core";
 
 interface AddItemModalProps {
   storeId: string;
@@ -13,6 +13,19 @@ export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
 
   async function addItem(name: string, department: string) {
     await createItem.mutateAsync({ storeId, req: { name, department, note: null, quantity: 1 } });
+    onClose();
+  }
+
+  // Pasting several lines at once (e.g. a list copied from Notes) adds one item per non-blank
+  // line — each line still gets the same ALL-CAPS-becomes-a-header treatment as a normal item.
+  // Sequential awaits, not Promise.all, to match the same-store add order the user pasted in.
+  async function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const lines = e.clipboardData.getData("text").split(/\r\n|\r|\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1) return;
+    e.preventDefault();
+    for (const line of lines) {
+      await createItem.mutateAsync({ storeId, req: { name: line, department: "Other", note: null, quantity: 1 } });
+    }
     onClose();
   }
 
@@ -30,7 +43,8 @@ export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Item name"
+            onPaste={handlePaste}
+            placeholder="Item name (paste a list to add several)"
             className="flex-1 rounded-xl border-[1.5px] border-ink bg-card px-3.5 py-2.5 text-[15px] font-semibold text-ink"
           />
         </div>
@@ -56,8 +70,17 @@ export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
               onClick={() => addItem(query.trim(), "Other")}
               className="rounded-card border-[1.5px] border-dashed border-ink-fainter p-3.5 text-left"
             >
-              <span className="text-sm font-bold text-ink-muted">Add "{query.trim()}" as a new item</span>
+              <span className="text-sm font-bold text-ink-muted">
+                {isGroupHeader(query.trim())
+                  ? `Add "${query.trim()}" as a section header`
+                  : `Add "${query.trim()}" as a new item`}
+              </span>
             </button>
+          )}
+          {query.trim() && isGroupHeader(query.trim()) && (
+            <div className="px-1 text-[11px] font-medium text-ink-faint">
+              Tip: typing a name in ALL CAPS turns it into a section divider instead of a checkable item.
+            </div>
           )}
         </div>
       </div>

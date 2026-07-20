@@ -16,6 +16,21 @@ export function HouseholdTasksList() {
   const currentUserId = useSessionStore((s) => s.currentUserId);
   const [newTitle, setNewTitle] = useState("");
 
+  // Pasting several lines at once (e.g. from a Notes app) adds one task per non-blank line
+  // instead of dumping the whole block into a single task title. A single-line paste falls
+  // through to the input's normal behavior. Sequential awaits, not Promise.all — the backend
+  // assigns Order from the current task count, so concurrent creates could race onto the same
+  // order value.
+  async function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const lines = e.clipboardData.getData("text").split(/\r\n|\r|\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1) return;
+    e.preventDefault();
+    for (const line of lines) {
+      await createTask.mutateAsync({ title: line, note: null });
+    }
+    setNewTitle("");
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-5 pb-5">
       <div className="mb-1 text-xs font-medium text-ink-muted">Anyone can claim — parents, kids or Tina.</div>
@@ -63,7 +78,8 @@ export function HouseholdTasksList() {
         <input
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          placeholder="New household task"
+          onPaste={handlePaste}
+          placeholder="New household task (paste a list to add several)"
           className="flex-1 rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink"
         />
         <button

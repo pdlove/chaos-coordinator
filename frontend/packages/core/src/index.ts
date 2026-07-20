@@ -18,6 +18,7 @@ export * from "./queries/users";
 export * from "./domain/calendar";
 export * from "./domain/dates";
 export * from "./domain/chores";
+export * from "./domain/shopping";
 export * from "./realtime/signalr";
 export * from "./store/session";
 export * from "./store/wall";

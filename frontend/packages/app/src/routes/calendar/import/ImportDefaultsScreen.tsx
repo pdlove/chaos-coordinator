@@ -27,7 +27,7 @@ function remindersSummary(minutes: number[]): string {
 function describeExtractError(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 503) {
-      return "The server can't reach the local AI (Ollama) — make sure it's running and OLLAMA_BASE_URL is set correctly on the server, then try again.";
+      return "The server can't reach the AI service configured for this — check its setup on the server, then try again.";
     }
     if (err.status === 404) {
       return "This feature isn't available on the server you're connected to — it may need to be rebuilt/redeployed with the latest update.";
@@ -228,9 +228,9 @@ export function ImportDefaultsScreen({ onCancel, onExtracted }: ImportDefaultsSc
 
           {extract.isPending && (
             <div className="flex flex-col items-center gap-2 rounded-xl bg-chip px-4 py-6 text-center">
-              <div className="text-sm font-bold text-ink">Reading with local AI…</div>
+              <div className="text-sm font-bold text-ink">Reading with AI…</div>
               <div className="text-xs font-medium text-ink-muted">
-                This runs on your own device and can take up to a minute — hang tight.
+                This can take up to a minute — hang tight.
               </div>
             </div>
           )}
