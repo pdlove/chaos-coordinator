@@ -12,9 +12,12 @@ obj/
 .env
 appsettings.*.local.json
 
-# Uploaded chore-completion photos (local dev / bind-mounted in Docker)
-server/src/ChaosCoordinator.Api/uploads/*
-!server/src/ChaosCoordinator.Api/uploads/.gitkeep
+# Uploaded chore-completion / event-import photos (local dev / bind-mounted in Docker)
+src/ChaosCoordinator.Api/uploads/*
+!src/ChaosCoordinator.Api/uploads/.gitkeep
+
+# ASP.NET Data Protection keyring (local dev) — see Program.cs's DATA_PROTECTION_KEYS_PATH comment
+src/ChaosCoordinator.Api/keys/
 
 # OS / editor
 .DS_Store
