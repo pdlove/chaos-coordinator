@@ -20,6 +20,7 @@ public class ChoreGroupsController(AppDbContext db, HouseholdContext household, 
         var groups = await db.ChoreGroups
             .Include(g => g.Chores).ThenInclude(c => c.Assignments).ThenInclude(a => a.User)
             .Include(g => g.Chores).ThenInclude(c => c.Completions.Where(x => x.Date == date)).ThenInclude(x => x.CompletedBy)
+            .AsSplitQuery()
             .Where(g => g.HouseholdId == household.HouseholdId)
             .OrderBy(g => g.Order)
             .ToListAsync();

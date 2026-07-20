@@ -28,6 +28,7 @@ public class EventsController(
             .Include(e => e.Category)
             .Include(e => e.Attendees).ThenInclude(a => a.User)
             .Include(e => e.Exceptions).ThenInclude(x => x.Category)
+            .AsSplitQuery()
             .Where(e => e.HouseholdId == household.HouseholdId
                 && (e.RecurrenceFrequency == null
                     ? e.Start < to && (e.End ?? e.Start) >= from

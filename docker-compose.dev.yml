@@ -25,3 +25,11 @@ services:
       - ~/chaoscoordinator.dev.env
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      # Without this, `docker compose up --build` recreates the container on every deploy and
+      # Data Protection regenerates its keyring from scratch, silently invalidating every existing
+      # session cookie (and logging "key not found in the key ring" for each one).
+      - keys:/app/keys
+
+volumes:
+  keys:

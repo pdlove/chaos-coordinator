@@ -16,6 +16,7 @@ public class FoodController(AppDbContext db, HouseholdContext household, IHouseh
         .Include(m => m.Recipe)
         .Include(m => m.Eaters).ThenInclude(e => e.User).ThenInclude(u => u!.DietaryTags)
         .Include(m => m.Substitutions).ThenInclude(s => s.ForUser)
+        .AsSplitQuery()
         .Where(m => m.HouseholdId == household.HouseholdId);
 
     [HttpGet("menu")]

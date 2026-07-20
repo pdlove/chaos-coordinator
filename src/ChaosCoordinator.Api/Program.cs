@@ -3,6 +3,7 @@ using ChaosCoordinator.Api.Auth;
 using ChaosCoordinator.Api.Hubs;
 using ChaosCoordinator.Api.Realtime;
 using ChaosCoordinator.Data;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -23,6 +24,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ?? builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddSignalR();
+
+// Without this, keys live in the default per-machine/per-container location and are regenerated
+// on every restart — every existing session cookie (and anything else protected via
+// IDataProtector) silently becomes invalid the moment the container restarts. Mount a durable
+// volume at this path (see docker-compose.yml/Dockerfile) so it survives restarts and redeploys.
+var dataProtectionKeysDir = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_PATH")
+    ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+Directory.CreateDirectory(dataProtectionKeysDir);
+builder.Services.AddDataProtection()
+    .SetApplicationName("ChaosCoordinator")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDir));
 
 // Session cookie carries "who's logged in" (email+password login, or PIN login on the wall
 // display); HouseholdContext resolves which household that user belongs to per-request. PIN

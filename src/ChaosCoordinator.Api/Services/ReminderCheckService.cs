@@ -46,6 +46,7 @@ public class ReminderCheckService(IServiceScopeFactory scopeFactory, ILogger<Rem
         var events = await db.CalendarEvents
             .Include(e => e.Attendees)
             .Include(e => e.Exceptions)
+            .AsSplitQuery()
             .Where(e => e.Reminders != null)
             .ToListAsync(ct);
 
@@ -118,6 +119,7 @@ public class ReminderCheckService(IServiceScopeFactory scopeFactory, ILogger<Rem
         var chores = await db.Chores
             .Include(c => c.Assignments)
             .Include(c => c.Completions.Where(comp => comp.Date == today))
+            .AsSplitQuery()
             .Where(c => c.AlarmTime != null)
             .ToListAsync(ct);
 

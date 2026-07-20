@@ -36,6 +36,7 @@ services:
         condition: service_healthy
     volumes:
       - uploads:/app/uploads
+      - keys:/app/keys
     # Not exposed to the host either — `web`'s nginx proxies /api and /hubs to it internally,
     # so the browser only ever talks to one origin (see web/packages/app/nginx.conf).
 
@@ -54,3 +55,4 @@ services:
 volumes:
   pgdata:
   uploads:
+  keys:
