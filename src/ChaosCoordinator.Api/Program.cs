@@ -170,7 +170,10 @@ if (anthropicOptions.IsConfigured)
         client.BaseAddress = new Uri("https://api.anthropic.com");
         client.DefaultRequestHeaders.Add("x-api-key", anthropicOptions.ApiKey);
         client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-        client.Timeout = TimeSpan.FromSeconds(60);
+        // Matches the higher max_tokens ceiling in ClaudeEventExtractionService — a dense
+        // multi-day itinerary generating close to the full 8192-token budget takes meaningfully
+        // longer than the ~17s seen at the old 2048 cap.
+        client.Timeout = TimeSpan.FromSeconds(120);
     });
 }
 else
@@ -244,18 +247,32 @@ app.UseStaticFiles();
 app.UseSession();
 
 // HouseholdContext throws this when a controller needs a household but the request has no
-// authenticated session — turn it into a 401 instead of a 500.
+// authenticated session (or a stale session cookie points at a user that no longer exists) —
+// turn it into a 401 instead of a 500. Many controllers reference household.HouseholdId for the
+// first time inside a LINQ .Where(...) clause rather than a plain statement; EF Core evaluates
+// that as a query parameter and wraps whatever it throws in an InvalidOperationException, so the
+// UnauthenticatedException is often the *inner* exception, not the top-level one — check the
+// whole chain rather than matching only the outermost type.
 app.Use(async (context, next) =>
 {
     try
     {
         await next();
     }
-    catch (UnauthenticatedException)
+    catch (Exception ex) when (HasUnauthenticatedException(ex))
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
     }
 });
+
+static bool HasUnauthenticatedException(Exception ex)
+{
+    for (var current = ex; current is not null; current = current.InnerException)
+    {
+        if (current is UnauthenticatedException) return true;
+    }
+    return false;
+}
 
 app.UseAuthorization();
 

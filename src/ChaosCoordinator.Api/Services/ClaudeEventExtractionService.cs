@@ -36,7 +36,11 @@ public class ClaudeEventExtractionService(HttpClient http, IOptions<AnthropicOpt
         var requestBody = new
         {
             model = options.Value.Model,
-            max_tokens = 2048,
+            // A dense multi-day itinerary can easily run 40-50+ events — 2048 was cutting Claude
+            // off mid-JSON-string on real documents. 8192 covers that comfortably at negligible
+            // extra cost (Haiku 4.5 output is $5/MTok, so the ceiling itself costs ~$0.04 even if
+            // fully used).
+            max_tokens = 8192,
             messages = new[] { new { role = "user", content = contentBlocks } },
             output_config = new { format = new { type = "json_schema", schema = EventExtractionSchema.Node } },
         };
@@ -64,6 +68,13 @@ public class ClaudeEventExtractionService(HttpClient http, IOptions<AnthropicOpt
         {
             logger.LogWarning("Claude declined the extraction request (stop_reason=refusal)");
             return [];
+        }
+        if (message?.StopReason == "max_tokens")
+        {
+            // The JSON is necessarily incomplete at this point (cut off mid-array or mid-string)
+            // — log this distinctly from a generic parse failure so it's obvious at a glance that
+            // raising max_tokens further (not a prompt/schema bug) is the fix.
+            logger.LogWarning("Claude's response was truncated by max_tokens — the source likely has more events than fit; consider raising max_tokens further");
         }
 
         var content = message?.Content?.FirstOrDefault(b => b.Type == "text")?.Text;

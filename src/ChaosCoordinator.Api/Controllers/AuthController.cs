@@ -70,6 +70,16 @@ public class AuthController(
         }
 
         Guid? userId = Guid.TryParse(userIdStr, out var id) ? id : null;
+        if (userId is not null && !await db.Users.AnyAsync(u => u.Id == userId))
+        {
+            // Session cookie points at a user that no longer exists (e.g. a dev database reset
+            // or restore) — clear the stale session instead of reporting a logged-in state that
+            // would just 401 on every subsequent household-scoped request.
+            HttpContext.Session.Clear();
+            Response.Cookies.Delete(RememberCookieName);
+            return Ok(new SessionDto(null, false));
+        }
+
         return Ok(new SessionDto(userId, pinElevation.IsElevated(HttpContext.Session.Id)));
     }
 
