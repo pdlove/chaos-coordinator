@@ -40,8 +40,12 @@ public class EventImportController(
 {
     private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 
+    // Several full-resolution phone camera photos add up fast (modern phones routinely produce
+    // 5-10MB+ JPEGs each) — 100MB gives real headroom for a multi-photo submission. A rejection
+    // at this limit (or Kestrel's own 30MB default, if this were ever removed) returns a 413
+    // without the request ever reaching this method's body, so nothing gets logged here either.
     [HttpPost("extract")]
-    [RequestSizeLimit(40_000_000)]
+    [RequestSizeLimit(100_000_000)]
     public async Task<ActionResult<ExtractEventsResponse>> Extract([FromForm] ExtractEventsForm form, CancellationToken ct)
     {
         if (currentUser.UserId is not { } ownerId)

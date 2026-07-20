@@ -44,6 +44,12 @@ public class OllamaEventExtractionService(HttpClient http, IOptions<OllamaOption
         IReadOnlyList<byte[]> images, string? pastedText, CancellationToken ct)
     {
         var prompt = BuildPrompt(pastedText);
+        if (options.Value.LogPrompts)
+        {
+            logger.LogInformation(
+                "Ollama prompt (model={Model}, images={ImageCount}):\n{Prompt}", options.Value.VisionModel, images.Count, prompt);
+        }
+
         var userMessage = new Dictionary<string, object?>
         {
             ["role"] = "user",
@@ -82,6 +88,10 @@ public class OllamaEventExtractionService(HttpClient http, IOptions<OllamaOption
 
         var chatResponse = await response.Content.ReadFromJsonAsync<OllamaChatResponse>(cancellationToken: ct);
         var content = chatResponse?.Message?.Content;
+        if (options.Value.LogPrompts)
+        {
+            logger.LogInformation("Ollama response:\n{Content}", content);
+        }
         if (string.IsNullOrWhiteSpace(content))
         {
             logger.LogWarning("Ollama returned an empty message content");

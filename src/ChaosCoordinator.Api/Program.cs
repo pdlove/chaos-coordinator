@@ -139,11 +139,13 @@ var ollamaOptions = new ChaosCoordinator.Api.Services.OllamaOptions
 {
     BaseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434",
     VisionModel = Environment.GetEnvironmentVariable("OLLAMA_VISION_MODEL") ?? "llava",
+    LogPrompts = string.Equals(Environment.GetEnvironmentVariable("OLLAMA_LOG_PROMPTS"), "true", StringComparison.OrdinalIgnoreCase),
 };
 builder.Services.Configure<ChaosCoordinator.Api.Services.OllamaOptions>(o =>
 {
     o.BaseUrl = ollamaOptions.BaseUrl;
     o.VisionModel = ollamaOptions.VisionModel;
+    o.LogPrompts = ollamaOptions.LogPrompts;
 });
 builder.Services.AddHttpClient<ChaosCoordinator.Api.Services.IEventExtractionService, ChaosCoordinator.Api.Services.OllamaEventExtractionService>(client =>
 {

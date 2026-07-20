@@ -17,4 +17,11 @@ public class OllamaOptions
     /// host). If running against an older Ollama, expect that crash and fall back to
     /// "moondream".</summary>
     public string VisionModel { get; set; } = "llava";
+
+    /// <summary>OLLAMA_LOG_PROMPTS=true logs the full prompt sent to Ollama and the raw response
+    /// content received back, at Information level so it shows up in the console without any
+    /// extra logging-level configuration. Off by default — the prompt includes any pasted text
+    /// verbatim, and the response can be verbose. Toggle via env var only, no redeploy needed
+    /// beyond a container restart.</summary>
+    public bool LogPrompts { get; set; }
 }
