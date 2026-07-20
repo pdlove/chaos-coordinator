@@ -16,6 +16,8 @@ import { CategorySelectPills } from "../../components/CategorySelectPills";
 import { AttendeePillPicker } from "../../components/AttendeePillPicker";
 import { RepeatPickerScreen, defaultRecurrence, repeatSummary, type RecurrenceValue } from "./RepeatPickerScreen";
 import { RemindersPickerScreen, formatReminderMinutes } from "./RemindersPickerScreen";
+import { ImportEventsFlow } from "./import/ImportEventsFlow";
+import { CameraIcon } from "./CalendarViewIcons";
 
 /** "this" = one occurrence only, "future" = this and every later occurrence, "all" = the whole
  * series (also used for non-recurring events and brand-new events). */
@@ -126,6 +128,7 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
 
   const [showRepeatPicker, setShowRepeatPicker] = useState(false);
   const [showRemindersPicker, setShowRemindersPicker] = useState(false);
+  const [showImportFlow, setShowImportFlow] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // New events default to the household's first configured category once it's loaded.
@@ -263,6 +266,9 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
         onCancel={onClose}
         onSave={handleSave}
         saveDisabled={busy || !title.trim() || !startDate}
+        titleAction={
+          !event ? { icon: <CameraIcon />, label: "Create from a photo", onClick: () => setShowImportFlow(true) } : undefined
+        }
       />
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-5">
@@ -402,6 +408,8 @@ export function EventFormScreen({ event, defaultDate, scope = "all", onClose }: 
           }}
         />
       )}
+
+      {showImportFlow && <ImportEventsFlow onClose={() => setShowImportFlow(false)} />}
     </div>
   );
 }

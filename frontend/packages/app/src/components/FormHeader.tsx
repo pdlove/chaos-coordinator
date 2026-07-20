@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 function CancelIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -20,10 +22,13 @@ interface FormHeaderProps {
   onSave: () => void;
   saveDisabled?: boolean;
   saveLabel?: string;
+  /** Optional icon button rendered right next to the title — e.g. the "create from a photo"
+   * entry point on the New Event screen. */
+  titleAction?: { icon: ReactNode; label: string; onClick: () => void };
 }
 
 /** Icon-button header bar for full-page forms — Cancel (X) / title / Save (✓). */
-export function FormHeader({ title, onCancel, onSave, saveDisabled, saveLabel = "Save" }: FormHeaderProps) {
+export function FormHeader({ title, onCancel, onSave, saveDisabled, saveLabel = "Save", titleAction }: FormHeaderProps) {
   return (
     <div className="flex flex-none items-center justify-between border-b border-border px-3 py-3">
       <button
@@ -33,7 +38,18 @@ export function FormHeader({ title, onCancel, onSave, saveDisabled, saveLabel = 
       >
         <CancelIcon />
       </button>
-      <div className="text-base font-extrabold text-ink">{title}</div>
+      <div className="flex items-center gap-1.5">
+        <div className="text-base font-extrabold text-ink">{title}</div>
+        {titleAction && (
+          <button
+            onClick={titleAction.onClick}
+            aria-label={titleAction.label}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-muted hover:bg-chip"
+          >
+            {titleAction.icon}
+          </button>
+        )}
+      </div>
       <button
         onClick={onSave}
         disabled={saveDisabled}

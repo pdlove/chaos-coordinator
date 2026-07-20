@@ -7,9 +7,8 @@ import { AgendaView, AGENDA_VIEW_DAYS } from "./AgendaView";
 import { MonthView } from "./MonthView";
 import { EventFormScreen, type EditScope } from "./EventFormScreen";
 import { EventViewModal } from "./EventViewModal";
-import { ImportEventsFlow } from "./import/ImportEventsFlow";
 import { useIsLandscape } from "./useIsLandscape";
-import { AgendaIcon, DayIcon, WeekIcon, MonthIcon, CameraIcon } from "./CalendarViewIcons";
+import { AgendaIcon, DayIcon, WeekIcon, MonthIcon } from "./CalendarViewIcons";
 
 type ViewMode = "Day" | "Week" | "Agenda" | "Month";
 
@@ -24,7 +23,6 @@ export function CalendarPage() {
   const [viewingEvent, setViewingEvent] = useState<CalendarEventDto | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEventDto | null | undefined>(undefined);
   const [editScope, setEditScope] = useState<EditScope>("all");
-  const [showImportFlow, setShowImportFlow] = useState(false);
 
   const { data: household } = useHousehold();
   const currentUserId = useSessionStore((s) => s.currentUserId) ?? undefined;
@@ -90,25 +88,16 @@ export function CalendarPage() {
             ›
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowImportFlow(true)}
-            aria-label="Create events from a photo"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-chip"
-          >
-            <CameraIcon />
-          </button>
-          <SegmentedToggle
-            value={viewMode}
-            onChange={setViewMode}
-            options={[
-              { value: "Agenda", label: "Agenda", icon: <AgendaIcon /> },
-              { value: "Day", label: "Day", icon: <DayIcon /> },
-              { value: "Week", label: "Week", icon: <WeekIcon /> },
-              { value: "Month", label: "Month", icon: <MonthIcon /> },
-            ]}
-          />
-        </div>
+        <SegmentedToggle
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { value: "Agenda", label: "Agenda", icon: <AgendaIcon /> },
+            { value: "Day", label: "Day", icon: <DayIcon /> },
+            { value: "Week", label: "Week", icon: <WeekIcon /> },
+            { value: "Month", label: "Month", icon: <MonthIcon /> },
+          ]}
+        />
       </div>
 
       {viewMode === "Day" && (
@@ -169,8 +158,6 @@ export function CalendarPage() {
           }}
         />
       )}
-
-      {showImportFlow && <ImportEventsFlow onClose={() => setShowImportFlow(false)} />}
     </div>
   );
 }
