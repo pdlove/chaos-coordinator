@@ -50,6 +50,8 @@ public class ShoppingItemsController(AppDbContext db, HouseholdContext household
         item.Department = request.Department;
         item.Note = request.Note;
         item.Quantity = request.Quantity <= 0 ? 1 : request.Quantity;
+        if (request.Checked && !item.Checked) item.CheckedAt = DateTime.UtcNow;
+        else if (!request.Checked) item.CheckedAt = null;
         item.Checked = request.Checked;
 
         await db.SaveChangesAsync();
@@ -68,6 +70,7 @@ public class ShoppingItemsController(AppDbContext db, HouseholdContext household
         db.PriceHistoryEntries.Add(new PriceHistoryEntry { Id = Guid.NewGuid(), ItemId = id, Price = request.Price, PaidAt = DateTime.UtcNow });
         item.LastPaidPrice = request.Price;
         item.Checked = true;
+        item.CheckedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);

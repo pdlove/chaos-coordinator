@@ -50,10 +50,30 @@ public class StoresController(
         // carries the AI-determined walking sequence (headers included) and takes precedence.
         var items = await db.ShoppingListItems
             .Where(i => i.StoreId == storeId && i.Store!.HouseholdId == household.HouseholdId)
+            // Checked items are hidden (never deleted — see ItemSuggestionDto) once
+            // Store.CheckedItemsHiddenBefore has been stamped past their CheckedAt by "Remove
+            // checked items"; anything checked off since stays visible.
+            .Where(i => !i.Checked || i.CheckedAt == null
+                || i.Store!.CheckedItemsHiddenBefore == null || i.CheckedAt > i.Store!.CheckedItemsHiddenBefore)
             .OrderBy(i => i.Order).ThenBy(i => i.Department).ThenBy(i => i.CreatedAt)
             .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice))
             .ToListAsync();
         return Ok(items);
+    }
+
+    /// <summary>"Remove checked items" — hides (doesn't delete) every item checked off at or
+    /// before this moment by stamping Store.CheckedItemsHiddenBefore, which GetItems then filters
+    /// against. Anything checked off afterward stays visible until this is pressed again.</summary>
+    [HttpPost("{storeId:guid}/hide-checked-items")]
+    public async Task<IActionResult> HideCheckedItems(Guid storeId)
+    {
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId && s.HouseholdId == household.HouseholdId);
+        if (store is null) return NotFound();
+
+        store.CheckedItemsHiddenBefore = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
+        return NoContent();
     }
 
     [HttpPost("{storeId:guid}/items")]

@@ -67,6 +67,16 @@ export function useOrganizeShoppingItems() {
   });
 }
 
+/** "Remove checked items" — hides (doesn't delete) every currently-checked item; anything
+ * checked off after this stays visible until it's pressed again. */
+export function useHideCheckedShoppingItems() {
+  const invalidate = useInvalidateItems();
+  return useMutation({
+    mutationFn: (storeId: string) => api.hideCheckedShoppingItems(storeId),
+    onSuccess: invalidate,
+  });
+}
+
 export function useItemPriceHistory(id: string | undefined) {
   return useQuery({
     queryKey: ["itemPriceHistory", id],

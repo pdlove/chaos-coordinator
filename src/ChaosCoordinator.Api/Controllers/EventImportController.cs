@@ -18,6 +18,13 @@ public class ExtractEventsForm
     public Guid DefaultCategoryId { get; set; }
     public List<Guid> DefaultAttendeeUserIds { get; set; } = [];
     public string? DefaultReminders { get; set; }
+
+    /// <summary>IANA timezone id (e.g. "America/New_York") the date/time on the photo(s)/text
+    /// should be interpreted in — the vision model only reads wall-clock digits off the image, it
+    /// has no way to know what zone they're in. Defaults to the submitting browser's own zone,
+    /// which is correct unless the photo is of a calendar from somewhere else (e.g. a trip
+    /// itinerary), in which case the client lets the user override it.</summary>
+    public string TimeZoneId { get; set; } = "UTC";
 }
 
 /// <summary>"Create events from a photo" import flow: POST /extract stores the submitted image(s)/
@@ -53,6 +60,16 @@ public class EventImportController(
 
         if (form.Images.Count == 0 && string.IsNullOrWhiteSpace(form.Text))
             return BadRequest(new { error = "no_input" });
+
+        TimeZoneInfo timeZone;
+        try
+        {
+            timeZone = TimeZoneInfo.FindSystemTimeZoneById(form.TimeZoneId);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return BadRequest(new { error = "invalid_timezone" });
+        }
 
         // Validate + read every image up front, before anything is persisted, so one bad file
         // doesn't leave a half-populated batch behind.
@@ -113,10 +130,16 @@ public class EventImportController(
         if (extracted.Count == 0)
             return Ok(new ExtractEventsResponse(batch.Id, []));
 
+        // The vision model only ever reads wall-clock digits off the photo/text — it has no
+        // concept of a timezone. Those naive digits mean the given instant in `timeZone` (the
+        // zone the client says the source calendar is in), not UTC, so they must be converted
+        // rather than just relabeled.
+        DateTime ToUtc(DateTime naiveLocal) => TimeZoneInfo.ConvertTimeToUtc(naiveLocal, timeZone);
+
         // Widen the existing-events lookup a day on either side of the extracted range so
         // EventDuplicateDetector can match candidates whose date the model read slightly off.
-        var minDate = DateTime.SpecifyKind(extracted.Min(e => e.Date).AddDays(-1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-        var maxDate = DateTime.SpecifyKind(extracted.Max(e => e.Date).AddDays(2).ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        var minDate = ToUtc(extracted.Min(e => e.Date).AddDays(-1).ToDateTime(TimeOnly.MinValue));
+        var maxDate = ToUtc(extracted.Max(e => e.Date).AddDays(2).ToDateTime(TimeOnly.MinValue));
         var existingEvents = await db.CalendarEvents
             .Where(e => e.HouseholdId == household.HouseholdId
                 && (e.RecurrenceFrequency == null
@@ -126,18 +149,15 @@ public class EventImportController(
 
         var candidates = extracted.Select(e =>
         {
-            var start = DateTime.SpecifyKind(
-                e.StartTime.HasValue ? e.Date.ToDateTime(e.StartTime.Value) : e.Date.ToDateTime(TimeOnly.MinValue),
-                DateTimeKind.Utc);
-            var end = e.EndTime.HasValue
-                ? DateTime.SpecifyKind(e.Date.ToDateTime(e.EndTime.Value), DateTimeKind.Utc)
-                : (DateTime?)null;
+            var start = ToUtc(e.StartTime.HasValue ? e.Date.ToDateTime(e.StartTime.Value) : e.Date.ToDateTime(TimeOnly.MinValue));
+            var end = e.EndTime.HasValue ? ToUtc(e.Date.ToDateTime(e.EndTime.Value)) : (DateTime?)null;
             var duplicate = EventDuplicateDetector.FindDuplicate(e.Title, e.Date, existingEvents);
 
             return new ExtractedEventCandidateDto(
                 e.Title, start, end, e.Location, e.Notes,
                 form.DefaultCategoryId, form.DefaultAttendeeUserIds, form.DefaultReminders,
-                duplicate is null ? null : new ExistingEventSummaryDto(duplicate.EventId, duplicate.Title, duplicate.Start)
+                duplicate is null ? null : new ExistingEventSummaryDto(duplicate.EventId, duplicate.Title, duplicate.Start),
+                timeZone.Id
             );
         }).ToList();
 

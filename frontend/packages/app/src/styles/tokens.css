@@ -7,6 +7,12 @@
   body,
   #root {
     height: 100%;
+    /* Every screen's own overflow-y-auto div is meant to be the only scrollable region — without
+       this, a touch-drag that hits that div's scroll boundary chains up to the document itself
+       (mobile browsers' default scroll-chaining/rubber-band behavior), dragging the whole page —
+       header and bottom nav included — instead of just its list. */
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   body {

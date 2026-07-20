@@ -8,6 +8,13 @@ public class Store
     public string Name { get; set; } = "";
     public int Order { get; set; }
 
+    /// <summary>Set by StoresController.HideCheckedItems ("Remove checked items") to the moment
+    /// it was pressed — GetItems then excludes any checked item whose ShoppingListItem.CheckedAt
+    /// is at or before this, without deleting the underlying rows (items persist indefinitely for
+    /// autocomplete/price history, see ItemSuggestionDto). Null means nothing's been hidden.
+    /// Anything checked off after this timestamp still shows, until it's pressed again.</summary>
+    public DateTime? CheckedItemsHiddenBefore { get; set; }
+
     public ICollection<ShoppingListItem> Items { get; set; } = new List<ShoppingListItem>();
 }
 
@@ -25,6 +32,11 @@ public class ShoppingListItem
     public string? Note { get; set; }
     public int Quantity { get; set; } = 1;
     public bool Checked { get; set; }
+
+    /// <summary>When this item was last checked off — null while unchecked, cleared back to null
+    /// if unchecked again. Lets Store.CheckedItemsHiddenBefore hide only items checked before a
+    /// given moment rather than every checked item.</summary>
+    public DateTime? CheckedAt { get; set; }
 
     /// <summary>Position within the store's list, in walking order — 0 (the default for every
     /// item until "Organize list" has been run) means "not yet organized," in which case the

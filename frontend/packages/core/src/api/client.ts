@@ -159,6 +159,7 @@ export const api = {
     defaultCategoryId: string;
     defaultAttendeeUserIds: string[];
     defaultReminders?: string;
+    timeZoneId: string;
   }) => {
     const form = new FormData();
     for (const { blob, fileName } of params.images) form.append("Images", blob, fileName);
@@ -166,6 +167,7 @@ export const api = {
     form.append("DefaultCategoryId", params.defaultCategoryId);
     for (const id of params.defaultAttendeeUserIds) form.append("DefaultAttendeeUserIds", id);
     if (params.defaultReminders) form.append("DefaultReminders", params.defaultReminders);
+    form.append("TimeZoneId", params.timeZoneId);
 
     const res = await fetch(`${baseUrl}/api/events/import/extract`, { method: "POST", credentials: "include", body: form });
     if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
@@ -233,6 +235,8 @@ export const api = {
     apiFetch<ShoppingItemDto>(`/api/stores/${storeId}/items`, { method: "POST", body: JSON.stringify(req) }),
   organizeShoppingItems: (storeId: string) =>
     apiFetch<ShoppingItemDto[]>(`/api/stores/${storeId}/organize`, { method: "POST" }),
+  hideCheckedShoppingItems: (storeId: string) =>
+    apiFetch<void>(`/api/stores/${storeId}/hide-checked-items`, { method: "POST" }),
   updateShoppingItem: (id: string, req: UpdateItemRequest) =>
     apiFetch<void>(`/api/items/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   payShoppingItem: (id: string, req: PayItemRequest) => apiFetch<void>(`/api/items/${id}/pay`, { method: "POST", body: JSON.stringify(req) }),

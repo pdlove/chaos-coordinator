@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useCalendarCategories,
   useConfirmEventImport,
@@ -10,17 +10,14 @@ import { FormHeader } from "../../../components/FormHeader";
 import { FloatingInput } from "../../../components/FloatingLabelInput";
 import { CategorySelectPills } from "../../../components/CategorySelectPills";
 import { AttendeePillPicker } from "../../../components/AttendeePillPicker";
-
-const pad = (n: number) => String(n).padStart(2, "0");
-const toDateValue = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const toTimeValue = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const toISOString = (date: string, time: string) => new Date(`${date}T${time || "00:00"}`).toISOString();
+import { isoToZonedParts, listTimeZones, zonedPartsToIso } from "./timezone";
 
 interface EditableCandidate {
   title: string;
   date: string;
   startTime: string;
   endTime: string;
+  timeZoneId: string;
   location: string;
   notes: string;
   categoryId: string;
@@ -33,12 +30,13 @@ interface EditableCandidate {
 
 function toEditable(response: ExtractEventsResponse): EditableCandidate[] {
   return response.candidates.map((c) => {
-    const start = new Date(c.start);
+    const start = isoToZonedParts(c.start, c.timeZoneId);
     return {
       title: c.title,
-      date: toDateValue(start),
-      startTime: toTimeValue(start),
-      endTime: c.end ? toTimeValue(new Date(c.end)) : "",
+      date: start.date,
+      startTime: start.time,
+      endTime: c.end ? isoToZonedParts(c.end, c.timeZoneId).time : "",
+      timeZoneId: c.timeZoneId,
       location: c.location ?? "",
       notes: c.notes ?? "",
       categoryId: c.categoryId,
@@ -71,6 +69,7 @@ export function ImportReviewScreen({ extraction, sourceImages, onBack, onDone }:
 
   const [candidates, setCandidates] = useState<EditableCandidate[]>(() => toEditable(extraction));
   const [saveError, setSaveError] = useState<string | null>(null);
+  const timeZones = useMemo(() => listTimeZones(), []);
 
   // Computed once per sourceImages change and revoked on cleanup — calling createObjectURL
   // inline in JSX creates a fresh (and never-revoked) blob URL on every render.
@@ -93,8 +92,8 @@ export function ImportReviewScreen({ extraction, sourceImages, onBack, onDone }:
       .filter((c) => c.included)
       .map((c) => ({
         title: c.title,
-        start: toISOString(c.date, c.startTime),
-        end: c.endTime ? toISOString(c.date, c.endTime) : null,
+        start: zonedPartsToIso(c.date, c.startTime, c.timeZoneId),
+        end: c.endTime ? zonedPartsToIso(c.date, c.endTime, c.timeZoneId) : null,
         categoryId: c.categoryId,
         location: c.location.trim() || null,
         notes: c.notes.trim() || null,
@@ -180,6 +179,21 @@ export function ImportReviewScreen({ extraction, sourceImages, onBack, onDone }:
                 className="w-[96px] shrink-0 rounded-xl border border-border-strong bg-app px-2.5 py-2.5 text-sm font-semibold text-ink"
               />
             </div>
+
+            {/* Changing this reinterprets the same date/time digits above in a different zone —
+             * it doesn't reformat them — so fixing "I picked the wrong timezone for this one
+             * event" is a single change, not a recompute-by-hand. */}
+            <select
+              value={c.timeZoneId}
+              onChange={(e) => update(i, { timeZoneId: e.target.value })}
+              className="w-full rounded-xl border border-border-strong bg-app px-2.5 py-2 text-xs font-semibold text-ink-muted"
+            >
+              {timeZones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </select>
 
             <FloatingInput label="Location" value={c.location} onChange={(e) => update(i, { location: e.target.value })} />
 

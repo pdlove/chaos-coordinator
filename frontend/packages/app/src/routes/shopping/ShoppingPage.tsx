@@ -3,6 +3,7 @@ import {
   ApiError,
   isGroupHeader,
   useCreateStore,
+  useHideCheckedShoppingItems,
   useOrganizeShoppingItems,
   useShoppingItems,
   useStores,
@@ -30,6 +31,7 @@ export function ShoppingPage() {
   const updateItem = useUpdateShoppingItem();
   const createStore = useCreateStore();
   const organizeItems = useOrganizeShoppingItems();
+  const hideCheckedItems = useHideCheckedShoppingItems();
 
   const [addingItem, setAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemDto | null>(null);
@@ -47,6 +49,7 @@ export function ShoppingPage() {
   }
 
   const activeStoreName = stores?.find((s) => s.id === storeId)?.name ?? "";
+  const hasCheckedItems = !!items?.some((item) => item.checked);
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -151,6 +154,16 @@ export function ShoppingPage() {
             className="flex h-12 items-center justify-center gap-2 rounded-card-lg bg-chip text-sm font-bold text-ink disabled:opacity-50"
           >
             {organizeItems.isPending ? "Organizing…" : "✨ Organize list"}
+          </button>
+        )}
+
+        {storeId && hasCheckedItems && (
+          <button
+            onClick={() => hideCheckedItems.mutate(storeId)}
+            disabled={hideCheckedItems.isPending}
+            className="flex h-12 items-center justify-center gap-2 rounded-card-lg bg-chip text-sm font-bold text-ink-muted disabled:opacity-50"
+          >
+            Remove checked items
           </button>
         )}
 

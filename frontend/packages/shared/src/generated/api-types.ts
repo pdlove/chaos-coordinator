@@ -216,6 +216,7 @@ export interface ExtractedEventCandidateDto {
   attendeeUserIds: string[];
   reminders: string | null;
   duplicateOf: ExistingEventSummaryDto | null;
+  timeZoneId: string;
 }
 
 export interface ExtractEventsResponse {

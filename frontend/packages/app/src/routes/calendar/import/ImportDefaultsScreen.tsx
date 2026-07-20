@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ApiError,
   useCalendarCategories,
@@ -12,6 +12,7 @@ import { CategorySelectPills } from "../../../components/CategorySelectPills";
 import { AttendeePillPicker } from "../../../components/AttendeePillPicker";
 import { SegmentedToggle } from "../../../components/SegmentedToggle";
 import { RemindersPickerScreen, formatReminderMinutes } from "../RemindersPickerScreen";
+import { getBrowserTimeZone, listTimeZones } from "./timezone";
 
 type Mode = "Photo" | "Text";
 
@@ -50,6 +51,8 @@ export function ImportDefaultsScreen({ onCancel, onExtracted }: ImportDefaultsSc
   const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
   const [reminderMinutes, setReminderMinutes] = useState<number[]>([]);
   const [showRemindersPicker, setShowRemindersPicker] = useState(false);
+  const [timeZoneId, setTimeZoneId] = useState(() => getBrowserTimeZone());
+  const timeZones = useMemo(() => listTimeZones(), []);
 
   const [mode, setMode] = useState<Mode>("Photo");
   const [images, setImages] = useState<File[]>([]);
@@ -101,6 +104,7 @@ export function ImportDefaultsScreen({ onCancel, onExtracted }: ImportDefaultsSc
         defaultCategoryId: categoryId,
         defaultAttendeeUserIds: attendeeIds,
         defaultReminders: reminderMinutes.length > 0 ? reminderMinutes.join(",") : undefined,
+        timeZoneId,
       });
       onExtracted(result, images);
     } catch (err) {
@@ -131,6 +135,25 @@ export function ImportDefaultsScreen({ onCancel, onExtracted }: ImportDefaultsSc
         <div className="flex flex-col gap-1">
           <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Participants</span>
           <AttendeePillPicker users={household?.users ?? []} selectedIds={attendeeIds} onToggle={toggleAttendee} />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Timezone</span>
+          <span className="text-xs font-medium text-ink-muted">
+            Defaults to your device's timezone — change this if the photo is of a calendar from
+            somewhere else (e.g. a trip itinerary).
+          </span>
+          <select
+            value={timeZoneId}
+            onChange={(e) => setTimeZoneId(e.target.value)}
+            className="rounded-xl border border-border-strong bg-app px-3 py-2.5 text-sm font-semibold text-ink"
+          >
+            {timeZones.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button

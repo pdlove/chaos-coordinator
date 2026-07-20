@@ -7,7 +7,10 @@ public record ExistingEventSummaryDto(Guid Id, string Title, DateTime Start);
 /// <summary>One event as read off the photo/pasted text, with CategoryId/AttendeeUserIds/
 /// Reminders already pre-filled from the request's defaults (still editable client-side before
 /// confirm). DuplicateOf is set when EventDuplicateDetector found a likely match — the review
-/// screen defaults that candidate's include-checkbox to off rather than excluding it outright.</summary>
+/// screen defaults that candidate's include-checkbox to off rather than excluding it outright.
+/// TimeZoneId is the zone Start/End were converted from (the request's TimeZoneId, echoed back
+/// per-candidate) — the review screen needs it to redisplay/re-edit the wall-clock time correctly
+/// and to let the user override just this one candidate's zone.</summary>
 public record ExtractedEventCandidateDto(
     string Title,
     DateTime Start,
@@ -17,7 +20,8 @@ public record ExtractedEventCandidateDto(
     Guid CategoryId,
     List<Guid> AttendeeUserIds,
     string? Reminders,
-    ExistingEventSummaryDto? DuplicateOf
+    ExistingEventSummaryDto? DuplicateOf,
+    string TimeZoneId
 );
 
 public record ExtractEventsResponse(Guid BatchId, List<ExtractedEventCandidateDto> Candidates);
