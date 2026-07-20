@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useCalendarCategories,
   useConfirmEventImport,
@@ -72,6 +72,15 @@ export function ImportReviewScreen({ extraction, sourceImages, onBack, onDone }:
   const [candidates, setCandidates] = useState<EditableCandidate[]>(() => toEditable(extraction));
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Computed once per sourceImages change and revoked on cleanup — calling createObjectURL
+  // inline in JSX creates a fresh (and never-revoked) blob URL on every render.
+  const [sourceImageUrls, setSourceImageUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = sourceImages.map((file) => URL.createObjectURL(file));
+    setSourceImageUrls(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [sourceImages]);
+
   function update(index: number, patch: Partial<EditableCandidate>) {
     setCandidates((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
   }
@@ -114,9 +123,9 @@ export function ImportReviewScreen({ extraction, sourceImages, onBack, onDone }:
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-5">
         {sourceImages.length > 0 && (
           <div className="flex gap-2 overflow-x-auto">
-            {sourceImages.map((file, i) => (
-              <a key={i} href={URL.createObjectURL(file)} target="_blank" rel="noreferrer">
-                <img src={URL.createObjectURL(file)} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+            {sourceImages.map((_, i) => (
+              <a key={i} href={sourceImageUrls[i]} target="_blank" rel="noreferrer">
+                <img src={sourceImageUrls[i]} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
               </a>
             ))}
           </div>

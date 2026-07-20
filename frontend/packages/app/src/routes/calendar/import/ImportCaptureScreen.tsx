@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useExtractEventImport, type ExtractEventsResponse } from "@chaos-coordinator/core";
+import { useEffect, useRef, useState } from "react";
+import { ApiError, useExtractEventImport, type ExtractEventsResponse } from "@chaos-coordinator/core";
 import { FormHeader } from "../../../components/FormHeader";
 import { FloatingTextarea } from "../../../components/FloatingLabelInput";
 import { SegmentedToggle } from "../../../components/SegmentedToggle";
@@ -13,6 +13,19 @@ interface ImportCaptureScreenProps {
   onExtracted: (result: ExtractEventsResponse, images: File[]) => void;
 }
 
+function describeExtractError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 503) {
+      return "The server can't reach the local AI (Ollama) — make sure it's running and OLLAMA_BASE_URL is set correctly on the server, then try again.";
+    }
+    if (err.status === 404) {
+      return "This feature isn't available on the server you're connected to — it may need to be rebuilt/redeployed with the latest update.";
+    }
+    return `Something went wrong (server returned ${err.status}). Try again, or check the server logs.`;
+  }
+  return "Couldn't reach the server at all — check your connection and that the app's backend is running.";
+}
+
 /** Second step — submit a photo (one or more) and/or pasted text, then wait on the local Ollama
  * extraction call. That call can take up to a minute or so on-device, so the wait state sets real
  * expectations rather than looking stuck. */
@@ -21,9 +34,19 @@ export function ImportCaptureScreen({ defaults, onBack, onExtracted }: ImportCap
   const [images, setImages] = useState<File[]>([]);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const extract = useExtractEventImport();
+
+  // Object URLs for thumbnails, kept stable across renders and revoked when no longer needed —
+  // creating a fresh one on every render (e.g. inline in JSX) leaks a blob URL per render.
+  const [thumbnailUrls, setThumbnailUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = images.map((file) => URL.createObjectURL(file));
+    setThumbnailUrls(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [images]);
 
   function addFiles(files: FileList | null) {
     if (!files) return;
@@ -47,10 +70,8 @@ export function ImportCaptureScreen({ defaults, onBack, onExtracted }: ImportCap
         defaultReminders: defaults.reminderMinutes.length > 0 ? defaults.reminderMinutes.join(",") : undefined,
       });
       onExtracted(result, images);
-    } catch {
-      setError(
-        "Couldn't read that — make sure the local AI (Ollama) is running and reachable, then try again."
-      );
+    } catch (err) {
+      setError(describeExtractError(err));
     }
   }
 
@@ -70,11 +91,25 @@ export function ImportCaptureScreen({ defaults, onBack, onExtracted }: ImportCap
 
         {mode === "Photo" ? (
           <div className="flex flex-col gap-3">
+            {/* Two separate inputs, not one — `capture` forces a single-shot live-camera flow on
+             * iOS Safari and most Android browsers, which silently defeats `multiple` if they're
+             * combined on the same input. Splitting them is the only reliable way to support both
+             * "take one photo now" and "pick several existing photos at once". */}
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <input
+              ref={libraryInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
               multiple
               className="hidden"
               onChange={(e) => {
@@ -82,18 +117,29 @@ export function ImportCaptureScreen({ defaults, onBack, onExtracted }: ImportCap
                 e.target.value = "";
               }}
             />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-2xl border-2 border-dashed border-border-strong py-8 text-center text-sm font-bold text-ink-muted"
-            >
-              📷 Add photo(s)
-            </button>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex-1 rounded-2xl border-2 border-dashed border-border-strong py-8 text-center text-sm font-bold text-ink-muted"
+              >
+                📷 Take a photo
+              </button>
+              <button
+                onClick={() => libraryInputRef.current?.click()}
+                className="flex-1 rounded-2xl border-2 border-dashed border-border-strong py-8 text-center text-sm font-bold text-ink-muted"
+              >
+                🖼️ Choose photo(s)
+              </button>
+            </div>
 
             {images.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {images.map((file, i) => (
                   <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl bg-chip">
-                    <img src={URL.createObjectURL(file)} alt="" className="h-full w-full object-cover" />
+                    <a href={thumbnailUrls[i]} target="_blank" rel="noreferrer">
+                      <img src={thumbnailUrls[i]} alt="" className="h-full w-full object-cover" />
+                    </a>
                     <button
                       onClick={() => removeImage(i)}
                       aria-label="Remove"
