@@ -61,7 +61,13 @@ function AuthenticatedPhoneApp() {
   useRealtimeInvalidation(household?.id);
 
   return (
-    <div className="flex h-screen flex-col bg-app">
+    // 100dvh, not h-screen's 100vh — on iOS, 100vh doesn't track the actual visible viewport
+    // (it doesn't account for the home-indicator area/collapsing toolbar), so it can lay this
+    // flex column out taller than what's really on screen. With html/body locked (see
+    // tokens.css) that excess is just clipped instead of rubber-band-revealed, which silently
+    // ate into what should have been each screen's scrollable overflow — nothing to scroll to
+    // because the content already "fit" the inflated height.
+    <div className="flex h-[100dvh] flex-col bg-app">
       <Routes>
         <Route path="/" element={<Navigate to="/calendar" replace />} />
         <Route path="/calendar" element={<CalendarPage />} />
