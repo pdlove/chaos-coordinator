@@ -134,6 +134,7 @@ export function CalendarPage() {
           date={date}
           onViewEvent={setViewingEvent}
           onAddForDay={handleAddForDay}
+          onSelectDay={setDate}
         />
       )}
 

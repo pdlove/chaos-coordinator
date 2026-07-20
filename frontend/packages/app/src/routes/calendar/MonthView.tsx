@@ -30,11 +30,12 @@ interface MonthViewProps {
   date: Date;
   onViewEvent: (event: CalendarEventDto) => void;
   onAddForDay: (day: Date) => void;
+  onSelectDay: (day: Date) => void;
 }
 
-export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
+export function MonthView({ date, onViewEvent, onAddForDay, onSelectDay }: MonthViewProps) {
   const [filter, setFilter] = useState<Set<string>>(new Set());
-  const [selectedDay, setSelectedDay] = useState(date);
+  const selectedDay = date;
   const gridStart = startOfMonthGrid(date);
   const gridDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
   const rangeEnd = addDays(gridStart, 42);
@@ -67,7 +68,7 @@ export function MonthView({ date, onViewEvent, onAddForDay }: MonthViewProps) {
       longPressFired.current = false;
       return;
     }
-    setSelectedDay(day);
+    onSelectDay(day);
   }
 
   const filtered = useMemo(
