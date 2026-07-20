@@ -3,30 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  html,
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     /* Every screen's own overflow-y-auto div is meant to be the only scrollable region. Plain
        `overflow: hidden` isn't enough on iOS (this ships as a home-screen PWA — see
        apple-mobile-web-app-capable in index.html): standalone Safari's native elastic rubber-band
        scroll acts on the document itself and isn't reliably blocked by `overflow` alone. Pinning
-       html/body with `position: fixed` takes the document fully out of the normal scrolling flow
-       instead, so it's physically not scrollable — a drag can then only move a genuine
-       overflow-y-auto descendant (e.g. each screen's list), never the header/bottom-nav shell
-       around it.  */
+       body with `position: fixed` takes it fully out of the normal scrolling flow instead, so
+       it's physically not scrollable — a drag can then only move a genuine overflow-y-auto
+       descendant (e.g. each screen's list), never the header/bottom-nav shell around it.
+       (`html` itself must NOT get `position: fixed` too — that's non-standard on the root element
+       and was breaking touch-scroll dispatch to every descendant entirely.) */
     position: fixed;
     inset: 0;
     height: 100%;
     width: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-  }
-
-  #root {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body {
     margin: 0;
     /* The app shell (bg-app) grows fluidly up to max-w-app and stays centered — this shows
        through as a deliberately distinct surround on wider viewports instead of looking like an
@@ -34,6 +31,11 @@
     background: theme("colors.page");
     font-family: theme("fontFamily.sans");
     color: theme("colors.ink");
+  }
+
+  #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   a {
