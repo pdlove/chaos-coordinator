@@ -30,6 +30,11 @@ services:
       # Data Protection regenerates its keyring from scratch, silently invalidating every existing
       # session cookie (and logging "key not found in the key ring" for each one).
       - keys:/app/keys
+      # Bind mount (not a named volume) so uploaded photos/files land somewhere visible/backup-able
+      # on the host instead of an anonymous volume under /var/lib/docker. Host dir must exist first
+      # (`sudo mkdir -p /big/chaostest`) — the app runs as root in-container with no userns-remap on
+      # this host, so no chown/permission fuss is needed beyond that.
+      - /big/chaostest:/app/uploads
 
 volumes:
   keys:

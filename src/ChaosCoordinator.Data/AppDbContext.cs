@@ -34,6 +34,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<BillTemplate> BillTemplates => Set<BillTemplate>();
     public DbSet<Bill> Bills => Set<Bill>();
+    public DbSet<BillPhotoBatch> BillPhotoBatches => Set<BillPhotoBatch>();
+    public DbSet<BillPhotoImage> BillPhotoImages => Set<BillPhotoImage>();
 
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<MenuEntry> MenuEntries => Set<MenuEntry>();

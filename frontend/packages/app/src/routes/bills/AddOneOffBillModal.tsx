@@ -1,21 +1,25 @@
 import { useState } from "react";
-import { useCreateBillTemplate, useHousehold } from "@chaos-coordinator/core";
+import { useCreateBill, useHousehold } from "@chaos-coordinator/core";
 
-export function AddBillTemplateModal({ onClose }: { onClose: () => void }) {
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function AddOneOffBillModal({ onClose }: { onClose: () => void }) {
   const { data: household } = useHousehold();
-  const createTemplate = useCreateBillTemplate();
+  const createBill = useCreateBill();
   const [title, setTitle] = useState("");
   const [managedById, setManagedById] = useState(household?.users[0]?.id ?? "");
-  const [dueDay, setDueDay] = useState(1);
+  const [dueDate, setDueDate] = useState(todayIso());
   const [amount, setAmount] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
 
   async function handleSave() {
-    if (!title.trim() || !managedById) return;
-    await createTemplate.mutateAsync({
+    if (!title.trim() || !managedById || !dueDate) return;
+    await createBill.mutateAsync({
       title: title.trim(),
       managedById,
-      dueDay,
+      dueDate,
       amount: amount ? parseFloat(amount) : null,
       amountMin: null,
       amountMax: null,
@@ -27,11 +31,11 @@ export function AddBillTemplateModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/55 sm:items-center" onClick={onClose}>
       <div className="flex w-full max-w-[420px] flex-col gap-4 rounded-t-card-lg bg-app p-6 sm:rounded-card-lg" onClick={(e) => e.stopPropagation()}>
-        <div className="text-lg font-extrabold text-ink">New recurring bill</div>
+        <div className="text-lg font-extrabold text-ink">New one-off bill</div>
 
         <label className="flex flex-col gap-1">
           <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Title</span>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mortgage" className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink" />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Vet visit" className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink" />
         </label>
 
         <div className="flex gap-3">
@@ -46,8 +50,8 @@ export function AddBillTemplateModal({ onClose }: { onClose: () => void }) {
             </select>
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Due day</span>
-            <input type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(Number(e.target.value))} className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink" />
+            <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Due date</span>
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-xl border border-border-strong bg-card px-3 py-2.5 text-sm font-semibold text-ink" />
           </label>
         </div>
 

@@ -13,6 +13,7 @@ public class BillTemplateConfiguration : IEntityTypeConfiguration<BillTemplate>
         b.Property(x => x.Amount).HasPrecision(10, 2);
         b.Property(x => x.AmountMin).HasPrecision(10, 2);
         b.Property(x => x.AmountMax).HasPrecision(10, 2);
+        b.Property(x => x.AccountNumber).HasMaxLength(100);
 
         b.HasOne(x => x.ManagedBy)
             .WithMany()
@@ -31,6 +32,8 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
         b.Property(x => x.Amount).HasPrecision(10, 2);
         b.Property(x => x.AmountMin).HasPrecision(10, 2);
         b.Property(x => x.AmountMax).HasPrecision(10, 2);
+        b.Property(x => x.AccountNumber).HasMaxLength(100);
+        b.Property(x => x.ConfirmationNumber).HasMaxLength(100);
 
         // Idempotent generation guard — NULL TemplateId (one-off bills) can repeat freely in Postgres unique indexes.
         b.HasIndex(x => new { x.TemplateId, x.BillingMonth }).IsUnique();

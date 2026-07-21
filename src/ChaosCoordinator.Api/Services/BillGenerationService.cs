@@ -39,6 +39,7 @@ public class BillGenerationService(AppDbContext db)
                 Amount = template.Amount,
                 AmountMin = template.AmountMin,
                 AmountMax = template.AmountMax,
+                AccountNumber = template.AccountNumber,
                 BillingMonth = billingMonth,
             });
         }

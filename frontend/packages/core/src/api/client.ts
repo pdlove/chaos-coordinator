@@ -1,11 +1,16 @@
 import type {
   BillsMonthDto,
   BillTemplateDto,
+  BillDto,
   CalendarEventDto,
   CancelEventOccurrenceRequest,
   CategoryDto,
   ChoreDto,
+  ConfirmBillPhotoImportRequest,
   CreateBillTemplateRequest,
+  CreateOneOffBillRequest,
+  ExtractBillPhotoResponse,
+  MarkBillPaidRequest,
   UpdateBillTemplateRequest,
   ChoreGroupDto,
   CompleteChoreRequest,
@@ -245,13 +250,26 @@ export const api = {
   searchItems: (q: string) => apiFetch<ItemSuggestionDto[]>(`/api/items/search?q=${encodeURIComponent(q)}`),
 
   getBills: (month: string) => apiFetch<BillsMonthDto>(`/api/bills?month=${month}`),
-  markBillPaid: (id: string) => apiFetch<void>(`/api/bills/${id}/mark-paid`, { method: "POST" }),
+  createBill: (req: CreateOneOffBillRequest) => apiFetch<BillDto>("/api/bills", { method: "POST", body: JSON.stringify(req) }),
+  markBillPaid: (id: string, req: MarkBillPaidRequest) =>
+    apiFetch<void>(`/api/bills/${id}/mark-paid`, { method: "POST", body: JSON.stringify(req) }),
   getBillTemplates: () => apiFetch<BillTemplateDto[]>("/api/bill-templates"),
   createBillTemplate: (req: CreateBillTemplateRequest) =>
     apiFetch<BillTemplateDto>("/api/bill-templates", { method: "POST", body: JSON.stringify(req) }),
   updateBillTemplate: (id: string, req: UpdateBillTemplateRequest) =>
     apiFetch<void>(`/api/bill-templates/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   deleteBillTemplate: (id: string) => apiFetch<void>(`/api/bill-templates/${id}`, { method: "DELETE" }),
+
+  extractBillPhoto: async (images: { blob: Blob; fileName: string }[]) => {
+    const form = new FormData();
+    for (const { blob, fileName } of images) form.append("Images", blob, fileName);
+
+    const res = await fetch(`${baseUrl}/api/bills/photo-import/extract`, { method: "POST", credentials: "include", body: form });
+    if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
+    return (await res.json()) as ExtractBillPhotoResponse;
+  },
+  confirmBillPhotoImport: (req: ConfirmBillPhotoImportRequest) =>
+    apiFetch<BillDto>("/api/bills/photo-import/confirm", { method: "POST", body: JSON.stringify(req) }),
 
   getMenu: (from: string, to: string) => apiFetch<MenuEntryDto[]>(`/api/menu?from=${from}&to=${to}`),
   upsertMenuEntry: (req: UpsertMenuEntryRequest) => apiFetch<MenuEntryDto>("/api/menu", { method: "POST", body: JSON.stringify(req) }),

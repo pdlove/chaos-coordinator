@@ -25,6 +25,7 @@ public class BillsController(AppDbContext db, HouseholdContext household, BillGe
 
         var current = await db.Bills
             .Include(b => b.ManagedBy)
+            .Include(b => b.PhotoBatches).ThenInclude(pb => pb.Images)
             .Where(b => b.HouseholdId == household.HouseholdId && b.BillingMonth == month)
             .ToListAsync();
 
@@ -32,6 +33,7 @@ public class BillsController(AppDbContext db, HouseholdContext household, BillGe
         var prevMonth = $"{prevDate.Year:D4}-{prevDate.Month:D2}";
         var carriedOver = await db.Bills
             .Include(b => b.ManagedBy)
+            .Include(b => b.PhotoBatches).ThenInclude(pb => pb.Images)
             .Where(b => b.HouseholdId == household.HouseholdId && b.BillingMonth == prevMonth && b.PaidDate == null)
             .ToListAsync();
 
@@ -48,15 +50,45 @@ public class BillsController(AppDbContext db, HouseholdContext household, BillGe
         ));
     }
 
+    [HttpPost]
+    [RequirePinElevation]
+    public async Task<ActionResult<BillDto>> Create(CreateOneOffBillRequest request)
+    {
+        var billingMonth = $"{request.DueDate.Year:D4}-{request.DueDate.Month:D2}";
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var bill = new Bill
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = household.HouseholdId,
+            TemplateId = null,
+            Title = request.Title,
+            ManagedById = request.ManagedById,
+            DueDate = request.DueDate,
+            Amount = request.Amount,
+            AmountMin = request.AmountMin,
+            AmountMax = request.AmountMax,
+            AccountNumber = request.AccountNumber,
+            Status = BillStatusCalculator.Compute(request.DueDate, null, today),
+            BillingMonth = billingMonth,
+        };
+        db.Bills.Add(bill);
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.BillsChanged);
+
+        await db.Entry(bill).Reference(b => b.ManagedBy).LoadAsync();
+        return Ok(bill.ToDto());
+    }
+
     [HttpPost("{id:guid}/mark-paid")]
     [RequirePinElevation]
-    public async Task<IActionResult> MarkPaid(Guid id)
+    public async Task<IActionResult> MarkPaid(Guid id, MarkBillPaidRequest? request)
     {
         var bill = await db.Bills.FirstOrDefaultAsync(b => b.Id == id && b.HouseholdId == household.HouseholdId);
         if (bill is null) return NotFound();
 
         bill.PaidDate = DateOnly.FromDateTime(DateTime.Today);
         bill.Status = BillStatus.Paid;
+        bill.ConfirmationNumber = string.IsNullOrWhiteSpace(request?.ConfirmationNumber) ? null : request.ConfirmationNumber.Trim();
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.BillsChanged);
         return NoContent();
@@ -91,6 +123,7 @@ public class BillTemplatesController(AppDbContext db, HouseholdContext household
             Amount = request.Amount,
             AmountMin = request.AmountMin,
             AmountMax = request.AmountMax,
+            AccountNumber = request.AccountNumber,
             Active = true,
         };
         db.BillTemplates.Add(template);
@@ -112,6 +145,7 @@ public class BillTemplatesController(AppDbContext db, HouseholdContext household
         template.Amount = request.Amount;
         template.AmountMin = request.AmountMin;
         template.AmountMax = request.AmountMax;
+        template.AccountNumber = request.AccountNumber;
         template.Active = request.Active;
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.BillsChanged);

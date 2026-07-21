@@ -19,6 +19,8 @@ public class BillTemplate
     public decimal? AmountMin { get; set; }
     public decimal? AmountMax { get; set; }
 
+    public string? AccountNumber { get; set; }
+
     public bool Active { get; set; } = true;
 
     public ICollection<Bill> Bills { get; set; } = new List<Bill>();
@@ -44,9 +46,17 @@ public class Bill
     public decimal? AmountMin { get; set; }
     public decimal? AmountMax { get; set; }
 
+    public string? AccountNumber { get; set; }
+
     public BillStatus Status { get; set; } = BillStatus.Upcoming;
     public DateOnly? PaidDate { get; set; }
 
+    /// <summary>Optional — filled in by the user when marking paid (check number, electronic
+    /// payment confirmation, etc). Never required.</summary>
+    public string? ConfirmationNumber { get; set; }
+
     /// <summary>"2026-07" — the month this instance belongs to, for grouping + carry-over detection.</summary>
     public string BillingMonth { get; set; } = "";
+
+    public ICollection<BillPhotoBatch> PhotoBatches { get; set; } = new List<BillPhotoBatch>();
 }

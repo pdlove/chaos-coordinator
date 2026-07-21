@@ -458,17 +458,27 @@ export interface PayItemRequest {
 
 // ---- Bills ----
 
+export interface BillPhotoDto {
+  id: string;
+  url: string;
+  order: number;
+}
+
 export interface BillDto {
   id: string;
   title: string;
+  templateId: string | null;
   managedById: string;
   managedByName: string;
   dueDate: string; // "YYYY-MM-DD"
   amount: number | null;
   amountMin: number | null;
   amountMax: number | null;
+  accountNumber: string | null;
   status: BillStatus;
   paidDate: string | null;
+  confirmationNumber: string | null;
+  photos: BillPhotoDto[];
 }
 
 export interface BillsMonthDto {
@@ -489,6 +499,7 @@ export interface BillTemplateDto {
   amount: number | null;
   amountMin: number | null;
   amountMax: number | null;
+  accountNumber: string | null;
   active: boolean;
 }
 
@@ -499,10 +510,72 @@ export interface CreateBillTemplateRequest {
   amount: number | null;
   amountMin: number | null;
   amountMax: number | null;
+  accountNumber: string | null;
 }
 
 export interface UpdateBillTemplateRequest extends CreateBillTemplateRequest {
   active: boolean;
+}
+
+export interface CreateOneOffBillRequest {
+  title: string;
+  managedById: string;
+  dueDate: string; // "YYYY-MM-DD"
+  amount: number | null;
+  amountMin: number | null;
+  amountMax: number | null;
+  accountNumber: string | null;
+}
+
+/** Body for POST /api/bills/{id}/mark-paid — confirmationNumber is always optional. */
+export interface MarkBillPaidRequest {
+  confirmationNumber: string | null;
+}
+
+// ---- Scan a bill photo ----
+
+/** One existing/predicted Bill the scanned photo might belong to, per the server's matcher.
+ * `isBestGuess` flags the top-scoring candidate to visually highlight — still just a suggestion,
+ * the review screen always requires an explicit tap to attach. */
+export interface BillMatchCandidateDto {
+  id: string;
+  title: string;
+  templateId: string | null;
+  dueDate: string; // "YYYY-MM-DD"
+  amount: number | null;
+  amountMin: number | null;
+  amountMax: number | null;
+  status: BillStatus;
+  isBestGuess: boolean;
+}
+
+export interface ExtractBillPhotoResponse {
+  batchId: string;
+  extractedTitle: string | null;
+  extractedAmount: number | null;
+  extractedDueDate: string | null; // "YYYY-MM-DD"
+  extractedAccountNumber: string | null;
+  matches: BillMatchCandidateDto[];
+  activeTemplates: BillTemplateDto[];
+}
+
+export interface NewOneOffBillFromPhoto {
+  title: string;
+  managedById: string;
+  dueDate: string; // "YYYY-MM-DD"
+  amount: number | null;
+  amountMin: number | null;
+  amountMax: number | null;
+  accountNumber: string | null;
+}
+
+/** Exactly one of existingBillId / templateId / newOneOff must be set. */
+export interface ConfirmBillPhotoImportRequest {
+  batchId: string;
+  existingBillId: string | null;
+  templateId: string | null;
+  templateDueDate: string | null; // "YYYY-MM-DD"
+  newOneOff: NewOneOffBillFromPhoto | null;
 }
 
 // ---- Food ----

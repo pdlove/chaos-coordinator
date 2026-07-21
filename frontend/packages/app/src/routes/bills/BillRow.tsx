@@ -2,15 +2,22 @@ import { useState } from "react";
 import { useMarkBillPaid, useSessionStore, type BillDto } from "@chaos-coordinator/core";
 import { StatusBadge } from "../../components/StatusBadge";
 import { PinPrompt } from "../../components/PinPrompt";
+import { MarkPaidPrompt } from "./MarkPaidPrompt";
 
 export function BillRow({ bill }: { bill: BillDto }) {
   const pinElevated = useSessionStore((s) => s.pinElevated);
   const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [showMarkPaidPrompt, setShowMarkPaidPrompt] = useState(false);
   const markPaid = useMarkBillPaid();
 
   function handleMarkPaidTap() {
-    if (pinElevated) markPaid.mutate(bill.id);
+    if (pinElevated) setShowMarkPaidPrompt(true);
     else setShowPinPrompt(true);
+  }
+
+  function confirmMarkPaid(confirmationNumber: string | null) {
+    setShowMarkPaidPrompt(false);
+    markPaid.mutate({ id: bill.id, confirmationNumber });
   }
 
   const dueLabel = new Date(bill.dueDate).toLocaleDateString([], { month: "short", day: "numeric" });
@@ -29,6 +36,10 @@ export function BillRow({ bill }: { bill: BillDto }) {
           <div className="mt-0.5 text-[11.5px] font-medium text-ink-muted">
             Managed by {bill.managedByName} · {bill.status === "Paid" ? `Paid ${bill.paidDate ? new Date(bill.paidDate).toLocaleDateString([], { month: "short", day: "numeric" }) : ""}` : `due ${dueLabel}`}
           </div>
+          {bill.accountNumber && <div className="mt-0.5 text-[11px] font-medium text-ink-faint">Acct {bill.accountNumber}</div>}
+          {bill.status === "Paid" && bill.confirmationNumber && (
+            <div className="mt-0.5 text-[11px] font-medium text-ink-faint">Confirmation {bill.confirmationNumber}</div>
+          )}
         </div>
         <StatusBadge status={bill.status} />
       </div>
@@ -47,15 +58,25 @@ export function BillRow({ bill }: { bill: BillDto }) {
           </button>
         )}
       </div>
+      {bill.photos.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {bill.photos.map((photo) => (
+            <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="h-12 w-12 overflow-hidden rounded-lg bg-chip">
+              <img src={photo.url} alt="" className="h-full w-full object-cover" />
+            </a>
+          ))}
+        </div>
+      )}
       {showPinPrompt && (
         <PinPrompt
           onCancel={() => setShowPinPrompt(false)}
           onSuccess={() => {
             setShowPinPrompt(false);
-            markPaid.mutate(bill.id);
+            setShowMarkPaidPrompt(true);
           }}
         />
       )}
+      {showMarkPaidPrompt && <MarkPaidPrompt onCancel={() => setShowMarkPaidPrompt(false)} onConfirm={confirmMarkPaid} />}
     </div>
   );
 }

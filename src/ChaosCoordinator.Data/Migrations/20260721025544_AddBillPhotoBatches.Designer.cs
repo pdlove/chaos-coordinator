@@ -3,6 +3,7 @@ using System;
 using ChaosCoordinator.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChaosCoordinator.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260721025544_AddBillPhotoBatches")]
+    partial class AddBillPhotoBatches
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,10 +69,6 @@ namespace ChaosCoordinator.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AccountNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<decimal?>("Amount")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -85,10 +84,6 @@ namespace ChaosCoordinator.Data.Migrations
                     b.Property<string>("BillingMonth")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("ConfirmationNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date");
@@ -183,10 +178,6 @@ namespace ChaosCoordinator.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("AccountNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("Active")
                         .HasColumnType("boolean");
