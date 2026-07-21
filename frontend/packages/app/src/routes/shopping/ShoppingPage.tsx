@@ -52,7 +52,7 @@ export function ShoppingPage() {
   const hasCheckedItems = !!items?.some((item) => item.checked);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="flex flex-none flex-col gap-3 px-5 pb-3 pt-1.5">
         <div className="text-2xl font-extrabold text-ink">Shopping</div>
         <div className="flex gap-2 overflow-x-auto">
