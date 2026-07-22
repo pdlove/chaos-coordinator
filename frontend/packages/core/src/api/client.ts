@@ -242,6 +242,8 @@ export const api = {
     apiFetch<ShoppingItemDto[]>(`/api/stores/${storeId}/organize`, { method: "POST" }),
   hideCheckedShoppingItems: (storeId: string) =>
     apiFetch<void>(`/api/stores/${storeId}/hide-checked-items`, { method: "POST" }),
+  deleteCheckedShoppingItems: (storeId: string) =>
+    apiFetch<void>(`/api/stores/${storeId}/delete-checked-items`, { method: "POST" }),
   updateShoppingItem: (id: string, req: UpdateItemRequest) =>
     apiFetch<void>(`/api/items/${id}`, { method: "PATCH", body: JSON.stringify(req) }),
   payShoppingItem: (id: string, req: PayItemRequest) => apiFetch<void>(`/api/items/${id}/pay`, { method: "POST", body: JSON.stringify(req) }),

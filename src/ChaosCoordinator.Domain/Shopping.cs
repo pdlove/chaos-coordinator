@@ -56,6 +56,12 @@ public class ShoppingListItem
 
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Soft delete — set instead of removing the row, so a future "undelete" has
+    /// something to restore. GetItems filters this out of the active list; Search deliberately
+    /// does not, so autocomplete/price history (see ItemSuggestionDto) keep working off it the
+    /// same way they already do for checked-and-hidden items.</summary>
+    public DateTime? DeletedAt { get; set; }
+
     public ICollection<PriceHistoryEntry> PriceHistory { get; set; } = new List<PriceHistoryEntry>();
 }
 

@@ -49,7 +49,7 @@ public class StoresController(
         // alphabetical-by-department, then creation order. Once "Organize list" runs, Order
         // carries the AI-determined walking sequence (headers included) and takes precedence.
         var items = await db.ShoppingListItems
-            .Where(i => i.StoreId == storeId && i.Store!.HouseholdId == household.HouseholdId)
+            .Where(i => i.StoreId == storeId && i.Store!.HouseholdId == household.HouseholdId && i.DeletedAt == null)
             // Checked items are hidden (never deleted — see ItemSuggestionDto) once
             // Store.CheckedItemsHiddenBefore has been stamped past their CheckedAt by "Remove
             // checked items"; anything checked off since stays visible.
@@ -71,6 +71,27 @@ public class StoresController(
         if (store is null) return NotFound();
 
         store.CheckedItemsHiddenBefore = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
+        return NoContent();
+    }
+
+    /// <summary>"Delete checked items" — soft-deletes (see ShoppingListItem.DeletedAt) every
+    /// currently-checked, not-yet-deleted item in one shot. Unlike "Remove checked items" above,
+    /// this doesn't leave the rows sitting there filtered by a timestamp; it marks them gone the
+    /// same way a single swipe-delete does, just for all of them at once.</summary>
+    [HttpPost("{storeId:guid}/delete-checked-items")]
+    public async Task<IActionResult> DeleteCheckedItems(Guid storeId)
+    {
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId && s.HouseholdId == household.HouseholdId);
+        if (store is null) return NotFound();
+
+        var checkedItems = await db.ShoppingListItems
+            .Where(i => i.StoreId == storeId && i.Checked && i.DeletedAt == null)
+            .ToListAsync();
+        var now = DateTime.UtcNow;
+        foreach (var item in checkedItems) item.DeletedAt = now;
+
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
         return NoContent();
@@ -112,7 +133,7 @@ public class StoresController(
         var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId && s.HouseholdId == household.HouseholdId, ct);
         if (store is null) return NotFound();
 
-        var allItems = await db.ShoppingListItems.Where(i => i.StoreId == storeId).ToListAsync(ct);
+        var allItems = await db.ShoppingListItems.Where(i => i.StoreId == storeId && i.DeletedAt == null).ToListAsync(ct);
         db.ShoppingListItems.RemoveRange(allItems.Where(i => i.IsCategoryHeader));
         var items = allItems.Where(i => !i.IsCategoryHeader).ToList();
         if (items.Count == 0)
@@ -171,7 +192,7 @@ public class StoresController(
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
 
         var updated = await db.ShoppingListItems
-            .Where(i => i.StoreId == storeId)
+            .Where(i => i.StoreId == storeId && i.DeletedAt == null)
             .OrderBy(i => i.Order).ThenBy(i => i.Department).ThenBy(i => i.CreatedAt)
             .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice))
             .ToListAsync(ct);

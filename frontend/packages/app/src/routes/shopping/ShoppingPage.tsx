@@ -3,6 +3,7 @@ import {
   ApiError,
   isGroupHeader,
   useCreateStore,
+  useDeleteCheckedShoppingItems,
   useDeleteShoppingItem,
   useHideCheckedShoppingItems,
   useOrganizeShoppingItems,
@@ -133,6 +134,29 @@ function SwipeToDeleteRow({
   );
 }
 
+function IconButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-chip text-base disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ShoppingPage() {
   const { data: stores } = useStores();
   const [activeStoreId, setActiveStoreId] = useState<string | undefined>(undefined);
@@ -143,6 +167,7 @@ export function ShoppingPage() {
   const createStore = useCreateStore();
   const organizeItems = useOrganizeShoppingItems();
   const hideCheckedItems = useHideCheckedShoppingItems();
+  const deleteCheckedItems = useDeleteCheckedShoppingItems();
 
   const [addingItem, setAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemDto | null>(null);
@@ -165,7 +190,30 @@ export function ShoppingPage() {
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
       <div className="flex flex-none flex-col gap-3 px-5 pb-3 pt-1.5">
-        <div className="text-2xl font-extrabold text-ink">Shopping</div>
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-extrabold text-ink">Shopping</div>
+          <div className="flex items-center gap-2">
+            {storeId && (
+              <IconButton label="Add item" onClick={() => setAddingItem(true)}>
+                +
+              </IconButton>
+            )}
+            {storeId && !!items?.length && (
+              <IconButton label="Organize list" onClick={handleOrganize} disabled={organizeItems.isPending}>
+                ✨
+              </IconButton>
+            )}
+            {storeId && hasCheckedItems && (
+              <IconButton
+                label="Delete checked items"
+                onClick={() => deleteCheckedItems.mutate(storeId)}
+                disabled={deleteCheckedItems.isPending}
+              >
+                🗑
+              </IconButton>
+            )}
+          </div>
+        </div>
         <div className="flex gap-2 overflow-x-auto">
           {stores?.map((s) => (
             <button
@@ -262,25 +310,6 @@ export function ShoppingPage() {
               )
             )}
           </div>
-        )}
-
-        {storeId && (
-          <button
-            onClick={() => setAddingItem(true)}
-            className="flex h-12 items-center justify-center gap-2 rounded-card-lg border-[1.5px] border-dashed border-ink-fainter text-sm font-bold text-ink-muted"
-          >
-            + Add item
-          </button>
-        )}
-
-        {storeId && !!items?.length && (
-          <button
-            onClick={handleOrganize}
-            disabled={organizeItems.isPending}
-            className="flex h-12 items-center justify-center gap-2 rounded-card-lg bg-chip text-sm font-bold text-ink disabled:opacity-50"
-          >
-            {organizeItems.isPending ? "Organizing…" : "✨ Organize list"}
-          </button>
         )}
 
         {storeId && hasCheckedItems && (

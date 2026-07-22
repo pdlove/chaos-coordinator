@@ -77,6 +77,16 @@ export function useHideCheckedShoppingItems() {
   });
 }
 
+/** "Delete checked items" — soft-deletes every currently-checked item in one shot, the same way
+ * a single swipe-delete does (see ShoppingListItem.DeletedAt server-side), just for all of them. */
+export function useDeleteCheckedShoppingItems() {
+  const invalidate = useInvalidateItems();
+  return useMutation({
+    mutationFn: (storeId: string) => api.deleteCheckedShoppingItems(storeId),
+    onSuccess: invalidate,
+  });
+}
+
 export function useItemPriceHistory(id: string | undefined) {
   return useQuery({
     queryKey: ["itemPriceHistory", id],

@@ -88,13 +88,15 @@ public class ShoppingItemsController(AppDbContext db, HouseholdContext household
         return Ok(history);
     }
 
+    /// <summary>Soft delete — see ShoppingListItem.DeletedAt. Idempotent against being called
+    /// twice (e.g. a retried request) since it's just re-stamping the same field.</summary>
     [HttpDelete("items/{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var item = await db.ShoppingListItems.FirstOrDefaultAsync(i => i.Id == id && i.Store!.HouseholdId == household.HouseholdId);
         if (item is null) return NotFound();
 
-        db.ShoppingListItems.Remove(item);
+        item.DeletedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
         return NoContent();
