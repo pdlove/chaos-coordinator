@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ApiError,
   isGroupHeader,
   useCreateStore,
+  useDeleteShoppingItem,
   useHideCheckedShoppingItems,
   useOrganizeShoppingItems,
   useShoppingItems,
@@ -23,12 +24,78 @@ function describeOrganizeError(err: unknown): string {
   return "Couldn't reach the server — check your connection.";
 }
 
+const SWIPE_REVEAL_PX = 76;
+
+/** Wraps a row so it can be dragged left to reveal a delete button. Only a horizontal drag opens
+ * it — a plain tap passes straight through to the row's own buttons (checkbox, edit), and a tap
+ * while already open just closes it instead of triggering them. */
+function SwipeToDeleteRow({ onDelete, children }: { onDelete: () => void; children: React.ReactNode }) {
+  const [offset, setOffset] = useState(0);
+  const dragRef = useRef<{ startX: number; startOffset: number } | null>(null);
+  const movedRef = useRef(false);
+
+  function handlePointerDown(e: React.PointerEvent) {
+    dragRef.current = { startX: e.clientX, startOffset: offset };
+    movedRef.current = false;
+  }
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!dragRef.current) return;
+    const delta = e.clientX - dragRef.current.startX;
+    if (Math.abs(delta) > 4) movedRef.current = true;
+    setOffset(Math.min(0, Math.max(-SWIPE_REVEAL_PX, dragRef.current.startOffset + delta)));
+  }
+  function handlePointerUp() {
+    if (!dragRef.current) return;
+    dragRef.current = null;
+    setOffset((o) => (o < -SWIPE_REVEAL_PX / 2 ? -SWIPE_REVEAL_PX : 0));
+  }
+
+  return (
+    <div className="relative overflow-hidden">
+      <button
+        onClick={() => onDelete()}
+        className="absolute inset-y-0 right-0 flex w-[76px] items-center justify-center bg-cat-doctor text-xs font-bold text-white"
+      >
+        Delete
+      </button>
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onClickCapture={(e) => {
+          if (movedRef.current) {
+            // Trailing click fired by the browser right after the drag's pointerup — the open/
+            // closed decision was already made there, so just swallow this click without
+            // re-touching offset (or it would slam an just-opened row shut again).
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+          }
+          if (offset !== 0) {
+            // A plain tap landing on an already-open row: close it instead of letting the tap
+            // reach the checkbox/edit button underneath.
+            e.stopPropagation();
+            e.preventDefault();
+            setOffset(0);
+          }
+        }}
+        style={{ transform: `translateX(${offset}px)`, transition: dragRef.current ? "none" : "transform 150ms ease-out" }}
+        className="touch-pan-y bg-card"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function ShoppingPage() {
   const { data: stores } = useStores();
   const [activeStoreId, setActiveStoreId] = useState<string | undefined>(undefined);
   const storeId = activeStoreId ?? stores?.[0]?.id;
   const { data: items } = useShoppingItems(storeId);
   const updateItem = useUpdateShoppingItem();
+  const deleteItem = useDeleteShoppingItem();
   const createStore = useCreateStore();
   const organizeItems = useOrganizeShoppingItems();
   const hideCheckedItems = useHideCheckedShoppingItems();
@@ -103,36 +170,38 @@ export function ShoppingPage() {
                   {item.name}
                 </div>
               ) : (
-                <div key={item.id} className="flex items-center gap-2.5 p-3">
-                  <button
-                    onClick={() =>
-                      updateItem.mutate({
-                        id: item.id,
-                        req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked: !item.checked },
-                      })
-                    }
-                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-[6px] ${
-                      item.checked ? "bg-cat-home text-white" : "border-2 border-ink-fainter"
-                    }`}
-                  >
-                    {item.checked && "✓"}
-                  </button>
-                  <button onClick={() => setEditingItem(item)} className="min-w-0 flex-1 text-left">
-                    <div className={`truncate text-[13.5px] font-bold text-ink ${item.checked ? "text-opacity-50 line-through" : ""}`}>
-                      {item.name}
-                    </div>
-                    <div className="text-[11px] font-medium text-ink-faint">
-                      {item.checked
-                        ? item.lastPaidPrice != null
-                          ? `paid $${item.lastPaidPrice.toFixed(2)}`
-                          : "checked"
-                        : item.note || (item.lastPaidPrice != null ? `last paid $${item.lastPaidPrice.toFixed(2)}` : "no price yet")}
-                    </div>
-                  </button>
-                  {item.quantity > 1 && (
-                    <span className="flex-none rounded-full bg-chip px-2.5 py-1 text-[11px] font-bold text-ink-muted">×{item.quantity}</span>
-                  )}
-                </div>
+                <SwipeToDeleteRow key={item.id} onDelete={() => deleteItem.mutate(item.id)}>
+                  <div className="flex items-center gap-2.5 p-3">
+                    <button
+                      onClick={() =>
+                        updateItem.mutate({
+                          id: item.id,
+                          req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked: !item.checked },
+                        })
+                      }
+                      className={`flex h-5 w-5 flex-none items-center justify-center rounded-[6px] ${
+                        item.checked ? "bg-cat-home text-white" : "border-2 border-ink-fainter"
+                      }`}
+                    >
+                      {item.checked && "✓"}
+                    </button>
+                    <button onClick={() => setEditingItem(item)} className="min-w-0 flex-1 text-left">
+                      <div className={`truncate text-[13.5px] font-bold text-ink ${item.checked ? "text-opacity-50 line-through" : ""}`}>
+                        {item.name}
+                      </div>
+                      <div className="text-[11px] font-medium text-ink-faint">
+                        {item.checked
+                          ? item.lastPaidPrice != null
+                            ? `paid $${item.lastPaidPrice.toFixed(2)}`
+                            : "checked"
+                          : item.note || (item.lastPaidPrice != null ? `last paid $${item.lastPaidPrice.toFixed(2)}` : "no price yet")}
+                      </div>
+                    </button>
+                    {item.quantity > 1 && (
+                      <span className="flex-none rounded-full bg-chip px-2.5 py-1 text-[11px] font-bold text-ink-muted">×{item.quantity}</span>
+                    )}
+                  </div>
+                </SwipeToDeleteRow>
               )
             )}
           </div>
