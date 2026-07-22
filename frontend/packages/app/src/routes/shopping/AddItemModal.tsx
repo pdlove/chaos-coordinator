@@ -8,11 +8,12 @@ interface AddItemModalProps {
 
 export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
   const [query, setQuery] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const { data: suggestions } = useSearchItems(query);
   const createItem = useCreateShoppingItem();
 
   async function addItem(name: string, department: string) {
-    await createItem.mutateAsync({ storeId, req: { name, department, note: null, quantity: 1 } });
+    await createItem.mutateAsync({ storeId, req: { name, department, note: null, quantity } });
     onClose();
   }
 
@@ -24,7 +25,7 @@ export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
     if (lines.length <= 1) return;
     e.preventDefault();
     for (const line of lines) {
-      await createItem.mutateAsync({ storeId, req: { name: line, department: "Other", note: null, quantity: 1 } });
+      await createItem.mutateAsync({ storeId, req: { name: line, department: "Other", note: null, quantity } });
     }
     onClose();
   }
@@ -47,6 +48,23 @@ export function AddItemModal({ storeId, onClose }: AddItemModalProps) {
             placeholder="Item name (paste a list to add several)"
             className="flex-1 rounded-xl border-[1.5px] border-ink bg-card px-3.5 py-2.5 text-[15px] font-semibold text-ink"
           />
+        </div>
+
+        <div className="flex items-center justify-between px-5 pb-3">
+          <div className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Quantity</div>
+          <div className="flex h-10 items-center gap-4 rounded-xl bg-card px-4 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="text-lg font-extrabold text-ink"
+            >
+              −
+            </button>
+            <span className="min-w-[1.5ch] text-center text-base font-extrabold text-ink">{quantity}</span>
+            <button type="button" onClick={() => setQuantity((q) => q + 1)} className="text-lg font-extrabold text-ink">
+              +
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-5 pb-5">
