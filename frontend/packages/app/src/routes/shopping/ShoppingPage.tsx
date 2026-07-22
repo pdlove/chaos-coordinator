@@ -151,21 +151,25 @@ function IconButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-chip text-base disabled:opacity-50"
+      className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-base disabled:opacity-40"
     >
       {children}
     </button>
   );
 }
 
+// Standard proven proportions (the ones Tailwind UI/Headless UI ship) — a custom h-6/w-10 track
+// with an 18px translate looked right at rest but overflowed the pill's curve on the right at
+// the "on" position, since the thumb's top/bottom corners land in the tightest part of the
+// rounded-full end cap. These give the thumb room on all sides at both ends of its travel.
 function ToggleSwitch({ label, checked, onChange }: { label: string; checked: boolean; onChange: (next: boolean) => void }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex items-center gap-2">
-      <span className="text-xs font-bold text-ink-muted">{label}</span>
-      <span className={`relative h-6 w-10 flex-none rounded-full transition-colors ${checked ? "bg-cat-home" : "bg-chip"}`}>
+    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex flex-none items-center gap-2">
+      <span className="whitespace-nowrap text-xs font-bold text-ink-muted">{label}</span>
+      <span className={`inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${checked ? "bg-cat-home" : "bg-chip"}`}>
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-[18px]" : "translate-x-0.5"
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-6" : "translate-x-1"
           }`}
         />
       </span>
@@ -209,6 +213,8 @@ export function ShoppingPage() {
   const currentStore = stores?.find((s) => s.id === storeId);
   const activeStoreName = currentStore?.name ?? "";
   const hasCheckedItems = !!items?.some((item) => item.checked);
+  const realItems = items?.filter((item) => !isGroupHeader(item.name)) ?? [];
+  const uncheckedCount = realItems.filter((item) => !item.checked).length;
 
   function handleToggleChecked(item: ShoppingItemDto) {
     const checked = !item.checked;
@@ -226,7 +232,7 @@ export function ShoppingPage() {
       <div className="flex flex-none flex-col gap-3 px-5 pb-3 pt-1.5">
         <div className="flex items-center justify-between">
           <div className="text-2xl font-extrabold text-ink">Shopping</div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 rounded-full bg-chip px-1.5 py-1">
             {storeId && (
               <IconButton label="Add item" onClick={() => setAddingItem(true)}>
                 +
@@ -248,44 +254,57 @@ export function ShoppingPage() {
             )}
           </div>
         </div>
-        <div className="flex gap-2 overflow-x-auto">
-          {stores?.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setActiveStoreId(s.id)}
-              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold ${
-                s.id === storeId ? "bg-ink text-white" : "bg-chip text-ink-muted"
-              }`}
-            >
-              {s.name}
-            </button>
-          ))}
-          {newStoreName === null ? (
-            <button onClick={() => setNewStoreName("")} className="whitespace-nowrap rounded-full bg-chip px-3.5 py-1.5 text-xs font-bold text-ink-muted">
-              + Store
-            </button>
-          ) : (
-            <input
-              autoFocus
-              value={newStoreName}
-              onChange={(e) => setNewStoreName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && newStoreName.trim()) {
-                  createStore.mutate({ name: newStoreName.trim() });
-                  setNewStoreName(null);
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex-none text-xs font-bold text-ink-muted">Store:</span>
+            <select
+              value={storeId ?? ""}
+              onChange={(e) => {
+                if (e.target.value === "__add_store__") {
+                  setNewStoreName("");
+                  return;
                 }
+                setActiveStoreId(e.target.value);
               }}
-              onBlur={() => setNewStoreName(null)}
-              placeholder="Store name"
-              className="w-28 rounded-full bg-chip px-3.5 py-1.5 text-xs font-bold text-ink outline-none"
+              className="min-w-0 rounded-full bg-chip px-3.5 py-1.5 text-xs font-bold text-ink outline-none"
+            >
+              {stores?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+              <option value="__add_store__">+ Add Store</option>
+            </select>
+            {storeId && (
+              <span className="flex-none text-[11px] font-semibold text-ink-faint">
+                {uncheckedCount}/{realItems.length}
+              </span>
+            )}
+          </div>
+          {storeId && currentStore && (
+            <ToggleSwitch
+              label="Hide checked items"
+              checked={currentStore.hideCheckedItemsEnabled}
+              onChange={(next) => updateStoreSettings.mutate({ storeId, req: { hideCheckedItemsEnabled: next } })}
             />
           )}
         </div>
-        {storeId && currentStore && (
-          <ToggleSwitch
-            label="Hide checked items"
-            checked={currentStore.hideCheckedItemsEnabled}
-            onChange={(next) => updateStoreSettings.mutate({ storeId, req: { hideCheckedItemsEnabled: next } })}
+        {newStoreName !== null && (
+          <input
+            autoFocus
+            value={newStoreName}
+            onChange={(e) => setNewStoreName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newStoreName.trim()) {
+                createStore.mutate({ name: newStoreName.trim() });
+                setNewStoreName(null);
+              }
+              if (e.key === "Escape") setNewStoreName(null);
+            }}
+            onBlur={() => setNewStoreName(null)}
+            placeholder="Store name"
+            className="w-full rounded-full bg-chip px-3.5 py-1.5 text-xs font-bold text-ink outline-none"
           />
         )}
       </div>
