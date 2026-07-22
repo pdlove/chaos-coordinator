@@ -19,13 +19,18 @@ public class StoresController(
     ILogger<StoresController> logger
 ) : ControllerBase
 {
+    /// <summary>How long a checked item stays visible before "Hide checked items" (see
+    /// Store.HideCheckedItemsEnabled) hides it — long enough to see the checkmark land, short
+    /// enough that the list visibly clears itself as you shop.</summary>
+    private static readonly TimeSpan HideCheckedItemsDelay = TimeSpan.FromSeconds(5);
+
     [HttpGet]
     public async Task<ActionResult<List<StoreDto>>> Get()
     {
         var stores = await db.Stores
             .Where(s => s.HouseholdId == household.HouseholdId)
             .OrderBy(s => s.Order)
-            .Select(s => new StoreDto(s.Id, s.Name, s.Order))
+            .Select(s => new StoreDto(s.Id, s.Name, s.Order, s.HideCheckedItemsEnabled))
             .ToListAsync();
         return Ok(stores);
     }
@@ -39,38 +44,39 @@ public class StoresController(
         db.Stores.Add(store);
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
-        return Ok(new StoreDto(store.Id, store.Name, store.Order));
+        return Ok(new StoreDto(store.Id, store.Name, store.Order, store.HideCheckedItemsEnabled));
     }
 
     [HttpGet("{storeId:guid}/items")]
     public async Task<ActionResult<List<ShoppingItemDto>>> GetItems(Guid storeId)
     {
+        var hideCutoff = DateTime.UtcNow - HideCheckedItemsDelay;
+
         // Order = 0 means "never organized" (the default for every item) — those fall back to
         // alphabetical-by-department, then creation order. Once "Organize list" runs, Order
         // carries the AI-determined walking sequence (headers included) and takes precedence.
         var items = await db.ShoppingListItems
             .Where(i => i.StoreId == storeId && i.Store!.HouseholdId == household.HouseholdId && i.DeletedAt == null)
-            // Checked items are hidden (never deleted — see ItemSuggestionDto) once
-            // Store.CheckedItemsHiddenBefore has been stamped past their CheckedAt by "Remove
-            // checked items"; anything checked off since stays visible.
+            // With "Hide checked items" on, a checked item drops out of view once it's been
+            // checked for longer than HideCheckedItemsDelay — never deleted (see
+            // ItemSuggestionDto), and it reappears immediately if the toggle goes back off.
             .Where(i => !i.Checked || i.CheckedAt == null
-                || i.Store!.CheckedItemsHiddenBefore == null || i.CheckedAt > i.Store!.CheckedItemsHiddenBefore)
+                || !i.Store!.HideCheckedItemsEnabled || i.CheckedAt > hideCutoff)
             .OrderBy(i => i.Order).ThenBy(i => i.Department).ThenBy(i => i.CreatedAt)
             .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice))
             .ToListAsync();
         return Ok(items);
     }
 
-    /// <summary>"Remove checked items" — hides (doesn't delete) every item checked off at or
-    /// before this moment by stamping Store.CheckedItemsHiddenBefore, which GetItems then filters
-    /// against. Anything checked off afterward stays visible until this is pressed again.</summary>
-    [HttpPost("{storeId:guid}/hide-checked-items")]
-    public async Task<IActionResult> HideCheckedItems(Guid storeId)
+    /// <summary>Flips the "Hide checked items" toggle — see Store.HideCheckedItemsEnabled and the
+    /// delay applied in GetItems.</summary>
+    [HttpPatch("{storeId:guid}/settings")]
+    public async Task<IActionResult> UpdateSettings(Guid storeId, UpdateStoreSettingsRequest request)
     {
         var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId && s.HouseholdId == household.HouseholdId);
         if (store is null) return NotFound();
 
-        store.CheckedItemsHiddenBefore = DateTime.UtcNow;
+        store.HideCheckedItemsEnabled = request.HideCheckedItemsEnabled;
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
         return NoContent();

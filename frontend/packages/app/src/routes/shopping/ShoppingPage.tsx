@@ -1,15 +1,16 @@
 import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
   isGroupHeader,
   useCreateStore,
   useDeleteCheckedShoppingItems,
   useDeleteShoppingItem,
-  useHideCheckedShoppingItems,
   useOrganizeShoppingItems,
   useShoppingItems,
   useStores,
   useUpdateShoppingItem,
+  useUpdateStoreSettings,
   type ShoppingItemDto,
 } from "@chaos-coordinator/core";
 import { AddItemModal } from "./AddItemModal";
@@ -157,6 +158,26 @@ function IconButton({
   );
 }
 
+function ToggleSwitch({ label, checked, onChange }: { label: string; checked: boolean; onChange: (next: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className="flex items-center gap-2">
+      <span className="text-xs font-bold text-ink-muted">{label}</span>
+      <span className={`relative h-6 w-10 flex-none rounded-full transition-colors ${checked ? "bg-cat-home" : "bg-chip"}`}>
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-[18px]" : "translate-x-0.5"
+          }`}
+        />
+      </span>
+    </button>
+  );
+}
+
+/** How long a checked item stays visible before it drops out of the list once "Hide checked
+ * items" is on — must match StoresController.HideCheckedItemsDelay, since the server is what
+ * actually decides visibility; this is just when to ask it again. */
+const HIDE_CHECKED_ITEMS_DELAY_MS = 5000;
+
 export function ShoppingPage() {
   const { data: stores } = useStores();
   const [activeStoreId, setActiveStoreId] = useState<string | undefined>(undefined);
@@ -166,8 +187,9 @@ export function ShoppingPage() {
   const deleteItem = useDeleteShoppingItem();
   const createStore = useCreateStore();
   const organizeItems = useOrganizeShoppingItems();
-  const hideCheckedItems = useHideCheckedShoppingItems();
+  const updateStoreSettings = useUpdateStoreSettings();
   const deleteCheckedItems = useDeleteCheckedShoppingItems();
+  const queryClient = useQueryClient();
 
   const [addingItem, setAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItemDto | null>(null);
@@ -184,8 +206,20 @@ export function ShoppingPage() {
     }
   }
 
-  const activeStoreName = stores?.find((s) => s.id === storeId)?.name ?? "";
+  const currentStore = stores?.find((s) => s.id === storeId);
+  const activeStoreName = currentStore?.name ?? "";
   const hasCheckedItems = !!items?.some((item) => item.checked);
+
+  function handleToggleChecked(item: ShoppingItemDto) {
+    const checked = !item.checked;
+    updateItem.mutate({ id: item.id, req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked } });
+    // The server (StoresController.GetItems) is the actual source of truth for when a checked
+    // item becomes hidden; this timer just re-asks it after the same delay so this client
+    // notices without waiting for some other change to trigger a refetch.
+    if (checked && currentStore?.hideCheckedItemsEnabled) {
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ["shoppingItems", storeId] }), HIDE_CHECKED_ITEMS_DELAY_MS);
+    }
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
@@ -247,6 +281,13 @@ export function ShoppingPage() {
             />
           )}
         </div>
+        {storeId && currentStore && (
+          <ToggleSwitch
+            label="Hide checked items"
+            checked={currentStore.hideCheckedItemsEnabled}
+            onChange={(next) => updateStoreSettings.mutate({ storeId, req: { hideCheckedItemsEnabled: next } })}
+          />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 px-5 pb-5">
@@ -278,12 +319,7 @@ export function ShoppingPage() {
                 >
                   <div className="flex items-center gap-2.5 p-3">
                     <button
-                      onClick={() =>
-                        updateItem.mutate({
-                          id: item.id,
-                          req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked: !item.checked },
-                        })
-                      }
+                      onClick={() => handleToggleChecked(item)}
                       className={`flex h-5 w-5 flex-none items-center justify-center rounded-[6px] ${
                         item.checked ? "bg-cat-home text-white" : "border-2 border-ink-fainter"
                       }`}
@@ -310,16 +346,6 @@ export function ShoppingPage() {
               )
             )}
           </div>
-        )}
-
-        {storeId && hasCheckedItems && (
-          <button
-            onClick={() => hideCheckedItems.mutate(storeId)}
-            disabled={hideCheckedItems.isPending}
-            className="flex h-12 items-center justify-center gap-2 rounded-card-lg bg-chip text-sm font-bold text-ink-muted disabled:opacity-50"
-          >
-            Remove checked items
-          </button>
         )}
 
         {organizeError && (

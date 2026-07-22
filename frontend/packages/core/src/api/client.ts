@@ -68,6 +68,7 @@ import type {
   UpdateProjectTaskRequest,
   UpdateRecipeRequest,
   UpdateSavedLocationRequest,
+  UpdateStoreSettingsRequest,
   UpdateUserRequest,
   UpsertMenuEntryRequest,
   UserDto,
@@ -240,8 +241,8 @@ export const api = {
     apiFetch<ShoppingItemDto>(`/api/stores/${storeId}/items`, { method: "POST", body: JSON.stringify(req) }),
   organizeShoppingItems: (storeId: string) =>
     apiFetch<ShoppingItemDto[]>(`/api/stores/${storeId}/organize`, { method: "POST" }),
-  hideCheckedShoppingItems: (storeId: string) =>
-    apiFetch<void>(`/api/stores/${storeId}/hide-checked-items`, { method: "POST" }),
+  updateStoreSettings: (storeId: string, req: UpdateStoreSettingsRequest) =>
+    apiFetch<void>(`/api/stores/${storeId}/settings`, { method: "PATCH", body: JSON.stringify(req) }),
   deleteCheckedShoppingItems: (storeId: string) =>
     apiFetch<void>(`/api/stores/${storeId}/delete-checked-items`, { method: "POST" }),
   updateShoppingItem: (id: string, req: UpdateItemRequest) =>

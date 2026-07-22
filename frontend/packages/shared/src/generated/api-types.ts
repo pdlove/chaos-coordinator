@@ -408,6 +408,7 @@ export interface StoreDto {
   id: string;
   name: string;
   order: number;
+  hideCheckedItemsEnabled: boolean;
 }
 
 export interface ShoppingItemDto {
@@ -435,6 +436,10 @@ export interface ItemSuggestionDto {
 
 export interface CreateStoreRequest {
   name: string;
+}
+
+export interface UpdateStoreSettingsRequest {
+  hideCheckedItemsEnabled: boolean;
 }
 
 export interface CreateItemRequest {

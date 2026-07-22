@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { CreateItemRequest, CreateStoreRequest, PayItemRequest, UpdateItemRequest } from "@chaos-coordinator/shared";
+import type {
+  CreateItemRequest,
+  CreateStoreRequest,
+  PayItemRequest,
+  UpdateItemRequest,
+  UpdateStoreSettingsRequest,
+} from "@chaos-coordinator/shared";
 
 export function useStores() {
   return useQuery({ queryKey: ["stores"], queryFn: api.getStores });
@@ -67,13 +73,18 @@ export function useOrganizeShoppingItems() {
   });
 }
 
-/** "Remove checked items" — hides (doesn't delete) every currently-checked item; anything
- * checked off after this stays visible until it's pressed again. */
-export function useHideCheckedShoppingItems() {
-  const invalidate = useInvalidateItems();
+/** "Hide checked items" toggle — when on, a checked item drops out of the list once it's been
+ * checked for a few seconds (see StoresController.HideCheckedItemsDelay server-side); this just
+ * flips the store-level setting, not any individual item's visibility. */
+export function useUpdateStoreSettings() {
+  const queryClient = useQueryClient();
+  const invalidateItems = useInvalidateItems();
   return useMutation({
-    mutationFn: (storeId: string) => api.hideCheckedShoppingItems(storeId),
-    onSuccess: invalidate,
+    mutationFn: ({ storeId, req }: { storeId: string; req: UpdateStoreSettingsRequest }) => api.updateStoreSettings(storeId, req),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      invalidateItems();
+    },
   });
 }
 

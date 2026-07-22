@@ -1,6 +1,6 @@
 namespace ChaosCoordinator.Api.Dtos;
 
-public record StoreDto(Guid Id, string Name, int Order);
+public record StoreDto(Guid Id, string Name, int Order, bool HideCheckedItemsEnabled);
 
 public record ShoppingItemDto(
     Guid Id,
@@ -21,6 +21,8 @@ public record PriceHistoryEntryDto(DateTime PaidAt, decimal Price);
 public record ItemSuggestionDto(string Name, string Department, int TimesBought, decimal? LastPrice);
 
 public record CreateStoreRequest(string Name);
+
+public record UpdateStoreSettingsRequest(bool HideCheckedItemsEnabled);
 
 public record CreateItemRequest(string Name, string Department, string? Note, int Quantity);
 
