@@ -26,6 +26,29 @@ function describeOrganizeError(err: unknown): string {
 
 const SWIPE_REVEAL_PX = 76;
 
+/** Section headers are just regular items with an all-caps name (see isGroupHeader) — deleting
+ * the last non-header item under one leaves a heading with nothing under it, so it should go too. */
+function findOrphanedHeaderId(items: ShoppingItemDto[], deletedItemId: string): string | undefined {
+  const index = items.findIndex((i) => i.id === deletedItemId);
+  if (index === -1) return undefined;
+
+  let headerIndex = -1;
+  for (let i = index - 1; i >= 0; i--) {
+    if (isGroupHeader(items[i].name)) {
+      headerIndex = i;
+      break;
+    }
+  }
+  if (headerIndex === -1) return undefined;
+
+  for (let i = headerIndex + 1; i < items.length; i++) {
+    if (i === index) continue;
+    if (isGroupHeader(items[i].name)) break;
+    return undefined; // a sibling item remains — keep the header
+  }
+  return items[headerIndex].id;
+}
+
 /** Wraps a row so it can be dragged left to reveal a delete button. Only a horizontal drag opens
  * it — a plain tap passes straight through to the row's own buttons (checkbox, edit), and a tap
  * while already open just closes it instead of triggering them. */
@@ -170,7 +193,14 @@ export function ShoppingPage() {
                   {item.name}
                 </div>
               ) : (
-                <SwipeToDeleteRow key={item.id} onDelete={() => deleteItem.mutate(item.id)}>
+                <SwipeToDeleteRow
+                  key={item.id}
+                  onDelete={() => {
+                    const orphanedHeaderId = findOrphanedHeaderId(items ?? [], item.id);
+                    deleteItem.mutate(item.id);
+                    if (orphanedHeaderId) deleteItem.mutate(orphanedHeaderId);
+                  }}
+                >
                   <div className="flex items-center gap-2.5 p-3">
                     <button
                       onClick={() =>
