@@ -8,6 +8,7 @@ interface ItemEditModalProps {
 }
 
 export function ItemEditModal({ item, storeName, onClose }: ItemEditModalProps) {
+  const [name, setName] = useState(item.name);
   const [quantity, setQuantity] = useState(item.quantity);
   const [price, setPrice] = useState(item.lastPaidPrice?.toFixed(2) ?? "");
   const updateItem = useUpdateShoppingItem();
@@ -15,8 +16,12 @@ export function ItemEditModal({ item, storeName, onClose }: ItemEditModalProps) 
   const { data: history } = useItemPriceHistory(item.id);
 
   async function handleSave() {
-    if (quantity !== item.quantity) {
-      await updateItem.mutateAsync({ id: item.id, req: { name: item.name, department: item.department, note: item.note, quantity, checked: item.checked } });
+    const trimmedName = name.trim();
+    if ((trimmedName && trimmedName !== item.name) || quantity !== item.quantity) {
+      await updateItem.mutateAsync({
+        id: item.id,
+        req: { name: trimmedName || item.name, department: item.department, note: item.note, quantity, checked: item.checked },
+      });
     }
     const parsed = parseFloat(price);
     if (!isNaN(parsed)) {
@@ -31,9 +36,13 @@ export function ItemEditModal({ item, storeName, onClose }: ItemEditModalProps) 
         className="flex w-full max-w-[420px] flex-col gap-4 rounded-t-card-lg bg-app p-6 sm:rounded-card-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-xl font-extrabold text-ink">{item.name}</div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full min-w-0 text-xl font-extrabold text-ink outline-none"
+            />
             <div className="mt-0.5 text-xs font-medium text-ink-muted">
               {item.department} · {storeName}
             </div>
