@@ -21,6 +21,7 @@ public class ShoppingListItemConfiguration : IEntityTypeConfiguration<ShoppingLi
         b.Property(x => x.Name).IsRequired().HasMaxLength(200);
         b.Property(x => x.Department).IsRequired().HasMaxLength(100);
         b.Property(x => x.LastPaidPrice).HasPrecision(10, 2);
+        b.Property(x => x.ImageUrl).HasMaxLength(500);
         b.HasIndex(x => new { x.StoreId, x.Name });
 
         b.HasOne(x => x.Store)

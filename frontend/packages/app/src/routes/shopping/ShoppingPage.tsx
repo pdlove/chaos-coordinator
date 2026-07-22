@@ -257,7 +257,10 @@ export function ShoppingPage() {
 
   function handleToggleChecked(item: ShoppingItemDto) {
     const checked = !item.checked;
-    updateItem.mutate({ id: item.id, req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked } });
+    updateItem.mutate({
+      id: item.id,
+      req: { name: item.name, department: item.department, note: item.note, quantity: item.quantity, checked, imageUrl: item.imageUrl },
+    });
     // The server (StoresController.GetItems) is the actual source of truth for when a checked
     // item becomes hidden; this timer just re-asks it after the same delay so this client
     // notices without waiting for some other change to trigger a refetch.

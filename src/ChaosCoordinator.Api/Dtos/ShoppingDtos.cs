@@ -10,7 +10,8 @@ public record ShoppingItemDto(
     string? Note,
     int Quantity,
     bool Checked,
-    decimal? LastPaidPrice
+    decimal? LastPaidPrice,
+    string? ImageUrl
 );
 
 public record PriceHistoryEntryDto(DateTime PaidAt, decimal Price);
@@ -26,6 +27,6 @@ public record UpdateStoreSettingsRequest(bool HideCheckedItemsEnabled);
 
 public record CreateItemRequest(string Name, string Department, string? Note, int Quantity);
 
-public record UpdateItemRequest(string Name, string Department, string? Note, int Quantity, bool Checked);
+public record UpdateItemRequest(string Name, string Department, string? Note, int Quantity, bool Checked, string? ImageUrl);
 
 public record PayItemRequest(decimal Price);

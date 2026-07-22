@@ -50,6 +50,7 @@ public class ShoppingItemsController(AppDbContext db, HouseholdContext household
         item.Department = request.Department;
         item.Note = request.Note;
         item.Quantity = request.Quantity <= 0 ? 1 : request.Quantity;
+        item.ImageUrl = request.ImageUrl;
         if (request.Checked && !item.Checked) item.CheckedAt = DateTime.UtcNow;
         else if (!request.Checked) item.CheckedAt = null;
         item.Checked = request.Checked;

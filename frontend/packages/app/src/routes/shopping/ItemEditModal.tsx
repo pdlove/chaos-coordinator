@@ -1,5 +1,11 @@
-import { useState } from "react";
-import { useItemPriceHistory, usePayShoppingItem, useUpdateShoppingItem, type ShoppingItemDto } from "@chaos-coordinator/core";
+import { useRef, useState } from "react";
+import {
+  useItemPriceHistory,
+  usePayShoppingItem,
+  useUpdateShoppingItem,
+  useUploadShoppingItemPhoto,
+  type ShoppingItemDto,
+} from "@chaos-coordinator/core";
 
 interface ItemEditModalProps {
   item: ShoppingItemDto;
@@ -11,16 +17,26 @@ export function ItemEditModal({ item, storeName, onClose }: ItemEditModalProps) 
   const [name, setName] = useState(item.name);
   const [quantity, setQuantity] = useState(item.quantity);
   const [price, setPrice] = useState(item.lastPaidPrice?.toFixed(2) ?? "");
+  const [imageUrl, setImageUrl] = useState(item.imageUrl);
   const updateItem = useUpdateShoppingItem();
   const payItem = usePayShoppingItem();
+  const uploadPhoto = useUploadShoppingItemPhoto();
   const { data: history } = useItemPriceHistory(item.id);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const { url } = await uploadPhoto.mutateAsync({ file, fileName: file.name });
+    setImageUrl(url);
+  }
 
   async function handleSave() {
     const trimmedName = name.trim();
-    if ((trimmedName && trimmedName !== item.name) || quantity !== item.quantity) {
+    if ((trimmedName && trimmedName !== item.name) || quantity !== item.quantity || imageUrl !== item.imageUrl) {
       await updateItem.mutateAsync({
         id: item.id,
-        req: { name: trimmedName || item.name, department: item.department, note: item.note, quantity, checked: item.checked },
+        req: { name: trimmedName || item.name, department: item.department, note: item.note, quantity, checked: item.checked, imageUrl },
       });
     }
     const parsed = parseFloat(price);
@@ -75,6 +91,33 @@ export function ItemEditModal({ item, storeName, onClose }: ItemEditModalProps) 
               className="h-12 w-full rounded-xl border-[1.5px] border-ink bg-card px-3.5 text-base font-extrabold text-ink"
             />
           </div>
+        </div>
+
+        <div>
+          <div className="mb-1.5 text-[10.5px] font-bold uppercase tracking-wide text-ink-faint">Photo</div>
+          {imageUrl ? (
+            <div className="relative">
+              <a href={imageUrl} target="_blank" rel="noreferrer">
+                <img src={imageUrl} alt="" className="h-32 w-full rounded-xl object-cover" />
+              </a>
+              <button
+                onClick={() => setImageUrl(null)}
+                aria-label="Remove photo"
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink/70 text-xs font-bold text-white"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadPhoto.isPending}
+              className="flex h-24 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-ink-fainter disabled:opacity-50"
+            >
+              <span className="text-xs font-bold text-ink-faint">{uploadPhoto.isPending ? "Uploading…" : "Tap to add a photo"}</span>
+            </button>
+          )}
+          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
         </div>
 
         {history && history.length > 0 && (

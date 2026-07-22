@@ -54,6 +54,11 @@ public class ShoppingListItem
     /// <summary>Denormalized for fast list rendering; source of truth is PriceHistoryEntry.</summary>
     public decimal? LastPaidPrice { get; set; }
 
+    /// <summary>Relative /uploads/... URL of a photo attached to this item (what it looks like,
+    /// a barcode, whatever) — set via UploadsController same as ChoreCompletion.PhotoUrl, not a
+    /// dedicated entity, since it's a single optional image per item.</summary>
+    public string? ImageUrl { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     /// <summary>Soft delete — set instead of removing the row, so a future "undelete" has

@@ -63,7 +63,7 @@ public class StoresController(
             .Where(i => !i.Checked || i.CheckedAt == null
                 || !i.Store!.HideCheckedItemsEnabled || i.CheckedAt > hideCutoff)
             .OrderBy(i => i.Order).ThenBy(i => i.Department).ThenBy(i => i.CreatedAt)
-            .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice))
+            .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice, i.ImageUrl))
             .ToListAsync();
         return Ok(items);
     }
@@ -122,7 +122,7 @@ public class StoresController(
         db.ShoppingListItems.Add(item);
         await db.SaveChangesAsync();
         await notifier.NotifyAsync(household.HouseholdId, RealtimeEvents.ShoppingChanged);
-        return Ok(new ShoppingItemDto(item.Id, item.StoreId, item.Name, item.Department, item.Note, item.Quantity, item.Checked, item.LastPaidPrice));
+        return Ok(new ShoppingItemDto(item.Id, item.StoreId, item.Name, item.Department, item.Note, item.Quantity, item.Checked, item.LastPaidPrice, item.ImageUrl));
     }
 
     /// <summary>Groups every real (non-header) item in this store's list into AI-defined
@@ -200,7 +200,7 @@ public class StoresController(
         var updated = await db.ShoppingListItems
             .Where(i => i.StoreId == storeId && i.DeletedAt == null)
             .OrderBy(i => i.Order).ThenBy(i => i.Department).ThenBy(i => i.CreatedAt)
-            .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice))
+            .Select(i => new ShoppingItemDto(i.Id, i.StoreId, i.Name, i.Department, i.Note, i.Quantity, i.Checked, i.LastPaidPrice, i.ImageUrl))
             .ToListAsync(ct);
         return Ok(updated);
     }

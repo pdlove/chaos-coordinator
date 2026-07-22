@@ -420,6 +420,7 @@ export interface ShoppingItemDto {
   quantity: number;
   checked: boolean;
   lastPaidPrice: number | null;
+  imageUrl: string | null;
 }
 
 export interface PriceHistoryEntryDto {
@@ -455,6 +456,7 @@ export interface UpdateItemRequest {
   note: string | null;
   quantity: number;
   checked: boolean;
+  imageUrl: string | null;
 }
 
 export interface PayItemRequest {

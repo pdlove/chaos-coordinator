@@ -98,6 +98,14 @@ export function useDeleteCheckedShoppingItems() {
   });
 }
 
+/** Shares UploadsController's generic chore-photo endpoint (see api.uploadChorePhoto) — it just
+ * writes a file and hands back a URL, with nothing chore-specific about it. The caller attaches
+ * the returned URL to an item via useUpdateShoppingItem the same way chores attach it on
+ * completion. */
+export function useUploadShoppingItemPhoto() {
+  return useMutation({ mutationFn: ({ file, fileName }: { file: Blob; fileName: string }) => api.uploadChorePhoto(file, fileName) });
+}
+
 export function useItemPriceHistory(id: string | undefined) {
   return useQuery({
     queryKey: ["itemPriceHistory", id],
