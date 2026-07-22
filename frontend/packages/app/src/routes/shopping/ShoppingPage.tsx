@@ -157,12 +157,12 @@ export function ShoppingPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5">
+      <div className="flex flex-1 flex-col gap-4 px-5 pb-5">
         {/* Flat, backend-ordered list — section structure comes entirely from inline header rows
             (typed by hand in ALL CAPS, or inserted by "Organize list"), not from bucketing by
             department, so the two ways of grouping the list render identically. */}
         {!!items?.length && (
-          <div className="flex flex-col divide-y divide-border overflow-hidden rounded-card bg-card shadow-sm">
+          <div className="flex flex-col divide-y divide-border overflow-y-auto rounded-card bg-card shadow-sm">
             {items.map((item) =>
               isGroupHeader(item.name) ? (
                 // No checkbox, no price/quantity, not tappable (nothing on it to edit today).
