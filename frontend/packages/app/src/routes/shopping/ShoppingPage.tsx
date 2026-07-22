@@ -49,10 +49,31 @@ function findOrphanedHeaderId(items: ShoppingItemDto[], deletedItemId: string): 
   return items[headerIndex].id;
 }
 
+/** True once a header has no items left under it (before the next header or the end of the
+ * list) — including headers that were already empty (e.g. typed by hand with nothing added
+ * under them yet), not just ones orphaned by findOrphanedHeaderId above. */
+function isEmptyCategory(items: ShoppingItemDto[], headerId: string): boolean {
+  const index = items.findIndex((i) => i.id === headerId);
+  if (index === -1) return false;
+  for (let i = index + 1; i < items.length; i++) {
+    if (isGroupHeader(items[i].name)) break;
+    return false;
+  }
+  return true;
+}
+
 /** Wraps a row so it can be dragged left to reveal a delete button. Only a horizontal drag opens
  * it — a plain tap passes straight through to the row's own buttons (checkbox, edit), and a tap
  * while already open just closes it instead of triggering them. */
-function SwipeToDeleteRow({ onDelete, children }: { onDelete: () => void; children: React.ReactNode }) {
+function SwipeToDeleteRow({
+  onDelete,
+  children,
+  contentClassName = "bg-card",
+}: {
+  onDelete: () => void;
+  children: React.ReactNode;
+  contentClassName?: string;
+}) {
   const [offset, setOffset] = useState(0);
   const dragRef = useRef<{ startX: number; startOffset: number } | null>(null);
   const movedRef = useRef(false);
@@ -104,7 +125,7 @@ function SwipeToDeleteRow({ onDelete, children }: { onDelete: () => void; childr
           }
         }}
         style={{ transform: `translateX(${offset}px)`, transition: dragRef.current ? "none" : "transform 150ms ease-out" }}
-        className="touch-pan-y bg-card"
+        className={`touch-pan-y ${contentClassName}`}
       >
         {children}
       </div>
@@ -188,10 +209,16 @@ export function ShoppingPage() {
           <div className="flex flex-col divide-y divide-border overflow-y-auto rounded-card bg-card shadow-sm">
             {items.map((item) =>
               isGroupHeader(item.name) ? (
-                // No checkbox, no price/quantity, not tappable (nothing on it to edit today).
-                <div key={item.id} className="bg-chip px-3 py-2 text-[12px] font-extrabold uppercase tracking-wide text-ink-muted">
-                  {item.name}
-                </div>
+                isEmptyCategory(items, item.id) ? (
+                  <SwipeToDeleteRow key={item.id} onDelete={() => deleteItem.mutate(item.id)} contentClassName="bg-chip">
+                    <div className="px-3 py-2 text-[12px] font-extrabold uppercase tracking-wide text-ink-muted">{item.name}</div>
+                  </SwipeToDeleteRow>
+                ) : (
+                  // No checkbox, no price/quantity, not tappable (nothing on it to edit today).
+                  <div key={item.id} className="bg-chip px-3 py-2 text-[12px] font-extrabold uppercase tracking-wide text-ink-muted">
+                    {item.name}
+                  </div>
+                )
               ) : (
                 <SwipeToDeleteRow
                   key={item.id}
