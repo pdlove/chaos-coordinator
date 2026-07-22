@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ApiError,
@@ -158,6 +158,45 @@ function IconButton({
   );
 }
 
+/** The ✨ icon opens a menu of AI functions instead of triggering one directly — "Organize list"
+ * is the only one today, but this is where a future one (e.g. "Suggest a recipe's ingredients")
+ * would get a second entry rather than a second icon. */
+function AiMenuButton({ organizing, onOrganize }: { organizing: boolean; onOrganize: () => void }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutsideClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <IconButton label="AI functions" onClick={() => setOpen((o) => !o)}>
+        ✨
+      </IconButton>
+      {open && (
+        <div className="absolute right-0 top-full z-10 mt-2 w-48 overflow-hidden rounded-xl bg-card py-1 shadow-lg">
+          <button
+            onClick={() => {
+              setOpen(false);
+              onOrganize();
+            }}
+            disabled={organizing}
+            className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm font-bold text-ink disabled:opacity-50"
+          >
+            ✨ {organizing ? "Organizing…" : "Organize list"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Standard proven proportions (the ones Tailwind UI/Headless UI ship) — a custom h-6/w-10 track
 // with an 18px translate looked right at rest but overflowed the pill's curve on the right at
 // the "on" position, since the thumb's top/bottom corners land in the tightest part of the
@@ -228,21 +267,12 @@ export function ShoppingPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
+    <div className="relative flex flex-1 flex-col overflow-y-auto">
       <div className="flex flex-none flex-col gap-3 px-5 pb-3 pt-1.5">
         <div className="flex items-center justify-between">
           <div className="text-2xl font-extrabold text-ink">Shopping</div>
           <div className="flex items-center gap-0.5 rounded-full bg-chip px-1.5 py-1">
-            {storeId && (
-              <IconButton label="Add item" onClick={() => setAddingItem(true)}>
-                +
-              </IconButton>
-            )}
-            {storeId && !!items?.length && (
-              <IconButton label="Organize list" onClick={handleOrganize} disabled={organizeItems.isPending}>
-                ✨
-              </IconButton>
-            )}
+            {storeId && !!items?.length && <AiMenuButton organizing={organizeItems.isPending} onOrganize={handleOrganize} />}
             {storeId && hasCheckedItems && (
               <IconButton
                 label="Delete checked items"
@@ -371,6 +401,17 @@ export function ShoppingPage() {
           <div className="rounded-xl bg-[#FDEBEF] px-3 py-2.5 text-sm font-semibold text-cat-doctor">{organizeError}</div>
         )}
       </div>
+
+      {storeId && (
+        <button
+          onClick={() => setAddingItem(true)}
+          aria-label="Add item"
+          className="absolute bottom-5 right-4 flex items-center justify-center rounded-full bg-ink text-2xl text-white shadow-lg"
+          style={{ width: 52, height: 52 }}
+        >
+          +
+        </button>
+      )}
 
       {addingItem && storeId && <AddItemModal storeId={storeId} onClose={() => setAddingItem(false)} />}
       {editingItem && <ItemEditModal item={editingItem} storeName={activeStoreName} onClose={() => setEditingItem(null)} />}
